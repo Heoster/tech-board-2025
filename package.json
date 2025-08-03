@@ -8,6 +8,7 @@
     "server:dev": "cd server && npm run dev",
     "client:dev": "cd client && npm run dev",
     "server:start": "cd server && npm start",
+    "test": "npm test",
     "client:build": "cd client && npm run build",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install"
   },
