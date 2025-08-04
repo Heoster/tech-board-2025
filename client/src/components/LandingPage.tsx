@@ -174,25 +174,167 @@ const LandingPage: React.FC = () => {
       grade: 6,
       title: "Foundation",
       description: "Computer basics & digital literacy",
-      questionCount: 200,
+      questionCount: 211,
       difficulty: "Beginner",
-      color: "from-green-400 via-green-500 to-green-600"
+      color: "from-green-400 via-green-500 to-green-600",
+      syllabus: {
+        topics: [
+          {
+            category: "🖥️ Computer Fundamentals",
+            items: [
+              "What is a computer? Types (desktop, laptop, tablet)",
+              "Basic hardware: CPU, RAM, hard drive, motherboard",
+              "Input/output devices: keyboard, mouse, monitor, printer",
+              "Software types: System vs application software",
+              "Operating systems: Windows, macOS basics"
+            ]
+          },
+          {
+            category: "🧮 Digital Literacy",
+            items: [
+              "File management: creating, saving, organizing folders",
+              "Keyboard shortcuts: copy, paste, undo, redo",
+              "Safe browsing: recognizing secure websites",
+              "Online etiquette: respectful communication",
+              "Digital footprint: understanding online presence"
+            ]
+          },
+          {
+            category: "🌐 Internet & Networking",
+            items: [
+              "How the internet works: basic concepts",
+              "Web browsers: using tabs, bookmarks",
+              "Search engines: smart searching techniques",
+              "Email basics: sending, receiving, attachments",
+              "Wi-Fi and networks: connecting devices"
+            ]
+          },
+          {
+            category: "🔐 Cyber Safety",
+            items: [
+              "Strong passwords: creation and management",
+              "Privacy settings: basic understanding",
+              "Avoiding scams and cyberbullying",
+              "Safe sharing: what's okay to post online",
+              "Recognizing and avoiding online threats"
+            ]
+          }
+        ]
+      }
     },
     {
       grade: 7,
       title: "Explorer",
       description: "Web technologies & programming intro",
-      questionCount: 200,
+      questionCount: 212,
       difficulty: "Intermediate",
-      color: "from-blue-400 via-blue-500 to-blue-600"
+      color: "from-blue-400 via-blue-500 to-blue-600",
+      syllabus: {
+        topics: [
+          {
+            category: "🖥️ Advanced Computer Concepts",
+            items: [
+              "Hardware vs software differences",
+              "Operating systems comparison: Windows, macOS, Linux",
+              "Storage concepts: GB, TB, cloud storage",
+              "Computer performance: RAM, CPU speed",
+              "Network types: LAN, WAN, internet basics"
+            ]
+          },
+          {
+            category: "📊 Productivity Tools",
+            items: [
+              "Word processors: formatting, images, tables",
+              "Spreadsheets: basic formulas, charts, data entry",
+              "Presentations: creating slides, transitions, design",
+              "Cloud storage: Google Drive, OneDrive sharing",
+              "Digital collaboration: sharing and editing files"
+            ]
+          },
+          {
+            category: "🧠 Programming Introduction",
+            items: [
+              "What is coding? Logic and problem-solving",
+              "Block-based coding: Scratch programming",
+              "Basic algorithms: sequencing, loops",
+              "Debugging: finding and fixing errors",
+              "Simple game design concepts"
+            ]
+          },
+          {
+            category: "🌐 Internet & Communication",
+            items: [
+              "IP addresses and domain names",
+              "Wi-Fi networks and connectivity",
+              "Email advanced features: CC, BCC, folders",
+              "Video conferencing basics",
+              "Social media safety and digital citizenship"
+            ]
+          }
+        ]
+      }
     },
     {
       grade: 8,
       title: "Developer",
       description: "Programming logic & system design",
-      questionCount: 200,
+      questionCount: 214,
       difficulty: "Advanced",
-      color: "from-purple-400 via-purple-500 to-purple-600"
+      color: "from-purple-400 via-purple-500 to-purple-600",
+      syllabus: {
+        topics: [
+          {
+            category: "🖥️ System Architecture",
+            items: [
+              "Motherboard functions and components",
+              "RAM vs storage: temporary vs permanent memory",
+              "CPU architecture and processing",
+              "Input/output systems and ports",
+              "Computer maintenance and troubleshooting"
+            ]
+          },
+          {
+            category: "🧠 Programming Fundamentals",
+            items: [
+              "HTML: web page structure and tags",
+              "Programming conditions: if/then logic",
+              "Loops and iterations in code",
+              "Variables and data types",
+              "Algorithm design and flowcharts"
+            ]
+          },
+          {
+            category: "🌐 Web Technologies",
+            items: [
+              "HTTPS and web security",
+              "Search engines: how they work",
+              "Website structure and navigation",
+              "Basic web design principles",
+              "Internet protocols and data transfer"
+            ]
+          },
+          {
+            category: "🔧 Digital Problem Solving",
+            items: [
+              "Computer troubleshooting: slow performance fixes",
+              "Software updates: importance and process",
+              "File organization and backup strategies",
+              "Digital workflow optimization",
+              "System security and maintenance"
+            ]
+          },
+          {
+            category: "🎨 Creative Computing",
+            items: [
+              "Digital art tools and techniques",
+              "Basic animation concepts",
+              "Game design fundamentals",
+              "Multimedia project creation",
+              "Creative software applications"
+            ]
+          }
+        ]
+      }
     },
     {
       grade: 9,
@@ -200,7 +342,51 @@ const LandingPage: React.FC = () => {
       description: "Advanced algorithms & databases",
       questionCount: 200,
       difficulty: "Expert",
-      color: "from-red-400 via-red-500 to-red-600"
+      color: "from-red-400 via-red-500 to-red-600",
+      syllabus: {
+        topics: [
+          {
+            category: "🏗️ System Design",
+            items: [
+              "Database fundamentals and design",
+              "Network architecture and protocols",
+              "Software development lifecycle",
+              "System analysis and requirements",
+              "Data structures and algorithms"
+            ]
+          },
+          {
+            category: "💻 Advanced Programming",
+            items: [
+              "Object-oriented programming concepts",
+              "Advanced HTML/CSS and JavaScript basics",
+              "Programming logic and problem decomposition",
+              "Code optimization and efficiency",
+              "Version control and collaboration"
+            ]
+          },
+          {
+            category: "🔒 Cybersecurity",
+            items: [
+              "Network security fundamentals",
+              "Encryption and data protection",
+              "Ethical hacking concepts",
+              "Digital forensics basics",
+              "Security protocols and best practices"
+            ]
+          },
+          {
+            category: "📊 Data Management",
+            items: [
+              "Database design and normalization",
+              "SQL query fundamentals",
+              "Data analysis and visualization",
+              "Big data concepts",
+              "Information systems design"
+            ]
+          }
+        ]
+      }
     },
     {
       grade: 11,
@@ -208,7 +394,61 @@ const LandingPage: React.FC = () => {
       description: "AI, ML & emerging technologies",
       questionCount: 300,
       difficulty: "Elite",
-      color: "from-yellow-400 via-orange-500 to-red-500"
+      color: "from-yellow-400 via-orange-500 to-red-500",
+      syllabus: {
+        topics: [
+          {
+            category: "🤖 Artificial Intelligence",
+            items: [
+              "Machine learning fundamentals",
+              "Neural networks and deep learning",
+              "AI applications in real world",
+              "Natural language processing basics",
+              "Computer vision concepts"
+            ]
+          },
+          {
+            category: "🚀 Emerging Technologies",
+            items: [
+              "Cloud computing and services",
+              "Internet of Things (IoT)",
+              "Blockchain and cryptocurrency",
+              "Quantum computing basics",
+              "Augmented and Virtual Reality"
+            ]
+          },
+          {
+            category: "💼 Tech Entrepreneurship",
+            items: [
+              "Software project management",
+              "Tech startup fundamentals",
+              "Digital marketing and analytics",
+              "User experience (UX) design",
+              "Technology ethics and society"
+            ]
+          },
+          {
+            category: "🔬 Advanced Computing",
+            items: [
+              "Advanced algorithms and complexity",
+              "Distributed systems and microservices",
+              "Mobile app development concepts",
+              "DevOps and continuous integration",
+              "Performance optimization techniques"
+            ]
+          },
+          {
+            category: "🌍 Global Tech Impact",
+            items: [
+              "Technology for social good",
+              "Digital divide and accessibility",
+              "Environmental impact of technology",
+              "Future of work and automation",
+              "International tech policies"
+            ]
+          }
+        ]
+      }
     }
   ];
 
@@ -358,14 +598,75 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Syllabus Overview */}
+      <section className="relative z-10 max-w-7xl mx-auto px-6 py-20">
+        <div className="text-center mb-16">
+          <h2 className="text-5xl font-black mb-6 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+            📚 Complete Syllabus Overview
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-8">
+            Comprehensive curriculum designed for progressive learning from basic computer literacy to advanced technology concepts
+          </p>
+        </div>
+
+        {/* Quick Syllabus Cards */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+          {[
+            {
+              grades: "6-7",
+              title: "Foundation & Exploration",
+              icon: "🌱",
+              color: "from-green-400 to-blue-500",
+              topics: ["Computer Basics", "Digital Literacy", "Internet Safety", "Basic Programming", "Productivity Tools"]
+            },
+            {
+              grades: "8-9", 
+              title: "Development & Architecture",
+              icon: "🏗️",
+              color: "from-blue-500 to-purple-500",
+              topics: ["System Design", "Web Technologies", "Advanced Programming", "Database Concepts", "Cybersecurity"]
+            },
+            {
+              grades: "11",
+              title: "Innovation & Leadership",
+              icon: "🚀",
+              color: "from-purple-500 to-pink-500",
+              topics: ["Artificial Intelligence", "Machine Learning", "Emerging Tech", "Tech Entrepreneurship", "Global Impact"]
+            }
+          ].map((category, index) => (
+            <div
+              key={index}
+              className={`group relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br ${category.color} text-white shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105`}
+            >
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
+                <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                  {category.icon}
+                </div>
+                <div className="text-sm font-bold mb-2 opacity-90">Grades {category.grades}</div>
+                <h3 className="text-2xl font-black mb-4">{category.title}</h3>
+                <div className="space-y-2">
+                  {category.topics.map((topic, topicIndex) => (
+                    <div key={topicIndex} className="flex items-center space-x-2">
+                      <div className="w-1.5 h-1.5 bg-white/70 rounded-full" />
+                      <span className="text-sm opacity-90">{topic}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Grade Selection */}
       <section className="relative z-10 max-w-7xl mx-auto px-6 py-20">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-black mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Choose Your Path
+            Choose Your Grade Level
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Select your grade level to discover the challenges that await you in TECH BOARD 2025
+            Select your grade to view detailed syllabus and start your TECH BOARD 2025 assessment journey
           </p>
         </div>
 
@@ -386,65 +687,149 @@ const LandingPage: React.FC = () => {
         </div>
 
         {selectedGrade && (
-          <div className="max-w-4xl mx-auto animate-fade-in">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20">
+          <div className="max-w-6xl mx-auto animate-fade-in">
+            <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20">
               <div className="text-center mb-8">
-                <h3 className="text-3xl font-black mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Grade {selectedGrade} School Assessment
+                <h3 className="text-4xl font-black mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  Grade {selectedGrade} - {gradeData.find(g => g.grade === selectedGrade)?.title} Level
                 </h3>
-                <p className="text-lg text-gray-600 dark:text-gray-300">
-                  Ready to represent your school at the {gradeData.find(g => g.grade === selectedGrade)?.difficulty.toLowerCase()} level?
+                <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                  Complete syllabus and assessment details for {gradeData.find(g => g.grade === selectedGrade)?.difficulty.toLowerCase()} level students
                 </p>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
-                <div className="space-y-4">
-                  <h4 className="text-xl font-bold text-gray-800 dark:text-gray-200">📚 What You'll Face:</h4>
-                  <div className="space-y-3">
-                    {[
-                      'Computer Fundamentals & Theory',
-                      'Programming Logic & Concepts',
-                      'Digital Literacy & Ethics',
-                      'Problem Solving & Analysis'
-                    ].map((topic, index) => (
-                      <div key={index} className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
-                        <span className="text-gray-700 dark:text-gray-300">{topic}</span>
-                      </div>
-                    ))}
+                
+                {/* Quick Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                  <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-2xl p-4">
+                    <div className="text-2xl font-black text-green-600 dark:text-green-400">
+                      {gradeData.find(g => g.grade === selectedGrade)?.questionCount}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Total Questions</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl p-4">
+                    <div className="text-2xl font-black text-blue-600 dark:text-blue-400">25</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Test Questions</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl p-4">
+                    <div className="text-2xl font-black text-purple-600 dark:text-purple-400">30</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Minutes</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-pink-500/10 to-red-500/10 rounded-2xl p-4">
+                    <div className="text-2xl font-black text-pink-600 dark:text-pink-400">18+</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Pass Score</div>
                   </div>
                 </div>
+              </div>
 
-                <div className="space-y-4">
-                  <h4 className="text-xl font-bold text-gray-800 dark:text-gray-200">⚡ Test Details:</h4>
+              {/* Detailed Syllabus */}
+              <div className="mb-8">
+                <h4 className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  📚 Complete Syllabus Breakdown
+                </h4>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  {gradeData.find(g => g.grade === selectedGrade)?.syllabus.topics.map((topic, topicIndex) => (
+                    <div key={topicIndex} className="bg-gradient-to-br from-white/50 to-gray-50/50 dark:from-gray-700/50 dark:to-gray-800/50 rounded-2xl p-6 border border-gray-200/50 dark:border-gray-600/50">
+                      <h5 className="text-lg font-bold mb-4 text-gray-800 dark:text-gray-200 flex items-center">
+                        <span className="mr-2">{topic.category.split(' ')[0]}</span>
+                        <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                          {topic.category.split(' ').slice(1).join(' ')}
+                        </span>
+                      </h5>
+                      <div className="space-y-3">
+                        {topic.items.map((item, itemIndex) => (
+                          <div key={itemIndex} className="flex items-start space-x-3 group">
+                            <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2 group-hover:scale-125 transition-transform" />
+                            <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                              {item}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Assessment Details */}
+              <div className="grid md:grid-cols-2 gap-8 mb-8">
+                <div className="bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl p-6 border border-green-200/50 dark:border-green-700/50">
+                  <h4 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+                    <span className="text-2xl mr-3">🎯</span>
+                    Assessment Format
+                  </h4>
                   <div className="space-y-3">
                     {[
-                      '25 Carefully Selected Questions',
-                      '30 Minutes Time Limit',
-                      '18+ Score Required to Pass',
-                      'One Attempt Only - Make it Count!'
+                      'Multiple Choice Questions (MCQ)',
+                      '4 options per question',
+                      'Single correct answer',
+                      'No negative marking',
+                      'Questions cover all syllabus topics'
                     ].map((detail, index) => (
                       <div key={index} className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full" />
+                        <div className="w-2 h-2 bg-gradient-to-r from-green-500 to-blue-500 rounded-full" />
                         <span className="text-gray-700 dark:text-gray-300">{detail}</span>
                       </div>
                     ))}
                   </div>
                 </div>
+
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-purple-200/50 dark:border-purple-700/50">
+                  <h4 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+                    <span className="text-2xl mr-3">⚡</span>
+                    Success Tips
+                  </h4>
+                  <div className="space-y-3">
+                    {[
+                      'Review all syllabus topics thoroughly',
+                      'Practice with sample questions',
+                      'Manage your time effectively',
+                      'Read questions carefully',
+                      'Stay calm and focused during test'
+                    ].map((tip, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
+                        <span className="text-gray-700 dark:text-gray-300">{tip}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              <div className="text-center">
-                <button
-                  onClick={() => navigate('/login')}
-                  className="group relative px-16 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                >
-                  <span className="relative z-10 flex items-center space-x-3">
-                    <span>Begin Grade {selectedGrade} Challenge</span>
-                    <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </span>
-                </button>
+              {/* Call to Action */}
+              <div className="text-center bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-2xl p-8">
+                <h4 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  Ready for the Challenge?
+                </h4>
+                <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
+                  Join thousands of students taking the TECH BOARD 2025 assessment. 
+                  Prove your skills and earn recognition for your computer science knowledge!
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    onClick={() => navigate('/register')}
+                    className="group relative px-12 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <span className="relative z-10 flex items-center space-x-3">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      <span>Register for Grade {selectedGrade}</span>
+                    </span>
+                  </button>
+                  
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="group relative px-12 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <span className="relative z-10 flex items-center space-x-3">
+                      <span>Start Grade {selectedGrade} Test</span>
+                      <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

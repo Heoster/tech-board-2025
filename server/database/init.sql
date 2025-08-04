@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS students (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(100) NOT NULL,
     roll_number INTEGER NOT NULL CHECK (roll_number >= 1 AND roll_number <= 80),
-    grade INTEGER NOT NULL CHECK (grade IN (6, 7, 8, 9, 11)),
+    grade INTEGER NOT NULL CHECK (grade IN (1, 6, 7, 8, 9, 11)),
     section CHAR(1) NOT NULL CHECK (section IN ('A', 'B')),
     password_hash VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS students (
 -- Questions table with updated grade constraints
 CREATE TABLE IF NOT EXISTS questions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    grade INTEGER NOT NULL CHECK (grade IN (6, 7, 8, 9, 11)),
+    grade INTEGER NOT NULL CHECK (grade IN (1, 6, 7, 8, 9, 11)),
     difficulty TEXT NOT NULL CHECK (difficulty IN ('basic', 'medium', 'advanced')),
     question_text TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

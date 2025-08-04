@@ -38,8 +38,8 @@ FOR EACH ROW
 BEGIN
     -- Check if grade is allowed
     SELECT CASE 
-        WHEN NEW.grade NOT IN (6, 7, 8, 9, 11) THEN
-            RAISE(ABORT, 'RULE VIOLATION: Grade must be 6, 7, 8, 9, or 11')
+        WHEN NEW.grade NOT IN (1, 6, 7, 8, 9, 11) THEN
+            RAISE(ABORT, 'RULE VIOLATION: Grade must be 1, 6, 7, 8, 9, or 11')
     END;
     
     -- Check if roll number is within valid range
@@ -68,8 +68,8 @@ FOR EACH ROW
 BEGIN
     -- Check if grade is allowed
     SELECT CASE 
-        WHEN NEW.grade NOT IN (6, 7, 8, 9, 11) THEN
-            RAISE(ABORT, 'RULE VIOLATION: Grade must be 6, 7, 8, 9, or 11')
+        WHEN NEW.grade NOT IN (1, 6, 7, 8, 9, 11) THEN
+            RAISE(ABORT, 'RULE VIOLATION: Grade must be 1, 6, 7, 8, 9, or 11')
     END;
     
     -- Check if roll number is within valid range
@@ -104,7 +104,7 @@ SELECT
         END
     ) as next_roll_number
 FROM 
-    (SELECT 6 as grade UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 11) g
+    (SELECT 1 as grade UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 11) g
 CROSS JOIN 
     (SELECT 'A' as section UNION SELECT 'B') s;
 
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS database_rules (
 );
 
 INSERT OR REPLACE INTO database_rules (id, rule_name, rule_description, rule_type) VALUES
-(1, 'Grade Structure', 'Only grades 6, 7, 8, 9, and 11 are allowed. Grades 10 and 12 are excluded.', 'CONSTRAINT'),
+(1, 'Grade Structure', 'Only grades 1, 6, 7, 8, 9, and 11 are allowed. Grades 2-5, 10 and 12 are excluded.', 'CONSTRAINT'),
 (2, 'Section Structure', 'Each grade must have exactly two sections: A and B.', 'BUSINESS_RULE'),
 (3, 'Roll Number Range', 'Roll numbers must be between 1 and 80 for each section.', 'CONSTRAINT'),
 (4, 'Section Capacity', 'Each section can have maximum 80 students.', 'BUSINESS_RULE'),
@@ -134,9 +134,9 @@ CREATE VIEW IF NOT EXISTS database_compliance_report AS
 SELECT 
     'Grade Distribution' as check_type,
     COUNT(DISTINCT grade) as actual_count,
-    5 as expected_count,
-    CASE WHEN COUNT(DISTINCT grade) = 5 THEN 'PASS' ELSE 'FAIL' END as status,
-    'Should have exactly 5 grades (6,7,8,9,11)' as description
+    6 as expected_count,
+    CASE WHEN COUNT(DISTINCT grade) = 6 THEN 'PASS' ELSE 'FAIL' END as status,
+    'Should have exactly 6 grades (1,6,7,8,9,11)' as description
 FROM students
 WHERE grade IN (6, 7, 8, 9, 11)
 
@@ -145,9 +145,9 @@ UNION ALL
 SELECT 
     'Section Distribution' as check_type,
     COUNT(DISTINCT grade || '-' || section) as actual_count,
-    10 as expected_count,
-    CASE WHEN COUNT(DISTINCT grade || '-' || section) <= 10 THEN 'PASS' ELSE 'FAIL' END as status,
-    'Should have maximum 10 grade-section combinations' as description
+    12 as expected_count,
+    CASE WHEN COUNT(DISTINCT grade || '-' || section) <= 12 THEN 'PASS' ELSE 'FAIL' END as status,
+    'Should have maximum 12 grade-section combinations' as description
 FROM students
 
 UNION ALL

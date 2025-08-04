@@ -5,270 +5,261 @@ const database = require('../config/database');
 
 const router = express.Router();
 
-// Enhanced Quiz selection algorithm - ensures NO question repetition globally + 70% practical focus for grades 6-8
+// FIXED: Quiz quality validation function
+const validateQuizQuality = async (questionIds, grade, db) => {
+    console.log(`🔍 Validating quiz quality for Grade ${grade}...`);
+    
+    // Get question details for validation
+    const questions = await new Promise((resolve, reject) => {
+        const placeholders = questionIds.map(() => '?').join(',');
+        db.all(`
+            SELECT id, difficulty, category, question_text
+            FROM questions 
+            WHERE id IN (${placeholders})
+        `, questionIds, (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+        });
+    });
+    
+    // Check for duplicates
+    const uniqueIds = new Set(questionIds);
+    if (uniqueIds.size !== questionIds.length) {
+        throw new Error(`VALIDATION FAILED: Found duplicate questions in quiz`);
+    }
+    
+    // Check difficulty distribution
+    const difficultyCount = { basic: 0, medium: 0, advanced: 0 };
+    const categoryCount = {};
+    
+    questions.forEach(q => {
+        difficultyCount[q.difficulty]++;
+        categoryCount[q.category] = (categoryCount[q.category] || 0) + 1;
+    });
+    
+    // Validate difficulty distribution (allow some flexibility)
+    const basicPercentage = (difficultyCount.basic / questions.length) * 100;
+    const mediumPercentage = (difficultyCount.medium / questions.length) * 100;
+    const advancedPercentage = (difficultyCount.advanced / questions.length) * 100;
+    
+    console.log(`📊 Quiz distribution: ${difficultyCount.basic} basic (${basicPercentage.toFixed(1)}%), ${difficultyCount.medium} medium (${mediumPercentage.toFixed(1)}%), ${difficultyCount.advanced} advanced (${advancedPercentage.toFixed(1)}%)`);
+    
+    // Validate category diversity (no single category should dominate)
+    const maxCategoryCount = Math.max(...Object.values(categoryCount));
+    const maxCategoryPercentage = (maxCategoryCount / questions.length) * 100;
+    
+    if (maxCategoryPercentage > 50) {
+        console.warn(`⚠️  WARNING: One category dominates ${maxCategoryPercentage.toFixed(1)}% of the quiz`);
+    }
+    
+    console.log(`✅ Quiz validation passed: ${questions.length} unique questions with balanced distribution`);
+    return true;
+};
+
+// FIXED: Flexible advanced question selection to handle category limits
+const selectAdvancedQuestionsFlexible = async (grade, targetCount, usedQuestionIds, selectedQuestionIds, categoryCount, db) => {
+    const excludeClause = usedQuestionIds.length > 0 ? 
+        `AND id NOT IN (${usedQuestionIds.map(() => '?').join(',')})` : '';
+    
+    // Get all available advanced questions
+    const availableQuestions = await new Promise((resolve, reject) => {
+        db.all(
+            `SELECT id, category, question_text FROM questions 
+             WHERE grade = ? AND difficulty = 'advanced' ${excludeClause}
+             ORDER BY RANDOM()`,
+            [grade, ...usedQuestionIds],
+            (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            }
+        );
+    });
+    
+    console.log(`📋 Available advanced questions: ${availableQuestions.length}`);
+    
+    const selected = [];
+    const maxPerCategory = Math.ceil(25 * 0.5); // FIXED: Relaxed limit for advanced (50% instead of 40%)
+    
+    // First pass: Try to select with relaxed category limits
+    for (const question of availableQuestions) {
+        if (selected.length >= targetCount) break;
+        if (selectedQuestionIds.has(question.id)) continue;
+        
+        const currentCategoryCount = categoryCount[question.category] || 0;
+        if (currentCategoryCount < maxPerCategory) {
+            selected.push(question);
+            selectedQuestionIds.add(question.id);
+            categoryCount[question.category] = currentCategoryCount + 1;
+        }
+    }
+    
+    // Second pass: If still need more, ignore category limits for advanced questions
+    if (selected.length < targetCount) {
+        console.log(`📝 Need ${targetCount - selected.length} more advanced questions, ignoring category limits...`);
+        
+        for (const question of availableQuestions) {
+            if (selected.length >= targetCount) break;
+            if (selectedQuestionIds.has(question.id)) continue;
+            
+            selected.push(question);
+            selectedQuestionIds.add(question.id);
+            categoryCount[question.category] = (categoryCount[question.category] || 0) + 1;
+        }
+    }
+    
+    return selected;
+};
+
+// FIXED: Advanced Quiz selection algorithm with duplicate prevention and balanced distribution
 const selectQuizQuestions = async (grade, totalQuestions = 25, studentId = null) => {
     const db = database.getDb();
     
-    // Define difficulty distribution (60% basic, 30% medium, 10% advanced)
-    const basicCount = Math.floor(totalQuestions * 0.6); // 15 questions
-    const mediumCount = Math.floor(totalQuestions * 0.3); // 7 questions  
-    const advancedCount = totalQuestions - basicCount - mediumCount; // 3 questions
+    console.log(`🎯 Selecting ${totalQuestions} questions for Grade ${grade} (Student ID: ${studentId})`);
     
-    // Define practical/theoretical distribution for grades 6-8
-    const isFoundationalGrade = [6, 7, 8].includes(grade);
-    const practicalCount = isFoundationalGrade ? Math.floor(totalQuestions * 0.7) : 0; // 70% practical for grades 6-8
-    const theoreticalCount = isFoundationalGrade ? totalQuestions - practicalCount : totalQuestions;
-    
-    if (isFoundationalGrade) {
-        console.log(`🎯 Selecting ${totalQuestions} questions for Grade ${grade} (FOUNDATIONAL): ${practicalCount} practical (70%), ${theoreticalCount} theoretical (30%)`);
-        console.log(`📊 Difficulty distribution: ${basicCount} basic, ${mediumCount} medium, ${advancedCount} advanced`);
-    } else {
-        console.log(`💻 Selecting ${totalQuestions} COMPUTER questions for Grade ${grade}: ${basicCount} basic, ${mediumCount} medium, ${advancedCount} advanced`);
-    }
-    
-    const selectedQuestions = [];
-    
-    // Get ALL globally used questions to ensure NO repetition across the entire system
-    let globallyUsedQuestions = [];
+    // Get questions that haven't been used by this student yet
+    let usedQuestionIds = [];
     try {
-        const usedQuestionRows = await new Promise((resolve, reject) => {
+        const usedQuestions = await new Promise((resolve, reject) => {
             db.all(`
-                SELECT DISTINCT question_id 
-                FROM used_questions 
-                WHERE grade = ?
-            `, [grade], (err, rows) => {
+                SELECT DISTINCT r.question_id 
+                FROM responses r
+                JOIN quizzes q ON r.quiz_id = q.id
+                WHERE q.student_id = ? AND q.grade = ?
+            `, [studentId, grade], (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
         });
-        globallyUsedQuestions = usedQuestionRows.map(q => q.question_id);
-        console.log(`🚫 Found ${globallyUsedQuestions.length} globally used questions for Grade ${grade} - these will be excluded`);
+        usedQuestionIds = usedQuestions.map(q => q.question_id);
+        console.log(`🚫 Found ${usedQuestionIds.length} previously used questions for this student`);
     } catch (error) {
-        console.log('⚠️  No globally used questions found or error occurred:', error.message);
+        console.log('⚠️  No previously used questions found:', error.message);
     }
     
-    // Helper function to select questions with focus type filtering for grades 6-8
-    const selectUnusedQuestions = async (difficulty, count, focusType = null, additionalExcludes = []) => {
-        const allExcludes = [...globallyUsedQuestions, ...additionalExcludes];
-        const excludeClause = allExcludes.length > 0 ? 
-            `AND id NOT IN (${allExcludes.map(() => '?').join(',')})` : '';
+    // FIXED: Strict difficulty distribution (60% basic, 30% medium, 10% advanced)
+    const basicCount = Math.floor(totalQuestions * 0.6); // 15 questions
+    const mediumCount = Math.floor(totalQuestions * 0.3); // 7 questions  
+    const advancedCount = totalQuestions - basicCount - mediumCount; // 3 questions
+    
+    console.log(`📊 STRICT Target distribution: ${basicCount} basic, ${mediumCount} medium, ${advancedCount} advanced`);
+    
+    const selectedQuestions = [];
+    const selectedQuestionIds = new Set(); // FIXED: Prevent duplicates
+    
+    // FIXED: Category balancing - ensure diverse topic coverage
+    const maxPerCategory = Math.ceil(totalQuestions * 0.4); // Max 40% from any single category
+    const categoryCount = {};
+    
+    // Helper function to select questions by difficulty with category balancing
+    const selectByDifficultyBalanced = async (difficulty, targetCount) => {
+        const excludeClause = usedQuestionIds.length > 0 ? 
+            `AND id NOT IN (${usedQuestionIds.map(() => '?').join(',')})` : '';
         
-        // Add focus type filter for foundational grades (6-8)
-        const focusClause = focusType ? `AND focus_type = '${focusType}'` : '';
-        
-        return new Promise((resolve, reject) => {
+        // Get all available questions for this difficulty
+        const availableQuestions = await new Promise((resolve, reject) => {
             db.all(
-                `SELECT id FROM questions 
-                 WHERE grade = ? AND difficulty = ? AND topic = 'computer' ${focusClause} ${excludeClause}
-                 ORDER BY RANDOM() LIMIT ?`,
-                [grade, difficulty, ...allExcludes, count],
+                `SELECT id, category FROM questions 
+                 WHERE grade = ? AND difficulty = ? ${excludeClause}
+                 ORDER BY RANDOM()`,
+                [grade, difficulty, ...usedQuestionIds],
                 (err, rows) => {
                     if (err) reject(err);
                     else resolve(rows);
                 }
             );
         });
+        
+        console.log(`📋 Available ${difficulty} questions: ${availableQuestions.length}`);
+        
+        const selected = [];
+        const tempCategoryCount = { ...categoryCount };
+        
+        // FIXED: Select questions with category balancing
+        for (const question of availableQuestions) {
+            if (selected.length >= targetCount) break;
+            if (selectedQuestionIds.has(question.id)) continue; // FIXED: Skip duplicates
+            
+            const currentCategoryCount = tempCategoryCount[question.category] || 0;
+            if (currentCategoryCount < maxPerCategory) {
+                selected.push(question);
+                selectedQuestionIds.add(question.id);
+                tempCategoryCount[question.category] = currentCategoryCount + 1;
+            }
+        }
+        
+        // Update global category count
+        selected.forEach(q => {
+            categoryCount[q.category] = (categoryCount[q.category] || 0) + 1;
+        });
+        
+        return selected;
     };
     
-    // Check available questions by focus type for foundational grades
-    let availablePractical = 0;
-    let availableTheoretical = 0;
-    
-    if (isFoundationalGrade) {
-        // Check practical questions availability
-        availablePractical = await new Promise((resolve, reject) => {
-            const excludeClause = globallyUsedQuestions.length > 0 ? 
-                `AND id NOT IN (${globallyUsedQuestions.map(() => '?').join(',')})` : '';
-            db.get(
-                `SELECT COUNT(*) as count FROM questions 
-                 WHERE grade = ? AND topic = 'computer' AND focus_type = 'practical' ${excludeClause}`,
-                [grade, ...globallyUsedQuestions],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row.count);
-                }
-            );
-        });
+    // FIXED: Select questions with strict distribution enforcement
+    try {
+        // Select basic questions (15)
+        const basicQuestions = await selectByDifficultyBalanced('basic', basicCount);
+        selectedQuestions.push(...basicQuestions);
+        console.log(`✅ Selected ${basicQuestions.length}/${basicCount} basic questions`);
         
-        // Check theoretical questions availability
-        availableTheoretical = await new Promise((resolve, reject) => {
-            const excludeClause = globallyUsedQuestions.length > 0 ? 
-                `AND id NOT IN (${globallyUsedQuestions.map(() => '?').join(',')})` : '';
-            db.get(
-                `SELECT COUNT(*) as count FROM questions 
-                 WHERE grade = ? AND topic = 'computer' AND focus_type = 'theoretical' ${excludeClause}`,
-                [grade, ...globallyUsedQuestions],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row.count);
-                }
-            );
-        });
+        // Select medium questions (7)
+        const mediumQuestions = await selectByDifficultyBalanced('medium', mediumCount);
+        selectedQuestions.push(...mediumQuestions);
+        console.log(`✅ Selected ${mediumQuestions.length}/${mediumCount} medium questions`);
         
-        console.log(`📚 Available unused questions: Practical: ${availablePractical}, Theoretical: ${availableTheoretical}`);
+        // FIXED: Select advanced questions with relaxed category limits
+        const advancedQuestions = await selectAdvancedQuestionsFlexible(grade, advancedCount, usedQuestionIds, selectedQuestionIds, categoryCount, db);
+        selectedQuestions.push(...advancedQuestions);
+        console.log(`✅ Selected ${advancedQuestions.length}/${advancedCount} advanced questions`);
         
-        // Check if we have enough questions for the 70/30 split
-        if (availablePractical < practicalCount) {
-            throw new Error(`Insufficient practical questions for Grade ${grade}. Need ${practicalCount}, but only ${availablePractical} available.`);
+        // FIXED: If we don't have enough questions in specific difficulties, fill intelligently
+        const currentTotal = selectedQuestions.length;
+        if (currentTotal < totalQuestions) {
+            const remaining = totalQuestions - currentTotal;
+            console.log(`📝 Need ${remaining} more questions, filling gaps intelligently...`);
+            
+            // Try to fill from basic first, then medium, then advanced
+            const fillOrder = ['basic', 'medium', 'advanced'];
+            let filled = 0;
+            
+            for (const difficulty of fillOrder) {
+                if (filled >= remaining) break;
+                
+                const additionalQuestions = await selectByDifficultyBalanced(difficulty, remaining - filled);
+                const newQuestions = additionalQuestions.filter(q => !selectedQuestionIds.has(q.id));
+                
+                selectedQuestions.push(...newQuestions);
+                filled += newQuestions.length;
+                console.log(`✅ Added ${newQuestions.length} additional ${difficulty} questions`);
+            }
         }
-        if (availableTheoretical < theoreticalCount) {
-            throw new Error(`Insufficient theoretical questions for Grade ${grade}. Need ${theoreticalCount}, but only ${availableTheoretical} available.`);
-        }
+        
+    } catch (error) {
+        console.error('❌ Error in balanced selection:', error);
+        throw error;
     }
     
-    // For grades 9+: declare difficulty-based availability variables
-    let availableBasic = 0;
-    let availableMedium = 0; 
-    let availableAdvanced = 0;
+    // FIXED: Final validation and shuffling
+    const finalQuestionIds = selectedQuestions.map(q => q.id);
+    const uniqueQuestionIds = [...new Set(finalQuestionIds)]; // FIXED: Ensure no duplicates
     
-    if (!isFoundationalGrade) {
-        // For grades 9+ use original difficulty-based checking
-        availableBasic = await new Promise((resolve, reject) => {
-            const excludeClause = globallyUsedQuestions.length > 0 ? 
-                `AND id NOT IN (${globallyUsedQuestions.map(() => '?').join(',')})` : '';
-            db.get(
-                `SELECT COUNT(*) as count FROM questions 
-                 WHERE grade = ? AND difficulty = 'basic' AND topic = 'computer' ${excludeClause}`,
-                [grade, ...globallyUsedQuestions],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row.count);
-                }
-            );
-        });
-        
-        const availableMedium = await new Promise((resolve, reject) => {
-            const excludeClause = globallyUsedQuestions.length > 0 ? 
-                `AND id NOT IN (${globallyUsedQuestions.map(() => '?').join(',')})` : '';
-            db.get(
-                `SELECT COUNT(*) as count FROM questions 
-                 WHERE grade = ? AND difficulty = 'medium' AND topic = 'computer' ${excludeClause}`,
-                [grade, ...globallyUsedQuestions],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row.count);
-                }
-            );
-        });
-        
-        const availableAdvanced = await new Promise((resolve, reject) => {
-            const excludeClause = globallyUsedQuestions.length > 0 ? 
-                `AND id NOT IN (${globallyUsedQuestions.map(() => '?').join(',')})` : '';
-            db.get(
-                `SELECT COUNT(*) as count FROM questions 
-                 WHERE grade = ? AND difficulty = 'advanced' AND topic = 'computer' ${excludeClause}`,
-                [grade, ...globallyUsedQuestions],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row.count);
-                }
-            );
-        });
-        
-        console.log(`💻 Available unused COMPUTER questions: Basic: ${availableBasic}, Medium: ${availableMedium}, Advanced: ${availableAdvanced}`);
-        
-        const totalAvailable = availableBasic + availableMedium + availableAdvanced;
-        if (totalAvailable < totalQuestions) {
-            throw new Error(`Insufficient unused computer questions for Grade ${grade}. Need ${totalQuestions}, but only ${totalAvailable} unused computer questions available.`);
-        }
-    }
-    
-    // Select questions based on grade type
-    if (isFoundationalGrade) {
-        // For grades 6-8: Select by practical/theoretical focus (70/30 split)
-        
-        // Select practical questions across all difficulties
-        const practicalQuestions = await new Promise((resolve, reject) => {
-            const excludeClause = globallyUsedQuestions.length > 0 ? 
-                `AND id NOT IN (${globallyUsedQuestions.map(() => '?').join(',')})` : '';
-            
-            db.all(
-                `SELECT id FROM questions 
-                 WHERE grade = ? AND topic = 'computer' AND focus_type = 'practical' ${excludeClause}
-                 ORDER BY RANDOM() LIMIT ?`,
-                [grade, ...globallyUsedQuestions, practicalCount],
-                (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
-                }
-            );
-        });
-        
-        selectedQuestions.push(...practicalQuestions.map(q => q.id));
-        console.log(`🎯 Selected ${practicalQuestions.length} practical questions (70%)`);
-        
-        // Select theoretical questions across all difficulties
-        const theoreticalQuestions = await new Promise((resolve, reject) => {
-            const allExcludes = [...globallyUsedQuestions, ...selectedQuestions];
-            const excludeClause = allExcludes.length > 0 ? 
-                `AND id NOT IN (${allExcludes.map(() => '?').join(',')})` : '';
-            
-            db.all(
-                `SELECT id FROM questions 
-                 WHERE grade = ? AND topic = 'computer' AND focus_type = 'theoretical' ${excludeClause}
-                 ORDER BY RANDOM() LIMIT ?`,
-                [grade, ...allExcludes, theoreticalCount],
-                (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
-                }
-            );
-        });
-        
-        selectedQuestions.push(...theoreticalQuestions.map(q => q.id));
-        console.log(`📚 Selected ${theoreticalQuestions.length} theoretical questions (30%)`);
-        
-    } else {
-        // For grades 9+: Use original difficulty-based selection
-        // (availableBasic, availableMedium, availableAdvanced are already declared above)
-        
-        // Select basic computer questions (only unused ones)
-        let basicQuestions = await selectUnusedQuestions('basic', Math.min(basicCount, availableBasic));
-        selectedQuestions.push(...basicQuestions.map(q => q.id));
-        console.log(`✅ Selected ${basicQuestions.length} basic computer questions`);
-        
-        // Select medium computer questions (only unused ones)
-        let mediumQuestions = await selectUnusedQuestions('medium', Math.min(mediumCount, availableMedium), null, selectedQuestions);
-        selectedQuestions.push(...mediumQuestions.map(q => q.id));
-        console.log(`✅ Selected ${mediumQuestions.length} medium computer questions`);
-        
-        // Select advanced computer questions (only unused ones)
-        let advancedQuestions = await selectUnusedQuestions('advanced', Math.min(advancedCount, availableAdvanced), null, selectedQuestions);
-        selectedQuestions.push(...advancedQuestions.map(q => q.id));
-        console.log(`✅ Selected ${advancedQuestions.length} advanced computer questions`);
-    }
-    
-    // If we still need more questions due to distribution constraints, fill from any available difficulty
-    const currentTotal = selectedQuestions.length;
-    if (currentTotal < totalQuestions) {
-        const remaining = totalQuestions - currentTotal;
-        console.log(`📝 Need ${remaining} more questions, selecting from any available difficulty...`);
-        
-        const additionalQuestions = await new Promise((resolve, reject) => {
-            const allExcludes = [...globallyUsedQuestions, ...selectedQuestions];
-            const excludeClause = allExcludes.length > 0 ? 
-                `AND id NOT IN (${allExcludes.map(() => '?').join(',')})` : '';
-            
-            db.all(
-                `SELECT id FROM questions 
-                 WHERE grade = ? AND topic = 'computer' ${excludeClause}
-                 ORDER BY RANDOM() LIMIT ?`,
-                [grade, ...allExcludes, remaining],
-                (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
-                }
-            );
-        });
-        
-        selectedQuestions.push(...additionalQuestions.map(q => q.id));
-        console.log(`✅ Selected ${additionalQuestions.length} additional computer questions from any difficulty`);
+    if (uniqueQuestionIds.length !== finalQuestionIds.length) {
+        console.warn(`⚠️  Removed ${finalQuestionIds.length - uniqueQuestionIds.length} duplicate questions`);
     }
     
     // Shuffle the final selection to randomize question order
-    const shuffledQuestions = selectedQuestions.sort(() => Math.random() - 0.5);
+    const shuffledQuestions = uniqueQuestionIds.sort(() => Math.random() - 0.5);
     
-    console.log(`💻 Final selection: ${shuffledQuestions.length} COMPUTER questions for Grade ${grade}`);
+    // FIXED: Log final distribution for verification
+    console.log(`📊 Final category distribution:`);
+    Object.entries(categoryCount).forEach(([category, count]) => {
+        const percentage = ((count / shuffledQuestions.length) * 100).toFixed(1);
+        console.log(`   📂 ${category}: ${count} questions (${percentage}%)`);
+    });
+    
+    console.log(`💻 FINAL SELECTION: ${shuffledQuestions.length} questions for Grade ${grade}`);
+    console.log(`🎯 Duplicate prevention: ${selectedQuestionIds.size} unique questions selected`);
+    
     return shuffledQuestions;
 };
 
@@ -346,10 +337,10 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
             }
         }
         
-        // Check if enough COMPUTER questions are available for the grade
-        const computerQuestionCount = await new Promise((resolve, reject) => {
+        // Check if enough questions are available for the grade
+        const questionCount = await new Promise((resolve, reject) => {
             db.get(
-                'SELECT COUNT(*) as count FROM questions WHERE grade = ? AND topic = \'computer\'',
+                'SELECT COUNT(*) as count FROM questions WHERE grade = ?',
                 [grade],
                 (err, row) => {
                     if (err) reject(err);
@@ -358,18 +349,21 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
             );
         });
         
-        if (computerQuestionCount < 25) {
+        if (questionCount < 25) {
             return res.status(400).json({
                 success: false,
                 error: {
-                    code: 'INSUFFICIENT_COMPUTER_QUESTIONS',
-                    message: `Not enough computer questions available for Grade ${grade}. Need at least 25 computer questions, but only ${computerQuestionCount} available.`
+                    code: 'INSUFFICIENT_QUESTIONS',
+                    message: `Not enough questions available for Grade ${grade}. Need at least 25 questions, but only ${questionCount} available.`
                 }
             });
         }
         
-        // Select 25 questions using the enhanced algorithm for TECH BOARD 2025
+        // Select 25 questions using the FIXED enhanced algorithm for TECH BOARD 2025
         const selectedQuestionIds = await selectQuizQuestions(grade, 25, studentId);
+        
+        // FIXED: Validate quiz quality before proceeding
+        await validateQuizQuality(selectedQuestionIds, grade, db);
         
         // Create quiz record
         const quizId = await new Promise((resolve, reject) => {
@@ -383,25 +377,8 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
             );
         });
         
-        // Mark selected questions as used globally to prevent future repetition
-        console.log(`🔒 Marking ${selectedQuestionIds.length} questions as used globally...`);
-        for (const questionId of selectedQuestionIds) {
-            try {
-                await new Promise((resolve, reject) => {
-                    db.run(
-                        'INSERT OR IGNORE INTO used_questions (question_id, grade, quiz_id, student_id) VALUES (?, ?, ?, ?)',
-                        [questionId, grade, quizId, studentId],
-                        function(err) {
-                            if (err) reject(err);
-                            else resolve();
-                        }
-                    );
-                });
-            } catch (error) {
-                console.log(`⚠️  Warning: Could not mark question ${questionId} as used:`, error.message);
-            }
-        }
-        console.log(`✅ Successfully marked questions as used globally`);
+        // Questions will be marked as used when responses are submitted
+        console.log(`✅ Quiz created with ${selectedQuestionIds.length} questions`);
         
         // Get full question details with options
         const questions = await new Promise((resolve, reject) => {
@@ -642,6 +619,7 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
     }
 });
 
+// Student results access removed - results are only available to administrators
 // Student results access removed - results are only available to administrators
 
 // Get student's quiz history

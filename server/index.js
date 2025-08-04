@@ -6,14 +6,21 @@ const rateLimit = require('express-rate-limit');
 const database = require('./config/database');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8000;
 
 // Security middleware
 app.use(helmet());
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
         ? ['https://your-domain.com']
-        : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'],
+        : [
+            'http://localhost:5173', 
+            'http://localhost:5174', 
+            'http://localhost:3000',
+            'http://192.168.31.234:5173',
+            'http://192.168.31.234:5174',
+            'http://192.168.31.234:3000'
+        ],
     credentials: true
 }));
 
@@ -78,9 +85,17 @@ app.use('*', (req, res) => {
 async function startServer() {
     try {
         await database.connect();
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-            console.log(`Environment: ${process.env.NODE_ENV}`);
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`🚀 Server running on http://192.168.31.234:${PORT}`);
+            console.log(`🏠 Local access: http://localhost:${PORT}`);
+            console.log(`🌐 Environment: ${process.env.NODE_ENV}`);
+            console.log(`📡 API endpoints available at http://192.168.31.234:${PORT}/api`);
+            console.log(`📋 Available routes:`);
+            console.log(`   POST /api/auth/register - Student registration`);
+            console.log(`   POST /api/auth/login - Student login`);
+            console.log(`   POST /api/auth/admin/login - Admin login`);
+            console.log(`   GET  /api/auth/verify - Token verification`);
+            console.log(`   GET  /health - Health check`);
         });
     } catch (error) {
         console.error('Failed to start server:', error);
@@ -96,3 +111,6 @@ process.on('SIGINT', async () => {
 });
 
 startServer();
+
+// Export app for testing
+module.exports = app;

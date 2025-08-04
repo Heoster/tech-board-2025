@@ -142,7 +142,7 @@ const AdminDashboard: React.FC = () => {
         status: student.quiz_status!,
         start_time: student.start_time!,
         end_time: student.end_time!,
-        passed: student.passed
+        passed: student.passed ?? undefined
       } : student;
       
       setSelectedStudent({
@@ -539,7 +539,6 @@ const AdminDashboard: React.FC = () => {
                     const examStatus = student ? student.exam_status : 'completed';
                     const score = student ? student.score : result!.score;
                     const totalQuestions = student ? student.total_questions : result!.total_questions;
-                    const percentage = student ? student.percentage : result!.percentage;
                     const date = student ? 
                       (student.end_time ? new Date(student.end_time).toLocaleDateString() : new Date(student.registration_date).toLocaleDateString()) :
                       new Date(result!.start_time).toLocaleDateString();
