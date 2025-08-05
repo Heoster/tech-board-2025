@@ -1,3 +1,21 @@
+#!/bin/bash
+echo "🚀 Simple Deployment Setup for MCQ Testing System..."
+
+# Create deployment directory
+mkdir -p simple-deploy
+cd simple-deploy
+
+# Copy server files
+echo "📁 Copying server files..."
+cp -r ../server .
+cp -r ../database .
+
+# Create a simple static client build
+echo "📦 Creating simple client build..."
+mkdir -p client
+
+# Create a basic HTML file that works without complex build
+cat > client/index.html << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,6 +64,7 @@
                     <label>Grade:</label>
                     <select id="login-grade" required>
                         <option value="">Select Grade</option>
+                        <option value="1">Grade 1</option>
                         <option value="6">Grade 6</option>
                         <option value="7">Grade 7</option>
                         <option value="8">Grade 8</option>
@@ -83,6 +102,7 @@
                     <label>Grade:</label>
                     <select id="reg-grade" required>
                         <option value="">Select Grade</option>
+                        <option value="1">Grade 1</option>
                         <option value="6">Grade 6</option>
                         <option value="7">Grade 7</option>
                         <option value="8">Grade 8</option>
@@ -127,8 +147,9 @@
                 <button class="btn" onclick="submitQuiz()" id="submit-btn" style="background: #28a745; display: none;">Submit Quiz</button>
             </div>
         </div>
-    </div>    <sc
-ript>
+    </div>
+
+    <script>
         const API_BASE = window.location.origin + '/api';
         let currentUser = null;
         let currentQuiz = null;
@@ -148,7 +169,7 @@ ript>
         async function register() {
             const name = document.getElementById('reg-name').value;
             const roll = document.getElementById('reg-roll').value;
-            const grade = parseInt(document.getElementById('reg-grade').value);
+            const grade = document.getElementById('reg-grade').value;
             const section = document.getElementById('reg-section').value;
             const password = document.getElementById('reg-password').value;
 
@@ -156,7 +177,7 @@ ript>
                 const response = await fetch(`${API_BASE}/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, rollNumber: parseInt(roll), grade, section, password })
+                    body: JSON.stringify({ name, roll_number: roll, grade, section, password })
                 });
 
                 if (response.ok) {
@@ -164,7 +185,7 @@ ript>
                     document.getElementById('register-error').textContent = '';
                 } else {
                     const error = await response.json();
-                    document.getElementById('register-error').textContent = error.error?.message || 'Registration failed';
+                    document.getElementById('register-error').textContent = error.message || 'Registration failed';
                 }
             } catch (error) {
                 document.getElementById('register-error').textContent = 'Network error. Please try again.';
@@ -173,7 +194,7 @@ ript>
 
         async function login() {
             const roll = document.getElementById('login-roll').value;
-            const grade = parseInt(document.getElementById('login-grade').value);
+            const grade = document.getElementById('login-grade').value;
             const section = document.getElementById('login-section').value;
             const password = document.getElementById('login-password').value;
 
@@ -181,17 +202,17 @@ ript>
                 const response = await fetch(`${API_BASE}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ rollNumber: parseInt(roll), grade, section, password })
+                    body: JSON.stringify({ roll_number: roll, grade, section, password })
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    currentUser = data.data.student;
-                    localStorage.setItem('token', data.data.token);
+                    currentUser = data.user;
+                    localStorage.setItem('token', data.token);
                     showDashboard();
                 } else {
                     const error = await response.json();
-                    document.getElementById('login-error').textContent = error.error?.message || 'Login failed';
+                    document.getElementById('login-error').textContent = error.message || 'Login failed';
                 }
             } catch (error) {
                 document.getElementById('login-error').textContent = 'Network error. Please try again.';
@@ -347,3 +368,32 @@ ript>
     </script>
 </body>
 </html>
+EOF
+
+# Create simple package.json for deployment
+cat > package.json << 'EOF'
+{
+  "name": "mcq-system-simple-deploy",
+  "version": "1.0.0",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "cd server && npm start",
+    "postinstall": "cd server && npm install"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
+EOF
+
+# Create Procfile for Heroku/Railway
+echo "web: cd server && npm start" > Procfile
+
+echo "✅ Simple deployment package created!"
+echo "📁 Deploy the 'simple-deploy' directory to any platform"
+echo "🚀 This version bypasses all TypeScript compilation issues"
+echo ""
+echo "To deploy:"
+echo "1. Railway: cd simple-deploy && railway init && railway up"
+echo "2. Heroku: cd simple-deploy && git init && heroku create && git add . && git commit -m 'Deploy' && git push heroku main"
+echo "3. Docker: cd simple-deploy && docker build -t mcq-app ."

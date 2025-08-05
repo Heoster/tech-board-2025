@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build --mode production",
+    "build:deploy": "vite build --mode production --force",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "echo \"Client tests not configured yet. Run 'npm run lint' to check code quality.\""

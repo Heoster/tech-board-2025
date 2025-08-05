@@ -17,11 +17,9 @@ app.use(cors({
             'http://localhost:5173', 
             'http://localhost:5174', 
             'http://localhost:3000',
-            'http://localhost:8000',
             'http://192.168.31.234:5173',
             'http://192.168.31.234:5174',
-            'http://192.168.31.234:3000',
-            'http://192.168.31.234:8000'
+            'http://192.168.31.234:3000'
         ],
     credentials: true
 }));
@@ -47,17 +45,9 @@ app.use((req, res, next) => {
     next();
 });
 
-// Serve static files from client directory
-app.use(express.static('../client'));
-
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
-// Serve the main HTML file for root route
-app.get('/', (req, res) => {
-    res.sendFile(require('path').join(__dirname, '../client/index.html'));
 });
 
 // API routes will be added here
