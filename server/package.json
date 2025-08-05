@@ -17,7 +17,8 @@
     "seed:grade8cs": "node scripts/seed-grade8-cs-100.js",
     "seed:grade8complete": "node scripts/seed-grade8-complete-100.js",
     "seed:grade11cs": "node scripts/seed-grade11-cs-100.js",
-    "seed:grade11additional": "node scripts/seed-grade11-additional-100.js"
+    "seed:grade11additional": "node scripts/seed-grade11-additional-100.js",
+    "verify": "node verify-setup.js"
   },
   "dependencies": {
     "express": "^4.18.2",

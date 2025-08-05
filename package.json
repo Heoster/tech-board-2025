@@ -4,13 +4,22 @@
   "description": "MCQ Testing System with React frontend and Node.js backend",
   "main": "server/index.js",
   "scripts": {
+    "start": "concurrently \"npm run server:start\" \"npm run client:dev\"",
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "cd server && npm run dev",
     "client:dev": "cd client && npm run dev",
     "server:start": "cd server && npm start",
-    "test": "npm run test && npm test",
-    "client:build": "cd client && npm run build",
-    "install:all": "npm install && cd server && npm install && cd ../client && npm install"
+    "client:start": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "test": "echo \"Running tests...\" && npm run test:server && npm run test:client",
+    "test:server": "cd server && npm test",
+    "test:client": "cd client && npm test",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "seed": "cd server && npm run seed",
+    "setup": "npm run install:all && npm run seed",
+    "railway:build": "npm run install:all && npm run build",
+    "railway:start": "node railway-setup.js",
+    "postinstall": "npm run install:all"
   },
   "keywords": [
     "mcq",
