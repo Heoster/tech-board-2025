@@ -1,0 +1,33 @@
+# Simple Dockerfile that avoids complex installation issues
+FROM node:18-alpine
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Set working directory
+WORKDIR /app
+
+# Copy and install server dependencies first
+COPY server/package*.json ./server/
+RUN cd server && npm install
+
+# Copy server source
+COPY server ./server
+COPY database ./database
+
+# Copy pre-built client (build locally first)
+COPY client/dist ./client/dist
+
+# Create startup script
+RUN echo '#!/bin/sh\ncd server && npm start' > start.sh
+RUN chmod +x start.sh
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8000/health || exit 1
+
+# Start application
+CMD ["./start.sh"]

@@ -17,9 +17,9 @@
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
     "seed": "cd server && npm run seed",
     "setup": "npm run install:all && npm run seed",
-    "railway:build": "npm run install:all && npm run build",
+    "railway:build": "cd client && npm run build",
     "railway:start": "node railway-setup.js",
-    "postinstall": "npm run install:all"
+    "postinstall": "echo 'Dependencies installed successfully'"
   },
   "keywords": [
     "mcq",
