@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: mcq-testing-system
+    env: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_PATH
+        value: ./database/mcq_system.db
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        value: admin123
+      - key: CORS_ORIGINS
+        sync: false
+    disk:
+      name: mcq-database
+      mountPath: /opt/render/project/src/database
+      sizeGB: 1

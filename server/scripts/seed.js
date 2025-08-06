@@ -111,16 +111,19 @@ async function seedDatabase() {
             });
         });
 
-        // Create default admin
-        const adminPassword = await authUtils.hashPassword('admin123');
+        // Create default admin using environment variables
+        const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+        const adminPasswordPlain = process.env.ADMIN_PASSWORD || 'admin123';
+        const adminPassword = await authUtils.hashPassword(adminPasswordPlain);
+        
         await new Promise((resolve, reject) => {
             db.run(
                 'INSERT OR IGNORE INTO admins (username, password_hash) VALUES (?, ?)',
-                ['admin', adminPassword],
+                [adminUsername, adminPassword],
                 function(err) {
                     if (err) reject(err);
                     else {
-                        console.log('Default admin created');
+                        console.log(`Default admin created: ${adminUsername}`);
                         resolve();
                     }
                 }
@@ -195,9 +198,13 @@ async function seedDatabase() {
             });
         });
 
-        console.log('Database seeding completed successfully!');
-        console.log('Default admin credentials: username=admin, password=admin123');
-        console.log('Sample student credentials: roll=1, grade=8, section=A, password=student123');
+        console.log('✅ Basic database seeding completed!');
+        console.log(`🔑 Default admin credentials: username=${adminUsername}, password=${adminPasswordPlain}`);
+        console.log('👤 Sample student credentials: roll=1, grade=8, section=A, password=student123');
+        console.log('');
+        console.log('⚠️  NOTE: This is basic seeding with limited questions.');
+        console.log('💡 For complete question bank, run: npm run seed:all');
+        console.log('📊 Each grade needs 50+ questions for multiple quiz attempts.');
 
     } catch (error) {
         console.error('Error seeding database:', error);

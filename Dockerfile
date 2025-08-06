@@ -6,13 +6,19 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY client/package*.json ./client/
 COPY server/package*.json ./server/
 
-# Install dependencies
-RUN cd server && npm ci --only=production
+# Install all dependencies
+RUN npm install
+RUN cd client && npm install
+RUN cd server && npm install
 
 # Copy application files
 COPY . .
+
+# Build client
+RUN cd client && npm run build
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
@@ -22,12 +28,12 @@ RUN adduser -S nodejs -u 1001
 RUN chown -R nodejs:nodejs /app
 USER nodejs
 
-# Expose port
-EXPOSE 8000
+# Expose port (Render uses PORT env var)
+EXPOSE $PORT
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 10000) + '/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the application
 CMD ["npm", "start"]

@@ -1,12 +1,17 @@
 {
-  "name": "mcq-system-simple-deploy",
+  "name": "mcq-testing-system",
   "version": "1.0.0",
-  "main": "server/index.js",
+  "description": "MCQ Testing System for TECH BOARD 2025 Selection Test",
   "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "client:dev": "cd client && npm run dev",
+    "server:dev": "cd server && npm run dev",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "build": "cd client && npm install && npm run build && cd ../server && npm install",
     "start": "cd server && npm start",
     "postinstall": "cd server && npm install"
   },
-  "engines": {
-    "node": "18.x"
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

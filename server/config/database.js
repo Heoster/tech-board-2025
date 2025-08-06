@@ -37,6 +37,10 @@ class Database {
             
             const initSql = fs.readFileSync(initSqlPath, 'utf8');
             const rulesSql = fs.readFileSync(rulesSqlPath, 'utf8');
+            const noDuplicatesSqlPath = path.join(__dirname, '../database/no-duplicate-questions.sql');
+            const noDuplicatesSql = fs.readFileSync(noDuplicatesSqlPath, 'utf8');
+            const ultraStrictSqlPath = path.join(__dirname, '../database/ultra-strict-constraints.sql');
+            const ultraStrictSql = fs.readFileSync(ultraStrictSqlPath, 'utf8');
 
             // Execute initialization SQL
             this.db.exec(initSql, (err) => {
@@ -50,9 +54,27 @@ class Database {
                             console.error('Error applying database rules:', err.message);
                             reject(err);
                         } else {
-                            console.log('Database initialized successfully');
-                            console.log('Database rules applied successfully');
-                            resolve();
+                            // Execute no-duplicates constraints
+                            this.db.exec(noDuplicatesSql, (err) => {
+                                if (err) {
+                                    console.error('Error applying no-duplicates constraints:', err.message);
+                                    reject(err);
+                                } else {
+                                    // Execute ultra-strict constraints
+                                    this.db.exec(ultraStrictSql, (err) => {
+                                        if (err) {
+                                            console.error('Error applying ultra-strict constraints:', err.message);
+                                            reject(err);
+                                        } else {
+                                            console.log('Database initialized successfully');
+                                            console.log('Database rules applied successfully');
+                                            console.log('🔒 STRICT RULE: No duplicate questions constraint applied');
+                                            console.log('🔒 ULTRA-STRICT: Database-level duplicate prevention active');
+                                            resolve();
+                                        }
+                                    });
+                                }
+                            });
                         }
                     });
                 }

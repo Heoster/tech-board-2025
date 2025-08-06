@@ -7,7 +7,7 @@ const router = express.Router();
 
 // Validation middleware for questions
 const validateQuestion = [
-    body('grade').isInt({ min: 6, max: 12 }).withMessage('Grade must be between 6 and 12'),
+    body('grade').isIn([6, 7, 8, 9, 11]).withMessage('Grade must be 6, 7, 8, 9, or 11'),
     body('difficulty').isIn(['basic', 'medium', 'advanced']).withMessage('Difficulty must be basic, medium, or advanced'),
     body('questionText').trim().isLength({ min: 10, max: 1000 }).withMessage('Question text must be between 10 and 1000 characters'),
     body('options').isArray({ min: 4, max: 4 }).withMessage('Must have exactly 4 options'),
