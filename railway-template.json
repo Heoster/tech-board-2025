@@ -1,0 +1,57 @@
+{
+  "name": "MCQ Testing System - TECH BOARD 2025",
+  "description": "Ultra-strict no-duplicates MCQ testing system with 1,250+ questions across 5 grades. Guarantees zero question repetition.",
+  "repository": "https://github.com/Heoster/tech-board-2025-selection-test",
+  "services": [
+    {
+      "name": "mcq-backend",
+      "source": {
+        "repo": "https://github.com/Heoster/tech-board-2025-selection-test",
+        "branch": "main"
+      },
+      "build": {
+        "builder": "NIXPACKS",
+        "buildCommand": "npm run railway:build"
+      },
+      "deploy": {
+        "startCommand": "npm run railway:start",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 100,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      },
+      "environment": {
+        "NODE_ENV": "production",
+        "PORT": "8000",
+        "JWT_SECRET": {
+          "generator": {
+            "type": "secret",
+            "length": 64
+          }
+        },
+        "ADMIN_USERNAME": "admin",
+        "ADMIN_PASSWORD": {
+          "generator": {
+            "type": "secret",
+            "length": 16
+          }
+        },
+        "DB_PATH": "./database/mcq_system.db"
+      }
+    }
+  ],
+  "metadata": {
+    "categories": ["Education", "Testing", "Node.js"],
+    "tags": ["mcq", "testing", "education", "quiz", "tech-board", "sqlite", "express"],
+    "features": [
+      "Ultra-strict no-duplicates system",
+      "1,250+ questions across 5 grades",
+      "7-layer duplicate prevention",
+      "Database-level constraints",
+      "Real-time integrity monitoring",
+      "Automatic question seeding",
+      "Secure authentication",
+      "Production-ready deployment"
+    ]
+  }
+}

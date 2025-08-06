@@ -11,14 +11,16 @@ const PORT = process.env.PORT || 8000;
 // Security middleware
 app.use(helmet());
 app.use(cors({
-    origin: [
-        'http://localhost:5173', 
-        'http://localhost:5174', 
-        'http://localhost:3000',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:5174',
-        'http://127.0.0.1:3000'
-    ],
+    origin: process.env.NODE_ENV === 'production'
+        ? [process.env.FRONTEND_URL || 'tech-board.up.railway.app']
+        : [
+            'http://localhost:5173', 
+            'http://localhost:5174', 
+            'http://localhost:3000',
+            'http://127.0.0.1:5173',
+            'http://127.0.0.1:5174',
+            'http://127.0.0.1:3000'
+        ],
     credentials: true
 }));
 
@@ -83,11 +85,11 @@ app.use('*', (req, res) => {
 async function startServer() {
     try {
         await database.connect();
-        app.listen(PORT, 'localhost', () => {
-            console.log(`🚀 Server running locally on http://localhost:${PORT}`);
-            console.log(`🔒 Server restricted to localhost access only`);
+        const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+        app.listen(PORT, host, () => {
+            console.log(`� Serverr running on ${host}:${PORT}`);
             console.log(`🌐 Environment: ${process.env.NODE_ENV}`);
-            console.log(`📡 API endpoints available at http://localhost:${PORT}/api`);
+            console.log(`📡 API endpoints available at http://${host}:${PORT}/api`);
             console.log(`📋 Available routes:`);
             console.log(`   POST /api/auth/register - Student registration`);
             console.log(`   POST /api/auth/login - Student login`);
