@@ -44,27 +44,16 @@ async function checkDatabaseData() {
 async function seedDatabase() {
     console.log('🌱 Seeding database with 250+ questions per grade...');
     
-    return new Promise((resolve, reject) => {
-        const seedProcess = spawn('node', ['scripts/seed-250-per-grade.js'], {
-            cwd: __dirname,
-            stdio: 'inherit'
-        });
-        
-        seedProcess.on('close', (code) => {
-            if (code === 0) {
-                console.log('✅ Database seeding completed successfully');
-                resolve();
-            } else {
-                console.error('❌ Database seeding failed with code:', code);
-                reject(new Error(`Seeding failed with code ${code}`));
-            }
-        });
-        
-        seedProcess.on('error', (error) => {
-            console.error('❌ Database seeding error:', error);
-            reject(error);
-        });
-    });
+    try {
+        // Import and run seeding directly instead of spawning process
+        const { seed250QuestionsPerGrade } = require('./scripts/seed-250-per-grade.js');
+        await seed250QuestionsPerGrade();
+        console.log('✅ Database seeding completed successfully');
+    } catch (error) {
+        console.error('❌ Database seeding error:', error);
+        // Don't fail startup if seeding fails - try to continue
+        console.log('⚠️  Continuing startup without seeding...');
+    }
 }
 
 async function startServer() {

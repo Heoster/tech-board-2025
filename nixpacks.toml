@@ -14,4 +14,4 @@ cmds = [
 ]
 
 [start]
-cmd = 'cd server && npm start'
+cmd = 'npm run railway:start'

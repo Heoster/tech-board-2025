@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "start:production": "node start-production.js",
+    "railway": "node railway-start.js",
     "dev": "nodemon index.js",
     "test": "jest",
     "build": "echo No build step defined for server.",
