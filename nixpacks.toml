@@ -10,7 +10,10 @@ cmds = [
 
 [phases.build]
 cmds = [
-    'cd client && npm run build'
+    'echo "Building client application..."',
+    'cd client && npm install && npm run build',
+    'echo "Client build completed"',
+    'ls -la client/dist || echo "Client dist directory not found"'
 ]
 
 [start]

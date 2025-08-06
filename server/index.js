@@ -48,6 +48,13 @@ app.use((req, res, next) => {
     next();
 });
 
+// Serve static files from client build in production
+if (process.env.NODE_ENV === 'production') {
+    const path = require('path');
+    console.log('🌐 Serving static files from client/dist');
+    app.use(express.static(path.join(__dirname, '../client/dist')));
+}
+
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
@@ -58,6 +65,41 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/students', require('./routes/students'));
 app.use('/api/quiz', require('./routes/quiz'));
 app.use('/api/admin', require('./routes/admin'));
+
+// Serve React app for all non-API routes in production
+if (process.env.NODE_ENV === 'production') {
+    const path = require('path');
+    app.get('*', (req, res) => {
+        // Don't serve React app for API routes
+        if (req.path.startsWith('/api/')) {
+            return res.status(404).json({
+                success: false,
+                error: {
+                    code: 'NOT_FOUND',
+                    message: 'API route not found'
+                }
+            });
+        }
+        
+        console.log(`🌐 Serving React app for route: ${req.path}`);
+        const indexPath = path.join(__dirname, '../client/dist/index.html');
+        
+        // Check if index.html exists
+        const fs = require('fs');
+        if (fs.existsSync(indexPath)) {
+            res.sendFile(indexPath);
+        } else {
+            console.error('❌ React build not found at:', indexPath);
+            res.status(404).json({
+                success: false,
+                error: {
+                    code: 'FRONTEND_NOT_BUILT',
+                    message: 'Frontend application not built. Please run build process.'
+                }
+            });
+        }
+    });
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -73,16 +115,7 @@ app.use((err, req, res, next) => {
     });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-    res.status(404).json({
-        success: false,
-        error: {
-            code: 'NOT_FOUND',
-            message: 'Route not found'
-        }
-    });
-});
+// This 404 handler is now handled in the catch-all route above for production
 
 // Start server
 async function startServer() {

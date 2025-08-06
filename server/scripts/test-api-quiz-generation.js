@@ -1,6 +1,6 @@
 require('dotenv').config();
 const axios = require('axios');
-const database = require('./server/config/database');
+const database = require('../config/database');
 
 /**
  * API QUIZ GENERATION STRESS TEST
@@ -29,7 +29,7 @@ class APIQuizGenerationTester {
         console.log('🚀 Starting server for API testing...');
         
         // Import and start the server
-        const app = require('./server/index');
+        const app = require('../index');
         
         return new Promise((resolve) => {
             this.server = app.listen(8000, () => {

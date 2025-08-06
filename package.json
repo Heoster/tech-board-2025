@@ -9,8 +9,8 @@
     "install:all": "npm install && cd client && npm install && cd ../server && npm install",
     "build": "cd client && npm install && npm run build && cd ../server && npm install",
     "start": "cd server && npm start",
-    "railway:start": "cd server && node simple-start.js",
-    "railway:build": "cd client && npm install && npm run build && cd ../server && npm install",
+    "railway:start": "cd server && node railway-complete-start.js",
+    "railway:build": "echo 'Building client...' && cd client && npm install && npm run build && echo 'Client build complete' && cd ../server && npm install && echo 'Server dependencies installed'",
     "postinstall": "cd server && npm install"
   },
   "devDependencies": {
