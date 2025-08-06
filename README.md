@@ -48,9 +48,54 @@ This application is specifically configured for Render.com deployment.
 
 For detailed deployment instructions, see [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)
 
-## 📚 Database Seeding
+## 🏃‍♂️ Quick Start (Local Development)
 
-The system includes comprehensive seeding scripts to populate the database with questions:
+```bash
+# 1. Clone the repository
+git clone https://github.com/Heoster/tech-board-2025-selection-test.git
+cd tech-board-2025-selection-test
+
+# 2. Install dependencies
+npm install
+cd server && npm install
+cd ../client && npm install
+
+# 3. Seed the database with 250+ questions per grade
+cd ../server && npm run seed:250
+
+# 4. Start the development servers
+cd .. && start-dev.bat  # Windows
+# OR manually:
+# Terminal 1: cd server && npm start
+# Terminal 2: cd client && npm run dev
+
+# 5. Access the application
+# Frontend: http://localhost:5173
+# Backend: http://localhost:8000
+```
+
+### 🔐 Default Credentials
+- **Admin**: username: `admin`, password: `admin123`
+- **Test Student**: Roll: `1`, Grade: `8`, Section: `A`, Password: `student123`
+
+## 🔒 Ultra-Strict No-Duplicates System
+
+This system implements a **7-layer duplicate prevention system** that **absolutely guarantees no question repetition** in any test:
+
+### ✅ **Absolute Guarantees**
+- 🔒 **No question repeats within any single quiz** (25 unique questions always)
+- 🔒 **No question repeats across multiple quizzes for the same student**
+- 🔒 **Database-level protection** even if application logic fails
+- 🔒 **Real-time monitoring** of any potential violations
+
+### 📊 **Question Bank Statistics**
+- **Total Questions**: 1,250+ questions across all grades
+- **Per Grade**: 250+ questions each (Grades 6, 7, 8, 9, 11)
+- **Distribution**: ~60% Basic, ~30% Medium, ~10% Advanced
+- **Quiz Variety**: Each grade can generate 10+ completely unique quizzes
+- **Capacity**: Supports hundreds of students without question exhaustion
+
+### 🚀 **Database Seeding**
 
 ```bash
 # Seed all grades with 250+ questions each (RECOMMENDED)
@@ -59,17 +104,36 @@ cd server && npm run seed:250
 # Verify all grades have sufficient questions
 node verify-250-questions.js
 
-# Other seeding options
-cd server && npm run seed:complete  # Basic seeding
-cd server && npm run seed:all       # All grades basic
+# Test the ultra-strict no-duplicates system
+node test-no-duplicates.js
+
+# Verify complete system integrity
+node verify-ultra-strict-system.js
 ```
 
-### Question Bank Statistics
-- **Total Questions**: 1,250+ questions across all grades
-- **Per Grade**: 250+ questions each (Grades 6, 7, 8, 9, 11)
-- **Distribution**: ~60% Basic, ~30% Medium, ~10% Advanced
-- **Quiz Variety**: Each grade can generate 10+ completely unique quizzes
-- **No Repetition**: Advanced algorithms prevent question repetition within quizzes
+### 🔧 **7-Layer Duplicate Prevention**
+
+1. **Database Constraints**: Unique indexes prevent duplicates at database level
+2. **Database Triggers**: Block duplicate questions during insertion
+3. **Application-Level Checking**: 5 different duplicate checks per question
+4. **Cross-Quiz Tracking**: Maintains history of all used questions per student
+5. **Multi-Phase Validation**: Pre, during, and post-selection validation
+6. **Integrity Monitoring**: Real-time views monitor system health
+7. **Comprehensive Testing**: Automated test suite validates no duplicates
+
+### 📈 **System Capacity**
+- **Grade 6**: 250 questions → ~10 unique quizzes per student
+- **Grade 7**: 250 questions → ~10 unique quizzes per student
+- **Grade 8**: 250 questions → ~10 unique quizzes per student
+- **Grade 9**: 250 questions → ~10 unique quizzes per student
+- **Grade 11**: 250 questions → ~10 unique quizzes per student
+
+### 🎯 **Technical Implementation**
+- Ultra-strict question selection algorithm with multiple validation layers
+- Database triggers for automatic duplicate prevention
+- Integrity monitoring views for real-time system health
+- Comprehensive error handling and logging
+- Production-ready localhost-only security configuration
 
 ## 🛠️ Local Development
 
