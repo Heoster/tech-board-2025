@@ -5,7 +5,9 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Starting MCQ Testing System in production mode...');
+console.log('🚀 Starting MCQ Testing System on Railway...');
+console.log('🌐 Environment:', process.env.NODE_ENV);
+console.log('🔗 Railway URL: https://tech-board.up.railway.app');
 
 // Check if database exists and has data
 const dbPath = process.env.DB_PATH || './database/mcq_system.db';

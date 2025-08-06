@@ -12,7 +12,10 @@ const PORT = process.env.PORT || 8000;
 app.use(helmet());
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-        ? [process.env.FRONTEND_URL || 'tech-board.up.railway.app']
+        ? [
+            'https://tech-board.up.railway.app',
+            process.env.FRONTEND_URL || 'https://tech-board.up.railway.app'
+          ]
         : [
             'http://localhost:5173', 
             'http://localhost:5174', 
