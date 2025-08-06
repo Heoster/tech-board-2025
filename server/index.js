@@ -11,16 +11,14 @@ const PORT = process.env.PORT || 8000;
 // Security middleware
 app.use(helmet());
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production'
-        ? ['https://your-domain.com']
-        : [
-            'http://localhost:5173', 
-            'http://localhost:5174', 
-            'http://localhost:3000',
-            'http://192.168.31.234:5173',
-            'http://192.168.31.234:5174',
-            'http://192.168.31.234:3000'
-        ],
+    origin: [
+        'http://localhost:5173', 
+        'http://localhost:5174', 
+        'http://localhost:3000',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
+        'http://127.0.0.1:3000'
+    ],
     credentials: true
 }));
 
@@ -85,11 +83,11 @@ app.use('*', (req, res) => {
 async function startServer() {
     try {
         await database.connect();
-        app.listen(PORT, '0.0.0.0', () => {
-            console.log(`🚀 Server running on http://192.168.31.234:${PORT}`);
-            console.log(`🏠 Local access: http://localhost:${PORT}`);
+        app.listen(PORT, 'localhost', () => {
+            console.log(`🚀 Server running locally on http://localhost:${PORT}`);
+            console.log(`🔒 Server restricted to localhost access only`);
             console.log(`🌐 Environment: ${process.env.NODE_ENV}`);
-            console.log(`📡 API endpoints available at http://192.168.31.234:${PORT}/api`);
+            console.log(`📡 API endpoints available at http://localhost:${PORT}/api`);
             console.log(`📋 Available routes:`);
             console.log(`   POST /api/auth/register - Student registration`);
             console.log(`   POST /api/auth/login - Student login`);
