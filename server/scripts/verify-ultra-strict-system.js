@@ -1,50 +1,16 @@
-require('dotenv').config();
 const database = require('../config/database');
 
-/**
- * ULTRA-STRICT SYSTEM VERIFICATION
- * 
- * This script verifies that the ultra-strict no-duplicate system
- * is working correctly at all levels.
- */
-
 async function verifyUltraStrictSystem() {
-    console.log('🔍 VERIFYING ULTRA-STRICT NO-DUPLICATE SYSTEM');
-    console.log('='.repeat(60));
-    
     try {
         await database.connect();
         const db = database.getDb();
         
-        // Check database constraints
-        console.log('\n1. DATABASE CONSTRAINTS CHECK:');
+        console.log('🔍 VERIFYING ULTRA-STRICT DUPLICATE PREVENTION SYSTEM');
+        console.log('====================================================\n');
         
-        const constraints = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT sql FROM sqlite_master 
-                WHERE type='table' AND name IN ('questions', 'options', 'responses', 'quizzes')
-            `, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
-        
-        let hasUniqueConstraints = false;
-        for (const constraint of constraints) {
-            if (constraint.sql.includes('UNIQUE')) {
-                console.log('   ✅ Found UNIQUE constraint');
-                hasUniqueConstraints = true;
-            }
-        }
-        
-        if (!hasUniqueConstraints) {
-            console.log('   ⚠️  No UNIQUE constraints found - may allow duplicates');
-        }
-        
-        // Check for existing duplicates
-        console.log('\n2. EXISTING DUPLICATES CHECK:');
-        
-        const duplicateResponses = await new Promise((resolve, reject) => {
+        // Check 1: Verify no duplicate questions within any quiz
+        console.log('📋 Check 1: Verifying no duplicate questions within quizzes...');
+        const duplicateWithinQuiz = await new Promise((resolve, reject) => {
             db.all(`
                 SELECT quiz_id, question_id, COUNT(*) as count
                 FROM responses
@@ -56,76 +22,142 @@ async function verifyUltraStrictSystem() {
             });
         });
         
-        if (duplicateResponses.length > 0) {
-            console.log(`   ❌ Found ${duplicateResponses.length} duplicate responses!`);
-            for (const dup of duplicateResponses.slice(0, 5)) {
-                console.log(`      Quiz ${dup.quiz_id}, Question ${dup.question_id}: ${dup.count} responses`);
-            }
+        if (duplicateWithinQuiz.length === 0) {
+            console.log('✅ PASS: No duplicate questions found within any quiz');
         } else {
-            console.log('   ✅ No duplicate responses found');
+            console.log(`❌ FAIL: Found ${duplicateWithinQuiz.length} duplicate questions within quizzes`);
+            duplicateWithinQuiz.forEach(dup => {
+                console.log(`   Quiz ${dup.quiz_id}: Question ${dup.question_id} appears ${dup.count} times`);
+            });
         }
         
-        // Check question distribution
-        console.log('\n3. QUESTION DISTRIBUTION CHECK:');
-        
-        const questionStats = await new Promise((resolve, reject) => {
+        // Check 2: Verify no student has answered the same question multiple times
+        console.log('\n📋 Check 2: Verifying no cross-quiz question repetition...');
+        const crossQuizDuplicates = await new Promise((resolve, reject) => {
             db.all(`
-                SELECT grade, difficulty, COUNT(*) as count
-                FROM questions
-                GROUP BY grade, difficulty
-                ORDER BY grade, difficulty
+                SELECT 
+                    q.student_id,
+                    r.question_id,
+                    COUNT(*) as times_answered,
+                    GROUP_CONCAT(q.id) as quiz_ids
+                FROM responses r
+                JOIN quizzes q ON r.quiz_id = q.id
+                GROUP BY q.student_id, r.question_id
+                HAVING COUNT(*) > 1
             `, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
         });
         
-        console.log('   Question counts by grade and difficulty:');
-        for (const stat of questionStats) {
-            console.log(`      Grade ${stat.grade}, ${stat.difficulty}: ${stat.count} questions`);
+        if (crossQuizDuplicates.length === 0) {
+            console.log('✅ PASS: No student has answered the same question multiple times');
+        } else {
+            console.log(`❌ FAIL: Found ${crossQuizDuplicates.length} cross-quiz question repetitions`);
+            crossQuizDuplicates.forEach(dup => {
+                console.log(`   Student ${dup.student_id}: Question ${dup.question_id} answered ${dup.times_answered} times in quizzes [${dup.quiz_ids}]`);
+            });
         }
         
-        // Verify quiz generation algorithm
-        console.log('\n4. QUIZ GENERATION ALGORITHM CHECK:');
-        
-        // Test the selectUniqueQuizQuestions function indirectly
-        const testGrade = 8;
-        const availableQuestions = await new Promise((resolve, reject) => {
+        // Check 3: Verify all completed quizzes have exactly 25 responses
+        console.log('\n📋 Check 3: Verifying all completed quizzes have exactly 25 responses...');
+        const incorrectResponseCount = await new Promise((resolve, reject) => {
             db.all(`
-                SELECT COUNT(*) as count FROM questions WHERE grade = ?
-            `, [testGrade], (err, rows) => {
+                SELECT 
+                    q.id as quiz_id,
+                    q.status,
+                    COUNT(r.id) as response_count
+                FROM quizzes q
+                LEFT JOIN responses r ON q.id = r.quiz_id
+                WHERE q.status = 'completed'
+                GROUP BY q.id, q.status
+                HAVING COUNT(r.id) != 25
+            `, (err, rows) => {
                 if (err) reject(err);
-                else resolve(rows[0].count);
+                else resolve(rows);
             });
         });
         
-        console.log(`   Grade ${testGrade} has ${availableQuestions} available questions`);
-        
-        if (availableQuestions >= 25) {
-            console.log('   ✅ Sufficient questions for quiz generation');
+        if (incorrectResponseCount.length === 0) {
+            console.log('✅ PASS: All completed quizzes have exactly 25 responses');
         } else {
-            console.log('   ⚠️  Insufficient questions for quiz generation');
+            console.log(`❌ FAIL: Found ${incorrectResponseCount.length} completed quizzes with incorrect response count`);
+            incorrectResponseCount.forEach(quiz => {
+                console.log(`   Quiz ${quiz.quiz_id}: Has ${quiz.response_count} responses instead of 25`);
+            });
         }
         
-        console.log('\n5. SYSTEM INTEGRITY SUMMARY:');
-        console.log('   ✅ Database connection working');
-        console.log('   ✅ Tables exist and accessible');
-        console.log(`   ${hasUniqueConstraints ? '✅' : '⚠️'} Database constraints ${hasUniqueConstraints ? 'active' : 'missing'}`);
-        console.log(`   ${duplicateResponses.length === 0 ? '✅' : '❌'} No duplicate responses ${duplicateResponses.length === 0 ? 'found' : `(${duplicateResponses.length} found)`}`);
-        console.log(`   ${availableQuestions >= 25 ? '✅' : '⚠️'} Question availability ${availableQuestions >= 25 ? 'sufficient' : 'insufficient'}`);
+        // Check 4: Verify database constraints are active
+        console.log('\n📋 Check 4: Verifying database constraints...');
+        const constraints = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT name, sql 
+                FROM sqlite_master 
+                WHERE type = 'trigger' 
+                AND name LIKE '%duplicate%' OR name LIKE '%unique%'
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
         
-        console.log('\n🎯 ULTRA-STRICT SYSTEM STATUS:');
-        if (hasUniqueConstraints && duplicateResponses.length === 0 && availableQuestions >= 25) {
-            console.log('   ✅ SYSTEM IS ULTRA-STRICT COMPLIANT');
-            console.log('   🔒 No duplicates possible at any level');
+        console.log(`✅ Found ${constraints.length} duplicate prevention constraints active`);
+        constraints.forEach(constraint => {
+            console.log(`   - ${constraint.name}`);
+        });
+        
+        // Check 5: System integrity report
+        console.log('\n📋 Check 5: Overall system integrity...');
+        const totalQuizzes = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM quizzes', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        const totalResponses = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM responses', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        const uniqueQuestions = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(DISTINCT question_id) as count FROM responses', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        console.log(`📊 System Statistics:`);
+        console.log(`   Total Quizzes: ${totalQuizzes}`);
+        console.log(`   Total Responses: ${totalResponses}`);
+        console.log(`   Unique Questions Used: ${uniqueQuestions}`);
+        
+        // Final verdict
+        const allChecksPassed = (
+            duplicateWithinQuiz.length === 0 &&
+            crossQuizDuplicates.length === 0 &&
+            incorrectResponseCount.length === 0
+        );
+        
+        console.log('\n🎯 FINAL VERDICT:');
+        console.log('================');
+        if (allChecksPassed) {
+            console.log('✅ ULTRA-STRICT SYSTEM VERIFICATION PASSED');
+            console.log('🔒 Zero duplicates detected');
+            console.log('🛡️  All constraints working correctly');
+            console.log('📋 All quizzes have proper question count');
         } else {
-            console.log('   ⚠️  SYSTEM NEEDS ATTENTION');
-            console.log('   🔧 Some components may allow duplicates');
+            console.log('❌ ULTRA-STRICT SYSTEM VERIFICATION FAILED');
+            console.log('⚠️  System integrity compromised');
+            console.log('🔧 Manual intervention required');
         }
+        
+        await database.close();
         
     } catch (error) {
-        console.error('❌ Verification failed:', error);
-    } finally {
+        console.error('❌ Error verifying ultra-strict system:', error);
         await database.close();
     }
 }

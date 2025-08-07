@@ -1,26 +1,12 @@
 @echo off
-echo ========================================
-echo STARTING MCQ TESTING SYSTEM FRONTEND
-echo ========================================
-echo.
-
-echo Checking Node.js installation...
-node --version >nul 2>&1
-if errorlevel 1 (
-    echo ❌ Node.js is not installed or not in PATH
-    echo Please install Node.js from https://nodejs.org/
-    pause
-    exit /b 1
-)
-
-echo ✅ Node.js is installed
-node --version
+echo Starting Frontend Development Server
+echo ====================================
 
 echo.
 echo Checking if client directory exists...
 if not exist "client" (
     echo ❌ Client directory not found!
-    echo Make sure you're running this from the project root directory.
+    echo Please make sure you're in the project root directory.
     pause
     exit /b 1
 )
@@ -28,66 +14,25 @@ if not exist "client" (
 echo ✅ Client directory found
 
 echo.
-echo Checking client dependencies...
+echo Checking if node_modules exists in client...
 if not exist "client\node_modules" (
-    echo 📦 Installing client dependencies...
+    echo ⚠️  Node modules not found. Installing dependencies...
     cd client
-    call npm install
-    if errorlevel 1 (
-        echo ❌ Failed to install client dependencies
-        pause
-        exit /b 1
-    )
+    npm install
     cd ..
+    echo ✅ Dependencies installed
 ) else (
-    echo ✅ Client dependencies already installed
+    echo ✅ Dependencies already installed
 )
 
 echo.
-echo Checking environment configuration...
-if not exist "client\.env" (
-    echo 📝 Creating client environment file...
-    echo VITE_API_URL=http://localhost:8000/api > client\.env
-)
-
-echo ✅ Environment configured
-type client\.env
-
-echo.
-echo Checking if server is running...
-curl -s http://localhost:8000/health >nul 2>&1
-if errorlevel 1 (
-    echo ⚠️  Server is not running on port 8000
-    echo.
-    echo Starting server in background...
-    start "MCQ Server" cmd /c "cd server && npm start"
-    echo Waiting for server to start...
-    timeout /t 5 /nobreak >nul
-    
-    echo Checking server again...
-    curl -s http://localhost:8000/health >nul 2>&1
-    if errorlevel 1 (
-        echo ❌ Server failed to start
-        echo Please start the server manually with: cd server && npm start
-        pause
-        exit /b 1
-    )
-)
-
-echo ✅ Server is running
-
-echo.
-echo ========================================
-echo STARTING FRONTEND DEVELOPMENT SERVER
-echo ========================================
-echo.
-echo Frontend will be available at: http://localhost:5173
-echo API will be proxied to: http://localhost:8000/api
-echo.
-echo Press Ctrl+C to stop the development server
-echo.
-
+echo Starting Vite development server...
 cd client
-npm run dev
+start "Frontend Dev Server" cmd /k "npm run dev"
 
-pause
+echo.
+echo ✅ Frontend development server started!
+echo 🌐 Frontend should be available at: http://localhost:5173
+echo.
+echo Press any key to exit...
+pause > nul

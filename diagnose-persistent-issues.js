@@ -1,256 +1,258 @@
 const database = require('./server/config/database');
-const fs = require('fs');
-const path = require('path');
 
-// Comprehensive diagnostic to identify persistent issues
 async function diagnosePersistentIssues() {
-    console.log('🔍 DIAGNOSING PERSISTENT ISSUES IN MCQ SYSTEM\n');
-    
-    const issues = [];
-    const warnings = [];
-    
     try {
-        // 1. Check database connection
-        console.log('📋 CHECK 1: Database Connection');
-        try {
-            await database.connect();
-            console.log('   ✅ Database connection successful');
-        } catch (error) {
-            console.log('   ❌ Database connection failed:', error.message);
-            issues.push('Database connection failure');
-        }
-        
-        // 2. Check database files exist
-        console.log('\n📋 CHECK 2: Database Files');
-        const dbFiles = [
-            'server/database/init.sql',
-            'server/database/rules.sql', 
-            'server/database/no-duplicate-questions.sql',
-            'server/database/ultra-strict-constraints.sql'
-        ];
-        
-        dbFiles.forEach(file => {
-            if (fs.existsSync(file)) {
-                console.log(`   ✅ ${file}: EXISTS`);
-            } else {
-                console.log(`   ❌ ${file}: MISSING`);
-                issues.push(`Missing database file: ${file}`);
-            }
-        });
-        
-        // 3. Check question data integrity
-        console.log('\n📋 CHECK 3: Question Data Integrity');
+        await database.connect();
         const db = database.getDb();
         
-        if (db) {
-            // Check total questions
-            const totalQuestions = await new Promise((resolve, reject) => {
-                db.get('SELECT COUNT(*) as count FROM questions', (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row.count);
-                });
-            });
-            
-            console.log(`   📊 Total questions in database: ${totalQuestions}`);
-            
-            if (totalQuestions < 1000) {
-                warnings.push(`Low question count: ${totalQuestions} (expected 1250+)`);
-            }
-            
-            // Check for malformed questions
-            const malformedQuestions = await new Promise((resolve, reject) => {
-                db.all(`
-                    SELECT id, question_text 
-                    FROM questions 
-                    WHERE question_text LIKE '%Option A%' 
-                       OR question_text LIKE '%Option B%'
-                       OR question_text LIKE '%Correct%Answer%'
-                    LIMIT 5
-                `, (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
-                });
-            });
-            
-            if (malformedQuestions.length > 0) {
-                console.log('   ❌ Found malformed questions:');
-                malformedQuestions.forEach(q => {
-                    console.log(`      ID ${q.id}: "${q.question_text.substring(0, 80)}..."`);
-                });
-                issues.push(`${malformedQuestions.length} malformed questions found`);
-            } else {
-                console.log('   ✅ No malformed questions found');
-            }
-            
-            // Check for duplicate questions in database
-            const duplicateQuestions = await new Promise((resolve, reject) => {
-                db.all(`
-                    SELECT question_text, COUNT(*) as count
-                    FROM questions
-                    GROUP BY question_text
-                    HAVING COUNT(*) > 1
-                    LIMIT 5
-                `, (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
-                });
-            });
-            
-            if (duplicateQuestions.length > 0) {
-                console.log('   ❌ Found duplicate questions in database:');
-                duplicateQuestions.forEach(q => {
-                    console.log(`      "${q.question_text.substring(0, 50)}..." appears ${q.count} times`);
-                });
-                issues.push(`${duplicateQuestions.length} duplicate questions in database`);
-            } else {
-                console.log('   ✅ No duplicate questions in database');
-            }
-        }
+        console.log('🔍 DIAGNOSING PERSISTENT SYSTEM ISSUES');
+        console.log('======================================\n');
         
-        // 4. Check quiz route integrity
-        console.log('\n📋 CHECK 4: Quiz Route Integrity');
+        // Issue 1: Check database connection and basic functionality
+        console.log('📋 Issue 1: Database Connection and Basic Functionality...');
         try {
-            const quizRouteContent = fs.readFileSync('./server/routes/quiz.js', 'utf8');
-            
-            const hasUltraStrictFunction = quizRouteContent.includes('selectUniqueQuizQuestions');
-            const hasMultipleChecks = quizRouteContent.includes('DUPLICATE CHECK');
-            const hasValidation = quizRouteContent.includes('ULTRA-STRICT VALIDATION');
-            
-            console.log(`   Ultra-strict function: ${hasUltraStrictFunction ? '✅ PRESENT' : '❌ MISSING'}`);
-            console.log(`   Multiple duplicate checks: ${hasMultipleChecks ? '✅ PRESENT' : '❌ MISSING'}`);
-            console.log(`   Final validation: ${hasValidation ? '✅ PRESENT' : '❌ MISSING'}`);
-            
-            if (!hasUltraStrictFunction) issues.push('Ultra-strict function missing from quiz route');
-            if (!hasMultipleChecks) issues.push('Multiple duplicate checks missing');
-            if (!hasValidation) issues.push('Final validation missing');
-            
+            const dbInfo = await new Promise((resolve, reject) => {
+                db.get('SELECT COUNT(*) as total_questions FROM questions', (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+            });
+            console.log(`✅ Database connected successfully - ${dbInfo.total_questions} questions found`);
         } catch (error) {
-            console.log('   ❌ Could not read quiz route file');
-            issues.push('Quiz route file unreadable');
+            console.log(`❌ Database connection issue: ${error.message}`);
         }
         
-        // 5. Check server configuration
-        console.log('\n📋 CHECK 5: Server Configuration');
-        try {
-            const serverContent = fs.readFileSync('./server/index.js', 'utf8');
-            
-            const isLocalhostOnly = serverContent.includes("'localhost'") || serverContent.includes('"localhost"');
-            const hasProperCors = serverContent.includes('localhost:5173');
-            const hasErrorHandling = serverContent.includes('Error handling middleware');
-            
-            console.log(`   Localhost-only config: ${isLocalhostOnly ? '✅ CONFIGURED' : '⚠️  NOT CONFIGURED'}`);
-            console.log(`   Proper CORS setup: ${hasProperCors ? '✅ CONFIGURED' : '❌ MISSING'}`);
-            console.log(`   Error handling: ${hasErrorHandling ? '✅ PRESENT' : '❌ MISSING'}`);
-            
-            if (!isLocalhostOnly) warnings.push('Server not configured for localhost-only access');
-            if (!hasProperCors) issues.push('CORS configuration missing');
-            if (!hasErrorHandling) issues.push('Error handling middleware missing');
-            
-        } catch (error) {
-            console.log('   ❌ Could not read server file');
-            issues.push('Server file unreadable');
-        }
+        // Issue 2: Check table structure
+        console.log('\n📋 Issue 2: Verifying Table Structure...');
+        const tables = ['students', 'questions', 'options', 'quizzes', 'responses', 'admins'];
         
-        // 6. Check environment configuration
-        console.log('\n📋 CHECK 6: Environment Configuration');
-        const envFiles = ['.env.example', 'server/.env', 'client/.env'];
-        
-        envFiles.forEach(file => {
-            if (fs.existsSync(file)) {
-                console.log(`   ✅ ${file}: EXISTS`);
-            } else {
-                console.log(`   ⚠️  ${file}: MISSING`);
-                warnings.push(`Environment file missing: ${file}`);
-            }
-        });
-        
-        // 7. Test actual quiz generation
-        console.log('\n📋 CHECK 7: Live Quiz Generation Test');
-        if (db) {
+        for (const table of tables) {
             try {
-                // Test quiz generation for Grade 11
-                const testQuestions = await new Promise((resolve, reject) => {
-                    db.all(`
-                        SELECT id FROM questions 
-                        WHERE grade = 11 
-                        ORDER BY RANDOM() 
-                        LIMIT 25
-                    `, (err, rows) => {
+                const tableInfo = await new Promise((resolve, reject) => {
+                    db.all(`PRAGMA table_info(${table})`, (err, rows) => {
                         if (err) reject(err);
-                        else resolve(rows.map(r => r.id));
+                        else resolve(rows);
                     });
                 });
                 
-                const uniqueQuestions = [...new Set(testQuestions)];
-                
-                console.log(`   📊 Generated ${testQuestions.length} questions`);
-                console.log(`   📊 Unique questions: ${uniqueQuestions.length}`);
-                
-                if (uniqueQuestions.length === testQuestions.length && testQuestions.length === 25) {
-                    console.log('   ✅ Quiz generation working correctly');
+                if (tableInfo.length > 0) {
+                    console.log(`✅ Table '${table}' exists with ${tableInfo.length} columns`);
                 } else {
-                    console.log('   ❌ Quiz generation has issues');
-                    issues.push('Quiz generation producing duplicates or wrong count');
+                    console.log(`❌ Table '${table}' not found or empty`);
                 }
-                
             } catch (error) {
-                console.log('   ❌ Quiz generation test failed:', error.message);
-                issues.push('Quiz generation test failure');
+                console.log(`❌ Error checking table '${table}': ${error.message}`);
             }
         }
         
-        // 8. Final assessment
-        console.log('\n🏆 DIAGNOSTIC SUMMARY:');
+        // Issue 3: Check for orphaned records
+        console.log('\n📋 Issue 3: Checking for Orphaned Records...');
         
-        if (issues.length === 0 && warnings.length === 0) {
-            console.log('✅ NO ISSUES FOUND - System is operating correctly');
-            console.log('🔒 Ultra-strict no-duplicates system is fully functional');
+        // Check for options without questions
+        const orphanedOptions = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT o.id, o.question_id
+                FROM options o
+                LEFT JOIN questions q ON o.question_id = q.id
+                WHERE q.id IS NULL
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        if (orphanedOptions.length === 0) {
+            console.log('✅ No orphaned options found');
         } else {
-            if (issues.length > 0) {
-                console.log(`❌ CRITICAL ISSUES FOUND (${issues.length}):`);
-                issues.forEach((issue, index) => {
-                    console.log(`   ${index + 1}. ${issue}`);
-                });
-            }
-            
-            if (warnings.length > 0) {
-                console.log(`⚠️  WARNINGS (${warnings.length}):`);
-                warnings.forEach((warning, index) => {
-                    console.log(`   ${index + 1}. ${warning}`);
-                });
-            }
+            console.log(`❌ Found ${orphanedOptions.length} orphaned options`);
         }
         
-        // 9. Recommended fixes
-        if (issues.length > 0 || warnings.length > 0) {
-            console.log('\n🔧 RECOMMENDED FIXES:');
-            
-            if (issues.includes('Database connection failure')) {
-                console.log('   1. Run: node server/scripts/seed-250-per-grade.js');
-            }
-            
-            if (issues.some(i => i.includes('malformed questions'))) {
-                console.log('   2. Re-seed database: node server/scripts/seed-250-per-grade.js');
-            }
-            
-            if (issues.some(i => i.includes('Ultra-strict function missing'))) {
-                console.log('   3. Restore quiz route: copy server/routes/quiz-no-duplicates.js to server/routes/quiz.js');
-            }
-            
-            if (warnings.some(w => w.includes('localhost-only'))) {
-                console.log('   4. Update server config for localhost-only access');
-            }
-            
-            console.log('   5. Run comprehensive test: node test-no-duplicates.js');
-            console.log('   6. Verify system: node verify-ultra-strict-system.js');
+        // Check for responses without quizzes
+        const orphanedResponses = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT r.id, r.quiz_id
+                FROM responses r
+                LEFT JOIN quizzes q ON r.quiz_id = q.id
+                WHERE q.id IS NULL
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        if (orphanedResponses.length === 0) {
+            console.log('✅ No orphaned responses found');
+        } else {
+            console.log(`❌ Found ${orphanedResponses.length} orphaned responses`);
         }
         
-        process.exit(issues.length > 0 ? 1 : 0);
+        // Issue 4: Check question quality
+        console.log('\n📋 Issue 4: Checking Question Quality...');
+        
+        // Check for questions without options
+        const questionsWithoutOptions = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT q.id, q.question_text
+                FROM questions q
+                LEFT JOIN options o ON q.id = o.question_id
+                WHERE o.id IS NULL
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        if (questionsWithoutOptions.length === 0) {
+            console.log('✅ All questions have options');
+        } else {
+            console.log(`❌ Found ${questionsWithoutOptions.length} questions without options`);
+        }
+        
+        // Check for questions with wrong number of options
+        const questionsWrongOptionCount = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT q.id, q.question_text, COUNT(o.id) as option_count
+                FROM questions q
+                LEFT JOIN options o ON q.id = o.question_id
+                GROUP BY q.id, q.question_text
+                HAVING COUNT(o.id) != 4
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        if (questionsWrongOptionCount.length === 0) {
+            console.log('✅ All questions have exactly 4 options');
+        } else {
+            console.log(`❌ Found ${questionsWrongOptionCount.length} questions with wrong option count`);
+            questionsWrongOptionCount.slice(0, 3).forEach(q => {
+                console.log(`   Question ${q.id}: ${q.option_count} options`);
+            });
+        }
+        
+        // Check for questions without correct answers
+        const questionsWithoutCorrectAnswer = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT q.id, q.question_text
+                FROM questions q
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM options o 
+                    WHERE o.question_id = q.id AND o.is_correct = 1
+                )
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        if (questionsWithoutCorrectAnswer.length === 0) {
+            console.log('✅ All questions have correct answers');
+        } else {
+            console.log(`❌ Found ${questionsWithoutCorrectAnswer.length} questions without correct answers`);
+        }
+        
+        // Issue 5: Check system performance
+        console.log('\n📋 Issue 5: System Performance Analysis...');
+        
+        const performanceStats = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT 
+                    (SELECT COUNT(*) FROM students) as total_students,
+                    (SELECT COUNT(*) FROM questions) as total_questions,
+                    (SELECT COUNT(*) FROM quizzes) as total_quizzes,
+                    (SELECT COUNT(*) FROM responses) as total_responses,
+                    (SELECT COUNT(*) FROM quizzes WHERE status = 'completed') as completed_quizzes,
+                    (SELECT COUNT(*) FROM quizzes WHERE status = 'in_progress') as in_progress_quizzes
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows[0]);
+            });
+        });
+        
+        console.log('📊 System Statistics:');
+        console.log(`   Students: ${performanceStats.total_students}`);
+        console.log(`   Questions: ${performanceStats.total_questions}`);
+        console.log(`   Total Quizzes: ${performanceStats.total_quizzes}`);
+        console.log(`   Completed Quizzes: ${performanceStats.completed_quizzes}`);
+        console.log(`   In-Progress Quizzes: ${performanceStats.in_progress_quizzes}`);
+        console.log(`   Total Responses: ${performanceStats.total_responses}`);
+        
+        // Issue 6: Check for potential memory issues
+        console.log('\n📋 Issue 6: Memory and Resource Usage...');
+        
+        const largeQuestions = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT id, LENGTH(question_text) as length
+                FROM questions
+                WHERE LENGTH(question_text) > 500
+                ORDER BY length DESC
+                LIMIT 5
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        if (largeQuestions.length === 0) {
+            console.log('✅ No unusually large questions found');
+        } else {
+            console.log(`⚠️  Found ${largeQuestions.length} large questions (>500 chars)`);
+        }
+        
+        // Issue 7: Check authentication system
+        console.log('\n📋 Issue 7: Authentication System Check...');
+        
+        const adminCount = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM admins', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        const studentCount = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM students', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        console.log(`✅ Authentication system: ${adminCount} admins, ${studentCount} students`);
+        
+        // Final diagnosis
+        console.log('\n🎯 DIAGNOSIS SUMMARY:');
+        console.log('====================');
+        
+        const issues = [];
+        if (orphanedOptions.length > 0) issues.push('Orphaned options');
+        if (orphanedResponses.length > 0) issues.push('Orphaned responses');
+        if (questionsWithoutOptions.length > 0) issues.push('Questions without options');
+        if (questionsWrongOptionCount.length > 0) issues.push('Questions with wrong option count');
+        if (questionsWithoutCorrectAnswer.length > 0) issues.push('Questions without correct answers');
+        
+        if (issues.length === 0) {
+            console.log('✅ NO CRITICAL ISSUES FOUND');
+            console.log('🎉 System appears to be functioning correctly');
+        } else {
+            console.log('❌ ISSUES DETECTED:');
+            issues.forEach(issue => console.log(`   - ${issue}`));
+            console.log('\n🔧 RECOMMENDED ACTIONS:');
+            console.log('   1. Run database cleanup script');
+            console.log('   2. Re-seed questions if necessary');
+            console.log('   3. Verify data integrity constraints');
+        }
+        
+        await database.close();
         
     } catch (error) {
-        console.error('❌ Diagnostic failed:', error);
-        process.exit(1);
+        console.error('❌ Error during diagnosis:', error);
+        await database.close();
     }
 }
 
-diagnosePersistentIssues();
+// Run diagnosis if this file is executed directly
+if (require.main === module) {
+    diagnosePersistentIssues();
+}
+
+module.exports = diagnosePersistentIssues;

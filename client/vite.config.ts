@@ -23,7 +23,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://tech-board.up.railway.app',
+        target: 'http://localhost:8000',
         changeOrigin: true,
       },
     },

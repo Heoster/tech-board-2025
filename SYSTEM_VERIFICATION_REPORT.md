@@ -11,7 +11,7 @@
 ## 📊 SYSTEM SPECIFICATIONS
 
 ### Question Bank Statistics
-- **Total Questions**: 1,250 questions across all grades
+- **Total Questions**: 1,250+ questions across all grades
 - **Grade 6**: 250 questions (59.2% basic, 29.6% medium, 11.2% advanced)
 - **Grade 7**: 250 questions (58.4% basic, 30.0% medium, 11.6% advanced)
 - **Grade 8**: 250 questions (58.4% basic, 30.0% medium, 11.6% advanced)

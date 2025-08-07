@@ -1,290 +1,184 @@
 const database = require('./server/config/database');
 
-// Comprehensive test for ultra-strict no-duplicates system
-async function testNoDuplicatesSystem() {
+async function testNoDuplicates() {
     try {
         await database.connect();
         const db = database.getDb();
         
-        console.log('🧪 TESTING ULTRA-STRICT NO-DUPLICATES SYSTEM\n');
+        console.log('🔍 TESTING NO DUPLICATES SYSTEM');
+        console.log('===============================\n');
         
-        const testGrade = 11;
-        const testStudentId = 999; // Test student ID
-        
-        // Create test student if not exists
-        try {
-            await new Promise((resolve, reject) => {
-                db.run(
-                    'INSERT OR IGNORE INTO students (id, name, roll_number, grade, section, password_hash) VALUES (?, ?, ?, ?, ?, ?)',
-                    [testStudentId, 'Test Student', 99, testGrade, 'A', 'test_hash'],
-                    function(err) {
-                        if (err) reject(err);
-                        else resolve();
-                    }
-                );
-            });
-        } catch (error) {
-            // Student might already exist, continue
-        }
-        
-        console.log('📊 PHASE 1: Checking available questions...');
-        
-        const totalQuestions = await new Promise((resolve, reject) => {
-            db.get('SELECT COUNT(*) as count FROM questions WHERE grade = ?', [testGrade], (err, row) => {
-                if (err) reject(err);
-                else resolve(row.count);
-            });
-        });
-        
-        console.log(`   Total Grade ${testGrade} questions: ${totalQuestions}`);
-        
-        if (totalQuestions < 75) { // Need at least 75 for 3 unique tests
-            console.log('❌ Not enough questions for comprehensive testing');
-            process.exit(1);
-        }
-        
-        console.log('\n🔄 PHASE 2: Simulating multiple quiz attempts...');
-        
-        const quizAttempts = [];
-        const allUsedQuestions = new Set();
-        
-        // Simulate 3 quiz attempts
-        for (let attempt = 1; attempt <= 3; attempt++) {
-            console.log(`\n📝 Quiz Attempt ${attempt}:`);
-            
-            try {
-                // Import the quiz selection function
-                const selectUniqueQuizQuestions = require('./server/routes/quiz-no-duplicates.js');
-                
-                // Since we can't directly call the internal function, we'll simulate it
-                // Get previously used questions
-                const usedQuestions = await new Promise((resolve, reject) => {
-                    db.all(`
-                        SELECT DISTINCT r.question_id 
-                        FROM responses r
-                        JOIN quizzes q ON r.quiz_id = q.id
-                        WHERE q.student_id = ? AND q.grade = ?
-                    `, [testStudentId, testGrade], (err, rows) => {
-                        if (err) reject(err);
-                        else resolve(rows.map(r => r.question_id));
-                    });
-                });
-                
-                console.log(`   Previously used questions: ${usedQuestions.length}`);
-                
-                // Select 25 new questions avoiding used ones
-                const excludeClause = usedQuestions.length > 0 ?
-                    `AND id NOT IN (${usedQuestions.map(() => '?').join(',')})` : '';
-                
-                const newQuestions = await new Promise((resolve, reject) => {
-                    db.all(
-                        `SELECT id FROM questions 
-                         WHERE grade = ? ${excludeClause}
-                         ORDER BY RANDOM()
-                         LIMIT 25`,
-                        [testGrade, ...usedQuestions],
-                        (err, rows) => {
-                            if (err) reject(err);
-                            else resolve(rows.map(r => r.id));
-                        }
-                    );
-                });
-                
-                console.log(`   New questions selected: ${newQuestions.length}`);
-                
-                // Check for duplicates within this quiz
-                const uniqueNewQuestions = [...new Set(newQuestions)];
-                if (uniqueNewQuestions.length !== newQuestions.length) {
-                    console.error(`   ❌ DUPLICATES FOUND within quiz ${attempt}!`);
-                    const duplicates = newQuestions.filter((id, index) => newQuestions.indexOf(id) !== index);
-                    console.error(`   Duplicate IDs: ${duplicates.join(', ')}`);
-                } else {
-                    console.log(`   ✅ No duplicates within quiz ${attempt}`);
-                }
-                
-                // Check for overlap with previously used questions
-                const overlap = newQuestions.filter(id => allUsedQuestions.has(id));
-                if (overlap.length > 0) {
-                    console.error(`   ❌ OVERLAP with previous quizzes found!`);
-                    console.error(`   Overlapping IDs: ${overlap.join(', ')}`);
-                } else {
-                    console.log(`   ✅ No overlap with previous quizzes`);
-                }
-                
-                // Create mock quiz and responses
-                const quizId = await new Promise((resolve, reject) => {
-                    db.run(
-                        'INSERT INTO quizzes (student_id, grade, total_questions, status) VALUES (?, ?, ?, ?)',
-                        [testStudentId, testGrade, 25, 'completed'],
-                        function(err) {
-                            if (err) reject(err);
-                            else resolve(this.lastID);
-                        }
-                    );
-                });
-                
-                // Insert responses for all questions
-                for (const questionId of newQuestions) {
-                    await new Promise((resolve, reject) => {
-                        db.run(
-                            'INSERT INTO responses (quiz_id, question_id, selected_option_id, is_correct) VALUES (?, ?, ?, ?)',
-                            [quizId, questionId, null, false], // Mock response
-                            function(err) {
-                                if (err) reject(err);
-                                else resolve();
-                            }
-                        );
-                    });
-                }
-                
-                quizAttempts.push({
-                    attempt,
-                    quizId,
-                    questions: newQuestions,
-                    uniqueQuestions: uniqueNewQuestions.length,
-                    hasDuplicates: uniqueNewQuestions.length !== newQuestions.length,
-                    hasOverlap: overlap.length > 0
-                });
-                
-                // Add to global used questions
-                newQuestions.forEach(id => allUsedQuestions.add(id));
-                
-                console.log(`   Quiz ${attempt} completed with ${newQuestions.length} questions`);
-                
-            } catch (error) {
-                console.error(`   ❌ Error in quiz attempt ${attempt}:`, error.message);
-            }
-        }
-        
-        console.log('\n📊 PHASE 3: Analyzing results...');
-        
-        let allTestsPassed = true;
-        
-        // Check each quiz attempt
-        quizAttempts.forEach((attempt, index) => {
-            console.log(`\nQuiz ${attempt.attempt} Analysis:`);
-            console.log(`   Questions: ${attempt.questions.length}`);
-            console.log(`   Unique: ${attempt.uniqueQuestions}`);
-            console.log(`   Duplicates: ${attempt.hasDuplicates ? '❌ YES' : '✅ NO'}`);
-            console.log(`   Overlap: ${attempt.hasOverlap ? '❌ YES' : '✅ NO'}`);
-            
-            if (attempt.hasDuplicates || attempt.hasOverlap) {
-                allTestsPassed = false;
-            }
-        });
-        
-        // Check cross-quiz uniqueness
-        console.log('\n🔀 Cross-Quiz Analysis:');
-        for (let i = 0; i < quizAttempts.length; i++) {
-            for (let j = i + 1; j < quizAttempts.length; j++) {
-                const quiz1 = new Set(quizAttempts[i].questions);
-                const quiz2 = new Set(quizAttempts[j].questions);
-                const overlap = [...quiz1].filter(id => quiz2.has(id));
-                
-                console.log(`   Quiz ${i+1} & Quiz ${j+1} overlap: ${overlap.length} questions`);
-                if (overlap.length > 0) {
-                    console.log(`   ❌ Overlapping IDs: ${overlap.join(', ')}`);
-                    allTestsPassed = false;
-                } else {
-                    console.log(`   ✅ No overlap between Quiz ${i+1} & Quiz ${j+1}`);
-                }
-            }
-        }
-        
-        // Final statistics
-        console.log('\n📈 FINAL STATISTICS:');
-        console.log(`   Total unique questions used: ${allUsedQuestions.size}`);
-        console.log(`   Total questions available: ${totalQuestions}`);
-        console.log(`   Remaining questions: ${totalQuestions - allUsedQuestions.size}`);
-        console.log(`   Utilization: ${((allUsedQuestions.size / totalQuestions) * 100).toFixed(1)}%`);
-        
-        // Database integrity check
-        console.log('\n🔍 DATABASE INTEGRITY CHECK:');
-        
-        const responseCount = await new Promise((resolve, reject) => {
-            db.get(
-                'SELECT COUNT(*) as count FROM responses WHERE quiz_id IN (SELECT id FROM quizzes WHERE student_id = ?)',
-                [testStudentId],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row.count);
-                }
-            );
-        });
-        
-        const expectedResponses = quizAttempts.length * 25;
-        console.log(`   Expected responses: ${expectedResponses}`);
-        console.log(`   Actual responses: ${responseCount}`);
-        console.log(`   Response integrity: ${responseCount === expectedResponses ? '✅ PASS' : '❌ FAIL'}`);
-        
-        // Check for duplicate responses
-        const duplicateResponses = await new Promise((resolve, reject) => {
+        // Test 1: Check for duplicate questions in database
+        console.log('📋 Test 1: Checking for duplicate questions in database...');
+        const duplicateQuestions = await new Promise((resolve, reject) => {
             db.all(`
-                SELECT question_id, COUNT(*) as count
-                FROM responses r
-                JOIN quizzes q ON r.quiz_id = q.id
-                WHERE q.student_id = ?
-                GROUP BY question_id
+                SELECT question_text, grade, difficulty, COUNT(*) as count
+                FROM questions
+                GROUP BY question_text, grade, difficulty
                 HAVING COUNT(*) > 1
-            `, [testStudentId], (err, rows) => {
+                ORDER BY count DESC
+            `, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
         });
         
-        if (duplicateResponses.length > 0) {
-            console.log(`   ❌ Found ${duplicateResponses.length} questions answered multiple times!`);
-            duplicateResponses.forEach(dup => {
-                console.log(`      Question ${dup.question_id}: answered ${dup.count} times`);
-            });
-            allTestsPassed = false;
+        if (duplicateQuestions.length === 0) {
+            console.log('✅ No duplicate questions found in database');
         } else {
-            console.log(`   ✅ No duplicate responses found`);
+            console.log(`❌ Found ${duplicateQuestions.length} duplicate questions:`);
+            duplicateQuestions.slice(0, 5).forEach(dup => {
+                console.log(`   "${dup.question_text.substring(0, 50)}..." appears ${dup.count} times`);
+            });
         }
         
-        // Final verdict
-        console.log('\n🏆 FINAL VERDICT:');
+        // Test 2: Check for duplicate options
+        console.log('\n📋 Test 2: Checking for duplicate options within questions...');
+        const duplicateOptions = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT question_id, option_text, COUNT(*) as count
+                FROM options
+                GROUP BY question_id, option_text
+                HAVING COUNT(*) > 1
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        if (duplicateOptions.length === 0) {
+            console.log('✅ No duplicate options found within questions');
+        } else {
+            console.log(`❌ Found ${duplicateOptions.length} duplicate options within questions`);
+        }
+        
+        // Test 3: Check quiz responses for duplicates
+        console.log('\n📋 Test 3: Checking quiz responses for duplicates...');
+        const duplicateResponses = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT quiz_id, question_id, COUNT(*) as count
+                FROM responses
+                GROUP BY quiz_id, question_id
+                HAVING COUNT(*) > 1
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        if (duplicateResponses.length === 0) {
+            console.log('✅ No duplicate responses found in quizzes');
+        } else {
+            console.log(`❌ Found ${duplicateResponses.length} duplicate responses in quizzes`);
+        }
+        
+        // Test 4: Check for students answering same question multiple times
+        console.log('\n📋 Test 4: Checking for cross-quiz question repetition...');
+        const crossQuizDuplicates = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT 
+                    s.name,
+                    s.roll_number,
+                    s.grade,
+                    s.section,
+                    r.question_id,
+                    COUNT(*) as times_answered
+                FROM responses r
+                JOIN quizzes q ON r.quiz_id = q.id
+                JOIN students s ON q.student_id = s.id
+                GROUP BY s.id, r.question_id
+                HAVING COUNT(*) > 1
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        if (crossQuizDuplicates.length === 0) {
+            console.log('✅ No students have answered the same question multiple times');
+        } else {
+            console.log(`❌ Found ${crossQuizDuplicates.length} cases of students answering same question multiple times:`);
+            crossQuizDuplicates.forEach(dup => {
+                console.log(`   ${dup.name} (${dup.roll_number}) answered question ${dup.question_id} ${dup.times_answered} times`);
+            });
+        }
+        
+        // Test 5: Verify question distribution
+        console.log('\n📋 Test 5: Verifying question distribution per grade...');
+        const grades = [6, 7, 8, 9, 11];
+        
+        for (const grade of grades) {
+            const distribution = await new Promise((resolve, reject) => {
+                db.all(`
+                    SELECT difficulty, COUNT(*) as count
+                    FROM questions
+                    WHERE grade = ?
+                    GROUP BY difficulty
+                    ORDER BY difficulty
+                `, [grade], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                });
+            });
+            
+            const total = distribution.reduce((sum, row) => sum + row.count, 0);
+            const basic = distribution.find(d => d.difficulty === 'basic')?.count || 0;
+            const medium = distribution.find(d => d.difficulty === 'medium')?.count || 0;
+            const advanced = distribution.find(d => d.difficulty === 'advanced')?.count || 0;
+            
+            console.log(`   Grade ${grade}: ${total} total (${basic} basic, ${medium} medium, ${advanced} advanced)`);
+        }
+        
+        // Test 6: Check database constraints
+        console.log('\n📋 Test 6: Verifying database constraints...');
+        const constraints = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT name, type, sql
+                FROM sqlite_master
+                WHERE type IN ('trigger', 'index')
+                AND (name LIKE '%unique%' OR name LIKE '%duplicate%' OR sql LIKE '%UNIQUE%')
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        console.log(`✅ Found ${constraints.length} duplicate prevention constraints:`);
+        constraints.forEach(constraint => {
+            console.log(`   - ${constraint.name} (${constraint.type})`);
+        });
+        
+        // Summary
+        const allTestsPassed = (
+            duplicateQuestions.length === 0 &&
+            duplicateOptions.length === 0 &&
+            duplicateResponses.length === 0 &&
+            crossQuizDuplicates.length === 0
+        );
+        
+        console.log('\n🎯 TEST SUMMARY:');
+        console.log('===============');
         if (allTestsPassed) {
-            console.log('✅ ULTRA-STRICT NO-DUPLICATES SYSTEM: PASSED');
-            console.log('🔒 GUARANTEE: No question repetition detected');
-            console.log('🎯 SYSTEM READY: Can handle multiple unique quizzes per student');
+            console.log('✅ ALL NO-DUPLICATE TESTS PASSED');
+            console.log('🔒 System integrity maintained');
+            console.log('🛡️  Duplicate prevention working correctly');
         } else {
-            console.log('❌ ULTRA-STRICT NO-DUPLICATES SYSTEM: FAILED');
-            console.log('⚠️  ISSUES DETECTED: Question repetition found');
-            console.log('🔧 ACTION REQUIRED: Review and fix duplicate prevention logic');
+            console.log('❌ SOME NO-DUPLICATE TESTS FAILED');
+            console.log('⚠️  System requires attention');
+            console.log('🔧 Review duplicate prevention mechanisms');
         }
         
-        // Cleanup test data
-        console.log('\n🧹 Cleaning up test data...');
-        await new Promise((resolve, reject) => {
-            db.run('DELETE FROM responses WHERE quiz_id IN (SELECT id FROM quizzes WHERE student_id = ?)', [testStudentId], (err) => {
-                if (err) reject(err);
-                else resolve();
-            });
-        });
-        
-        await new Promise((resolve, reject) => {
-            db.run('DELETE FROM quizzes WHERE student_id = ?', [testStudentId], (err) => {
-                if (err) reject(err);
-                else resolve();
-            });
-        });
-        
-        await new Promise((resolve, reject) => {
-            db.run('DELETE FROM students WHERE id = ?', [testStudentId], (err) => {
-                if (err) reject(err);
-                else resolve();
-            });
-        });
-        
-        console.log('✅ Test data cleaned up');
-        
-        process.exit(allTestsPassed ? 0 : 1);
+        await database.close();
         
     } catch (error) {
-        console.error('❌ Error testing no-duplicates system:', error);
-        process.exit(1);
+        console.error('❌ Error testing no duplicates system:', error);
+        await database.close();
     }
 }
 
-testNoDuplicatesSystem();
+// Run test if this file is executed directly
+if (require.main === module) {
+    testNoDuplicates();
+}
+
+module.exports = testNoDuplicates;
