@@ -82,7 +82,7 @@ const LoginForm: React.FC = () => {
                 onChange={handleChange}
               >
                 <option value="">Select Grade</option>
-                {[6, 7, 8, 9, 10, 11, 12].map(grade => (
+                {[6, 7, 8, 9, 10, 11].map(grade => (
                   <option key={grade} value={grade}>Grade {grade}</option>
                 ))}
               </select>

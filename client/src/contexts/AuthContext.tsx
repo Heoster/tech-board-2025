@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   // Set up axios defaults
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://tech-board.up.railway.app/api'
   axios.defaults.baseURL = API_BASE_URL
 
   useEffect(() => {
