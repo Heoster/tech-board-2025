@@ -1,4 +1,4 @@
-const database = require('../config/database');
+const database = require('./server/config/database');
 
 async function verifyUltraStrictSystem() {
     try {
@@ -94,7 +94,7 @@ async function verifyUltraStrictSystem() {
                 SELECT name, sql 
                 FROM sqlite_master 
                 WHERE type = 'trigger' 
-                AND name LIKE '%duplicate%' OR name LIKE '%unique%'
+                AND (name LIKE '%duplicate%' OR name LIKE '%unique%' OR name LIKE '%prevent%')
             `, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
@@ -106,8 +106,27 @@ async function verifyUltraStrictSystem() {
             console.log(`   - ${constraint.name}`);
         });
         
-        // Check 5: System integrity report
-        console.log('\n📋 Check 5: Overall system integrity...');
+        // Check 5: Verify unique indexes
+        console.log('\n📋 Check 5: Verifying unique indexes...');
+        const indexes = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT name, sql 
+                FROM sqlite_master 
+                WHERE type = 'index' 
+                AND (sql LIKE '%UNIQUE%' OR name LIKE '%unique%')
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        console.log(`✅ Found ${indexes.length} unique indexes active`);
+        indexes.forEach(index => {
+            console.log(`   - ${index.name}`);
+        });
+        
+        // Check 6: System integrity report
+        console.log('\n📋 Check 6: Overall system integrity...');
         const totalQuizzes = await new Promise((resolve, reject) => {
             db.get('SELECT COUNT(*) as count FROM quizzes', (err, row) => {
                 if (err) reject(err);
@@ -129,10 +148,19 @@ async function verifyUltraStrictSystem() {
             });
         });
         
+        const completedQuizzes = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM quizzes WHERE status = "completed"', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
         console.log(`📊 System Statistics:`);
         console.log(`   Total Quizzes: ${totalQuizzes}`);
+        console.log(`   Completed Quizzes: ${completedQuizzes}`);
         console.log(`   Total Responses: ${totalResponses}`);
         console.log(`   Unique Questions Used: ${uniqueQuestions}`);
+        console.log(`   Expected Responses (25 per completed quiz): ${completedQuizzes * 25}`);
         
         // Final verdict
         const allChecksPassed = (
@@ -148,10 +176,12 @@ async function verifyUltraStrictSystem() {
             console.log('🔒 Zero duplicates detected');
             console.log('🛡️  All constraints working correctly');
             console.log('📋 All quizzes have proper question count');
+            console.log('🎯 System integrity maintained');
         } else {
             console.log('❌ ULTRA-STRICT SYSTEM VERIFICATION FAILED');
             console.log('⚠️  System integrity compromised');
             console.log('🔧 Manual intervention required');
+            console.log('📞 Contact system administrator');
         }
         
         await database.close();
