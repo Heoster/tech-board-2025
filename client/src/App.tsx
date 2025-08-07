@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
-import TechnoBoardLanding from './components/LandingPage'
+import TechnoBoardLanding from './components/TechnoBoardLanding'
 import ModernLoginForm from './components/auth/ModernLoginForm'
 import QuizInterface from './components/QuizInterface'
 import TestSubmitted from './components/TestSubmitted'
