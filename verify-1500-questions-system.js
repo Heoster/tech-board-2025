@@ -12,10 +12,10 @@ async function verifySystem() {
         // 1. Count questions per grade
         console.log('📊 GRADE-WISE QUESTION COUNTS:');
         console.log('==============================');
-        
+
         let totalQuestions = 0;
         const gradeCounts = {};
-        
+
         for (const grade of [6, 7, 8, 9, 11]) {
             const count = await new Promise((resolve) => {
                 db.get('SELECT COUNT(*) as count FROM questions WHERE grade = ? AND difficulty = "basic"', [grade], (err, row) => {
@@ -24,7 +24,7 @@ async function verifySystem() {
             });
             gradeCounts[grade] = count;
             totalQuestions += count;
-            
+
             const status = count >= 250 ? '✅' : '⚠️ ';
             console.log(`${status} Grade ${grade}: ${count} questions`);
         }
@@ -37,7 +37,7 @@ async function verifySystem() {
         console.log('');
         console.log('🔍 DUPLICATE CHECK WITHIN GRADES:');
         console.log('=================================');
-        
+
         for (const grade of [6, 7, 8, 9, 11]) {
             const duplicates = await new Promise((resolve) => {
                 db.all(`
@@ -50,7 +50,7 @@ async function verifySystem() {
                     resolve(rows || []);
                 });
             });
-            
+
             if (duplicates.length === 0) {
                 console.log(`✅ Grade ${grade}: No duplicates found`);
             } else {
@@ -65,7 +65,7 @@ async function verifySystem() {
         console.log('');
         console.log('📝 QUESTION FORMAT CHECK:');
         console.log('=========================');
-        
+
         const formatCheck = await new Promise((resolve) => {
             db.all(`
                 SELECT q.id, q.grade, q.question_text,
@@ -95,7 +95,7 @@ async function verifySystem() {
         console.log('');
         console.log('📋 SAMPLE QUESTIONS:');
         console.log('===================');
-        
+
         for (const grade of [6, 7, 8, 9, 11]) {
             const sample = await new Promise((resolve) => {
                 db.get(`
@@ -108,7 +108,7 @@ async function verifySystem() {
                     resolve(row);
                 });
             });
-            
+
             if (sample) {
                 console.log(`Grade ${grade}: ${sample.question_text}`);
             }
@@ -118,7 +118,7 @@ async function verifySystem() {
         console.log('');
         console.log('🔄 CROSS-GRADE REPETITION CHECK:');
         console.log('===============================');
-        
+
         const crossGradeRepeats = await new Promise((resolve) => {
             db.all(`
                 SELECT question_text, COUNT(DISTINCT grade) as grade_count, GROUP_CONCAT(DISTINCT grade) as grades
@@ -145,10 +145,10 @@ async function verifySystem() {
         console.log('');
         console.log('🎯 SYSTEM STATUS:');
         console.log('================');
-        
+
         const allGradesHave250Plus = Object.values(gradeCounts).every(count => count >= 250);
         const totalIs1250Plus = totalQuestions >= 1250;
-        
+
         if (allGradesHave250Plus && totalIs1250Plus) {
             console.log('🎉 SUCCESS: SYSTEM FULLY READY!');
             console.log('✅ Each grade has 250+ unique questions');

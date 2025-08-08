@@ -59,12 +59,40 @@ CREATE TABLE IF NOT EXISTS responses (
     FOREIGN KEY (selected_option_id) REFERENCES options(id)
 );
 
--- Admins table
+-- Admins table with enhanced security
 CREATE TABLE IF NOT EXISTS admins (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    failed_attempts INTEGER DEFAULT 0,
+    locked_until TEXT DEFAULT NULL,
+    last_login TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Admin sessions table for security logging
+CREATE TABLE IF NOT EXISTS admin_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    admin_id INTEGER NOT NULL,
+    ip_address TEXT NOT NULL,
+    user_agent TEXT,
+    login_time TEXT NOT NULL,
+    logout_time TEXT DEFAULT NULL,
+    browser_info TEXT DEFAULT NULL,
+    session_duration INTEGER DEFAULT NULL,
+    FOREIGN KEY (admin_id) REFERENCES admins (id) ON DELETE CASCADE
+);
+
+-- Admin activity log table
+CREATE TABLE IF NOT EXISTS admin_activity_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    admin_id INTEGER NOT NULL,
+    action TEXT NOT NULL,
+    details TEXT,
+    ip_address TEXT,
+    user_agent TEXT,
+    timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (admin_id) REFERENCES admins (id) ON DELETE CASCADE
 );
 
 -- Create indexes for better performance
@@ -74,3 +102,10 @@ CREATE INDEX IF NOT EXISTS idx_options_question_id ON options(question_id);
 CREATE INDEX IF NOT EXISTS idx_quizzes_student_id ON quizzes(student_id);
 CREATE INDEX IF NOT EXISTS idx_responses_quiz_id ON responses(quiz_id);
 CREATE INDEX IF NOT EXISTS idx_responses_question_id ON responses(question_id);
+
+-- Admin security indexes
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_admin_id ON admin_sessions(admin_id);
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_login_time ON admin_sessions(login_time);
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_ip ON admin_sessions(ip_address);
+CREATE INDEX IF NOT EXISTS idx_admin_activity_admin_id ON admin_activity_log(admin_id);
+CREATE INDEX IF NOT EXISTS idx_admin_activity_timestamp ON admin_activity_log(timestamp);

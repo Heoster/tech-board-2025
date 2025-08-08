@@ -135,6 +135,8 @@ const QuizInterface: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showInstructions, setShowInstructions] = useState(true);
+  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
 
   const [quizState, setQuizState] = useState<QuizState>({
     currentQuestion: 0,
@@ -154,10 +156,10 @@ const QuizInterface: React.FC = () => {
     }
   }, [user, navigate]);
 
-  // Fetch questions and start quiz
+  // Fetch questions and start quiz (only after instructions are accepted)
   useEffect(() => {
     const startQuiz = async () => {
-      if (!user) return;
+      if (!user || showInstructions) return;
 
       try {
         setLoading(true);
@@ -178,7 +180,7 @@ const QuizInterface: React.FC = () => {
     };
 
     startQuiz();
-  }, [user]);
+  }, [user, showInstructions]);
 
   // Timer effect
   useEffect(() => {
@@ -284,6 +286,208 @@ const QuizInterface: React.FC = () => {
       }
     }
   };
+
+  // Pre-test instructions screen
+  if (showInstructions) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-red-900/20 dark:via-orange-900/20 dark:to-yellow-900/20">
+        <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-red-200 dark:border-red-800">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white p-8 rounded-t-3xl">
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-3xl font-black">⚠️ IMPORTANT TEST INSTRUCTIONS</h1>
+                  <p className="text-red-100 text-lg">TECH BOARD 2025 Selection Test - Grade {user?.grade}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Instructions Content */}
+            <div className="p-8 space-y-8">
+              {/* Critical Rules */}
+              <div className="bg-red-50 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-800 rounded-2xl p-6">
+                <h2 className="text-2xl font-bold text-red-800 dark:text-red-200 mb-4 flex items-center">
+                  <svg className="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
+                  </svg>
+                  🚫 STRICT RULES - ZERO TOLERANCE
+                </h2>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-white text-sm font-bold">1</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-red-800 dark:text-red-200">CHEATING IS NOT FORGIVABLE</h3>
+                      <p className="text-red-700 dark:text-red-300">Any form of cheating, copying, or unfair means will result in immediate disqualification. No second chances.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-white text-sm font-bold">2</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-red-800 dark:text-red-200">ATTEMPT ALL QUESTIONS IS COMPULSORY</h3>
+                      <p className="text-red-700 dark:text-red-300">You must attempt all 25 questions. Incomplete tests will not be evaluated.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-white text-sm font-bold">3</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-red-800 dark:text-red-200">NO EXTERNAL HELP ALLOWED</h3>
+                      <p className="text-red-700 dark:text-red-300">No books, notes, internet, or assistance from others. This is an individual assessment.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Test Information */}
+              <div className="bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-800 rounded-2xl p-6">
+                <h2 className="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-4 flex items-center">
+                  <svg className="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  📋 TEST DETAILS
+                </h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-blue-800 dark:text-blue-200">Total Questions: 25</p>
+                        <p className="text-blue-600 dark:text-blue-400 text-sm">All questions are compulsory</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-blue-800 dark:text-blue-200">Time Limit: 30 Minutes</p>
+                        <p className="text-blue-600 dark:text-blue-400 text-sm">Auto-submit when time expires</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-green-800 dark:text-green-200">Passing Score: 18/25 (72%)</p>
+                        <p className="text-green-600 dark:text-green-400 text-sm">Required for TECH BOARD selection</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-purple-800 dark:text-purple-200">Question Type: MCQ</p>
+                        <p className="text-purple-600 dark:text-purple-400 text-sm">Single correct answer per question</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Terms and Conditions */}
+              <div className="bg-gray-50 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">📜 Terms & Conditions</h2>
+                <div className="space-y-3 text-gray-700 dark:text-gray-300">
+                  <div className="flex items-start space-x-2">
+                    <span className="text-gray-500 mt-1">•</span>
+                    <p>Once you start the test, the timer cannot be paused or stopped.</p>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-gray-500 mt-1">•</span>
+                    <p>You can navigate between questions and change your answers before final submission.</p>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-gray-500 mt-1">•</span>
+                    <p>The test will auto-submit when time expires or when you click "Submit Test".</p>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-gray-500 mt-1">•</span>
+                    <p>Results will be processed and communicated separately.</p>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-gray-500 mt-1">•</span>
+                    <p>Technical issues should be reported immediately to the supervisor.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Acceptance Checkbox */}
+              <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-800 rounded-2xl p-6">
+                <div className="flex items-start space-x-4">
+                  <input
+                    type="checkbox"
+                    id="acceptTerms"
+                    checked={hasAcceptedTerms}
+                    onChange={(e) => setHasAcceptedTerms(e.target.checked)}
+                    className="w-6 h-6 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 mt-1"
+                  />
+                  <label htmlFor="acceptTerms" className="text-gray-800 dark:text-gray-200">
+                    <span className="font-bold text-lg">I have read and understood all instructions.</span>
+                    <br />
+                    <span className="text-red-600 dark:text-red-400 font-semibold">
+                      I acknowledge that cheating is not forgivable and attempting all questions is compulsory.
+                    </span>
+                    <br />
+                    <span>I am ready to start the TECH BOARD 2025 Selection Test.</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-6">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-xl transition-colors"
+                >
+                  ← Back to Dashboard
+                </button>
+                <button
+                  onClick={() => {
+                    if (hasAcceptedTerms) {
+                      setShowInstructions(false);
+                    }
+                  }}
+                  disabled={!hasAcceptedTerms}
+                  className={`px-8 py-4 font-bold text-lg rounded-xl transition-all transform ${
+                    hasAcceptedTerms
+                      ? 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                      : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  🚀 START TEST NOW
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
