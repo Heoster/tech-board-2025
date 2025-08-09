@@ -45,7 +45,7 @@ const selectUniqueQuizQuestions = async (grade, totalQuestions = 50, studentId =
                 else resolve(rows);
             });
         });
-        
+
         const activeQuestionIds = activeQuizQuestions.map(q => q.question_id);
         usedQuestionIds = [...new Set([...usedQuestionIds, ...activeQuestionIds])];
         console.log(`📝 Total excluded questions: ${usedQuestionIds.length}`);
@@ -57,7 +57,7 @@ const selectUniqueQuizQuestions = async (grade, totalQuestions = 50, studentId =
     const availableQuestionsWithOptions = await new Promise((resolve, reject) => {
         const excludeClause = usedQuestionIds.length > 0 ?
             `AND q.id NOT IN (${usedQuestionIds.map(() => '?').join(',')})` : '';
-        
+
         db.all(
             `SELECT DISTINCT q.id, q.difficulty, q.question_text
              FROM questions q 
@@ -133,10 +133,10 @@ const selectUniqueQuizQuestions = async (grade, totalQuestions = 50, studentId =
     const remaining = actualTargetQuestions - selectedQuestions.length;
     if (remaining > 0) {
         console.log(`📝 Need ${remaining} more questions, filling from available pool...`);
-        
+
         const remainingQuestions = availableQuestionsWithOptions.filter(q => !selectedIds.has(q.id));
         const shuffledRemaining = remainingQuestions.sort(() => Math.random() - 0.5);
-        
+
         for (let i = 0; i < Math.min(remaining, shuffledRemaining.length); i++) {
             selectedQuestions.push(shuffledRemaining[i]);
             selectedIds.add(shuffledRemaining[i].id);
@@ -156,13 +156,13 @@ const selectUniqueQuizQuestions = async (grade, totalQuestions = 50, studentId =
 
     console.log(`✅ SUCCESS: Selected ${shuffledFinalIds.length} unique questions`);
     console.log(`📊 Final distribution:`);
-    
+
     const finalDistribution = {
         basic: selectedQuestions.filter(q => q.difficulty === 'basic').length,
         medium: selectedQuestions.filter(q => q.difficulty === 'medium').length,
         advanced: selectedQuestions.filter(q => q.difficulty === 'advanced').length
     };
-    
+
     console.log(`   Basic: ${finalDistribution.basic}`);
     console.log(`   Medium: ${finalDistribution.medium}`);
     console.log(`   Advanced: ${finalDistribution.advanced}`);
@@ -246,7 +246,7 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
 
         // PRODUCTION FIX: Always try to generate 50 questions, but be flexible
         const targetQuestions = 50;
-        
+
         // Select questions using production-ready algorithm
         const selectedQuestionIds = await selectUniqueQuizQuestions(grade, targetQuestions, studentId);
         const actualQuestionCount = selectedQuestionIds.length;
@@ -347,16 +347,16 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
 
     } catch (error) {
         console.error('Error starting quiz:', error);
-        
+
         // Provide helpful error messages for production
         let errorMessage = 'Failed to start quiz';
         let errorCode = 'QUIZ_START_FAILED';
-        
+
         if (error.message.includes('INSUFFICIENT_QUESTIONS')) {
             errorMessage = `Not enough questions available for Grade ${req.params.grade}. Please contact administrator.`;
             errorCode = 'INSUFFICIENT_QUESTIONS';
         }
-        
+
         res.status(500).json({
             success: false,
             error: {
@@ -471,7 +471,7 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
             // Calculate pass criteria based on actual question count (72%)
             const passingScore = Math.ceil(totalQuestions * 0.72);
             const passed = correctAnswers >= passingScore;
-            
+
             // Update quiz with final score
             await new Promise((resolve, reject) => {
                 db.run(
@@ -609,7 +609,7 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
 
         // PRODUCTION FIX: Always try to generate 50 questions, but be flexible
         const targetQuestions = 50;
-        
+
         // Select questions using production-ready algorithm
         const selectedQuestionIds = await selectUniqueQuizQuestions(grade, targetQuestions, studentId);
         const actualQuestionCount = selectedQuestionIds.length;
@@ -710,16 +710,16 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
 
     } catch (error) {
         console.error('Error starting quiz:', error);
-        
+
         // Provide helpful error messages for production
         let errorMessage = 'Failed to start quiz';
         let errorCode = 'QUIZ_START_FAILED';
-        
+
         if (error.message.includes('INSUFFICIENT_QUESTIONS')) {
             errorMessage = `Not enough questions available for Grade ${req.params.grade}. Please contact administrator.`;
             errorCode = 'INSUFFICIENT_QUESTIONS';
         }
-        
+
         res.status(500).json({
             success: false,
             error: {
@@ -834,7 +834,7 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
             // Calculate pass criteria based on actual question count (72%)
             const passingScore = Math.ceil(totalQuestions * 0.72);
             const passed = correctAnswers >= passingScore;
-            
+
             // Update quiz with final score
             await new Promise((resolve, reject) => {
                 db.run(
@@ -873,8 +873,8 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
         } catch (error) {
             // Rollback transaction
             await new Promise((resolve, reject) => {
-                     db.run('ROLLBACK', (err) => {
-               if (err) console.error('Rollback error:', err);
+                db.run('ROLLBACK', (err) => {
+                    if (err) console.error('Rollback error:', err);
                     resolve();
                 });
             });
