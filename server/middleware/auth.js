@@ -97,16 +97,15 @@ const validateStudent = async (req, res, next) => {
     }
 };
 
-// Enhanced middleware to validate admin with security checks
+// Simple middleware to validate admin
 const validateAdmin = async (req, res, next) => {
     try {
         const db = database.getDb();
-        const clientIP = req.ip || req.connection.remoteAddress;
         
-        // Get admin with security information
+        // Get admin information
         const admin = await new Promise((resolve, reject) => {
             db.get(
-                'SELECT id, username, failed_attempts, locked_until, last_login FROM admins WHERE id = ?',
+                'SELECT id, username FROM admins WHERE id = ?',
                 [req.user.id],
                 (err, row) => {
                     if (err) reject(err);
@@ -116,7 +115,6 @@ const validateAdmin = async (req, res, next) => {
         });
 
         if (!admin) {
-            console.log(`❌ Admin validation failed: Admin ID ${req.user.id} not found`);
             return res.status(404).json({
                 success: false,
                 error: {
@@ -126,52 +124,11 @@ const validateAdmin = async (req, res, next) => {
             });
         }
 
-        // Security: Check if admin account is locked
-        if (admin.locked_until && new Date(admin.locked_until) > new Date()) {
-            console.log(`🔒 Blocked request from locked admin: ${admin.username}`);
-            return res.status(423).json({
-                success: false,
-                error: {
-                    code: 'ACCOUNT_LOCKED',
-                    message: 'Admin account is temporarily locked'
-                }
-            });
-        }
-
-        // Security: Validate token IP if available
-        if (req.user.ip && req.user.ip !== clientIP) {
-            console.log(`⚠️  IP mismatch for admin ${admin.username}: token=${req.user.ip}, request=${clientIP}`);
-            // Log suspicious activity but don't block (IP can change legitimately)
-            await new Promise((resolve) => {
-                db.run(
-                    `INSERT INTO admin_activity_log (admin_id, action, details, ip_address, timestamp) 
-                     VALUES (?, ?, ?, ?, ?)`,
-                    [admin.id, 'IP_MISMATCH', `Token IP: ${req.user.ip}, Request IP: ${clientIP}`, clientIP, new Date().toISOString()],
-                    () => resolve() // Don't fail on logging errors
-                );
-            });
-        }
-
-        // Security: Check token age (expire after 8 hours)
-        const tokenAge = Date.now() - (req.user.loginTime || 0);
-        const maxAge = 8 * 60 * 60 * 1000; // 8 hours
-        
-        if (tokenAge > maxAge) {
-            console.log(`⏰ Token expired for admin ${admin.username}: age=${Math.round(tokenAge/1000/60)} minutes`);
-            return res.status(401).json({
-                success: false,
-                error: {
-                    code: 'TOKEN_EXPIRED',
-                    message: 'Admin session expired. Please login again.'
-                }
-            });
-        }
-
         req.admin = admin;
         next();
         
     } catch (error) {
-        console.error('❌ Admin validation error:', error);
+        console.error('Admin validation error:', error);
         return res.status(500).json({
             success: false,
             error: {
@@ -182,50 +139,12 @@ const validateAdmin = async (req, res, next) => {
     }
 };
 
-// Middleware to log admin activities
-const logAdminActivity = (action) => {
-    return async (req, res, next) => {
-        try {
-            const db = database.getDb();
-            const clientIP = req.ip || req.connection.remoteAddress;
-            const userAgent = req.get('User-Agent');
-            
-            if (req.admin) {
-                await new Promise((resolve) => {
-                    db.run(
-                        `INSERT INTO admin_activity_log (admin_id, action, details, ip_address, user_agent, timestamp) 
-                         VALUES (?, ?, ?, ?, ?, ?)`,
-                        [
-                            req.admin.id, 
-                            action, 
-                            JSON.stringify({ 
-                                method: req.method, 
-                                path: req.path, 
-                                query: req.query,
-                                body: req.method === 'POST' ? Object.keys(req.body) : undefined
-                            }), 
-                            clientIP, 
-                            userAgent, 
-                            new Date().toISOString()
-                        ],
-                        () => resolve() // Don't fail on logging errors
-                    );
-                });
-            }
-            
-            next();
-        } catch (error) {
-            console.error('Failed to log admin activity:', error);
-            next(); // Continue even if logging fails
-        }
-    };
-};
+
 
 module.exports = {
     authenticateToken,
     requireStudent,
     requireAdmin,
     validateStudent,
-    validateAdmin,
-    logAdminActivity
+    validateAdmin
 };

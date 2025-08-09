@@ -6,6 +6,10 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Admin security settings
+const ADMIN_MAX_ATTEMPTS = 3;
+const ADMIN_LOCK_MINUTES = 15;
+
 // Validation middleware
 const validateRegistration = [
     body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
@@ -203,7 +207,7 @@ router.post('/login', validateLogin, async (req, res) => {
     }
 });
 
-// Admin login with enhanced security
+// Admin login with server-side lockout enforcement
 router.post('/admin/login', validateAdminLogin, async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -218,43 +222,13 @@ router.post('/admin/login', validateAdminLogin, async (req, res) => {
             });
         }
 
-        const { username, password, securityCode, browserInfo, securityLevel } = req.body;
-        const clientIP = req.ip || req.connection.remoteAddress;
-        const userAgent = req.get('User-Agent');
+        const { username, password } = req.body;
         const db = database.getDb();
 
-        // Security: Log all admin login attempts
-        console.log(`🔐 Admin login attempt: ${username} from ${clientIP} at ${new Date().toISOString()}`);
-        console.log(`   User-Agent: ${userAgent}`);
-        console.log(`   Security Level: ${securityLevel || 'normal'}`);
-
-        // Security: Validate time-based security code if required
-        if (securityLevel === 'high' && securityCode) {
-            const now = new Date();
-            const hour = now.getHours();
-            const minute = Math.floor(now.getMinutes() / 10) * 10;
-            const expectedCode = `TECH${hour}${minute}`;
-            
-            if (securityCode !== expectedCode) {
-                console.log(`❌ Invalid security code: expected ${expectedCode}, got ${securityCode}`);
-                return res.status(401).json({
-                    success: false,
-                    error: {
-                        code: 'INVALID_SECURITY_CODE',
-                        message: 'Invalid security code'
-                    }
-                });
-            }
-        }
-
-        // Security: Rate limiting check (basic implementation)
-        const rateLimitKey = `admin_login_${clientIP}`;
-        // In production, use Redis or similar for distributed rate limiting
-
-        // Find admin
+        // Find admin (include security fields)
         const admin = await new Promise((resolve, reject) => {
             db.get(
-                'SELECT id, username, password_hash, last_login, failed_attempts, locked_until FROM admins WHERE username = ?',
+                'SELECT id, username, password_hash, failed_attempts, locked_until FROM admins WHERE username = ?',
                 [username],
                 (err, row) => {
                     if (err) reject(err);
@@ -263,8 +237,8 @@ router.post('/admin/login', validateAdminLogin, async (req, res) => {
             );
         });
 
+        // If admin not found, return generic error (avoid user enumeration)
         if (!admin) {
-            console.log(`❌ Admin not found: ${username}`);
             return res.status(401).json({
                 success: false,
                 error: {
@@ -274,89 +248,96 @@ router.post('/admin/login', validateAdminLogin, async (req, res) => {
             });
         }
 
-        // Security: Check if admin account is locked
-        if (admin.locked_until && new Date(admin.locked_until) > new Date()) {
-            console.log(`🔒 Admin account locked: ${username} until ${admin.locked_until}`);
-            return res.status(423).json({
-                success: false,
-                error: {
-                    code: 'ACCOUNT_LOCKED',
-                    message: 'Account temporarily locked due to security reasons'
-                }
-            });
+        // Check if account is currently locked
+        if (admin.locked_until) {
+            const lockedUntilMs = Date.parse(admin.locked_until);
+            if (!Number.isNaN(lockedUntilMs) && lockedUntilMs > Date.now()) {
+                const remainingSeconds = Math.ceil((lockedUntilMs - Date.now()) / 1000);
+                return res.status(423).json({
+                    success: false,
+                    error: {
+                        code: 'ACCOUNT_LOCKED',
+                        message: `Account locked. Try again in ${Math.ceil(remainingSeconds / 60)} minutes.`,
+                        details: {
+                            remainingSeconds,
+                            lockedUntil: admin.locked_until
+                        }
+                    }
+                });
+            }
         }
 
         // Verify password
         const isValidPassword = await authUtils.verifyPassword(password, admin.password_hash);
         if (!isValidPassword) {
-            console.log(`❌ Invalid password for admin: ${username}`);
-            
-            // Security: Increment failed attempts
-            const newFailedAttempts = (admin.failed_attempts || 0) + 1;
-            let lockedUntil = null;
-            
-            // Lock account after 5 failed attempts for 30 minutes
-            if (newFailedAttempts >= 5) {
-                lockedUntil = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-                console.log(`🔒 Locking admin account: ${username} until ${lockedUntil}`);
-            }
-            
-            await new Promise((resolve, reject) => {
-                db.run(
-                    'UPDATE admins SET failed_attempts = ?, locked_until = ? WHERE id = ?',
-                    [newFailedAttempts, lockedUntil, admin.id],
-                    (err) => {
-                        if (err) reject(err);
-                        else resolve();
-                    }
-                );
-            });
+            const currentAttempts = admin.failed_attempts || 0;
+            const newAttempts = currentAttempts + 1;
 
-            return res.status(401).json({
-                success: false,
-                error: {
-                    code: 'INVALID_CREDENTIALS',
-                    message: 'Invalid credentials'
-                }
-            });
+            if (newAttempts >= ADMIN_MAX_ATTEMPTS) {
+                // Lock account for ADMIN_LOCK_MINUTES
+                const lockedUntil = new Date(Date.now() + ADMIN_LOCK_MINUTES * 60 * 1000).toISOString();
+                await new Promise((resolve, reject) => {
+                    db.run(
+                        'UPDATE admins SET failed_attempts = 0, locked_until = ? WHERE id = ?',
+                        [lockedUntil, admin.id],
+                        function (err) {
+                            if (err) reject(err);
+                            else resolve();
+                        }
+                    );
+                });
+
+                return res.status(423).json({
+                    success: false,
+                    error: {
+                        code: 'ACCOUNT_LOCKED',
+                        message: `Too many failed attempts. Account locked for ${ADMIN_LOCK_MINUTES} minutes.`,
+                        details: {
+                            remainingSeconds: ADMIN_LOCK_MINUTES * 60,
+                            lockedUntil
+                        }
+                    }
+                });
+            } else {
+                // Increment failed attempts
+                await new Promise((resolve, reject) => {
+                    db.run(
+                        'UPDATE admins SET failed_attempts = ? WHERE id = ?',
+                        [newAttempts, admin.id],
+                        function (err) {
+                            if (err) reject(err);
+                            else resolve();
+                        }
+                    );
+                });
+
+                return res.status(401).json({
+                    success: false,
+                    error: {
+                        code: 'INVALID_CREDENTIALS',
+                        message: 'Invalid credentials'
+                    }
+                });
+            }
         }
 
-        // Security: Reset failed attempts on successful login
+        // Success: reset counters and update last login
         await new Promise((resolve, reject) => {
             db.run(
-                'UPDATE admins SET failed_attempts = 0, locked_until = NULL, last_login = ? WHERE id = ?',
-                [new Date().toISOString(), admin.id],
-                (err) => {
+                "UPDATE admins SET failed_attempts = 0, locked_until = NULL, last_login = datetime('now') WHERE id = ?",
+                [admin.id],
+                function (err) {
                     if (err) reject(err);
                     else resolve();
                 }
             );
         });
 
-        // Security: Log successful admin login
-        console.log(`✅ Successful admin login: ${username} from ${clientIP}`);
-        
-        // Security: Create admin session log
-        await new Promise((resolve, reject) => {
-            db.run(
-                `INSERT OR IGNORE INTO admin_sessions (admin_id, ip_address, user_agent, login_time, browser_info) 
-                 VALUES (?, ?, ?, ?, ?)`,
-                [admin.id, clientIP, userAgent, new Date().toISOString(), JSON.stringify(browserInfo)],
-                (err) => {
-                    if (err) console.error('Failed to log admin session:', err);
-                    resolve();
-                }
-            );
-        });
-
-        // Generate secure token with additional claims
+        // Generate token
         const token = authUtils.generateToken({
             id: admin.id,
             username: admin.username,
-            role: 'admin',
-            loginTime: Date.now(),
-            securityLevel: securityLevel || 'normal',
-            ip: clientIP
+            role: 'admin'
         });
 
         res.json({
@@ -365,15 +346,13 @@ router.post('/admin/login', validateAdminLogin, async (req, res) => {
                 token,
                 admin: {
                     id: admin.id,
-                    username: admin.username,
-                    lastLogin: admin.last_login,
-                    securityLevel: securityLevel || 'normal'
+                    username: admin.username
                 }
             }
         });
 
     } catch (error) {
-        console.error('❌ Admin login error:', error);
+        console.error('Admin login error:', error);
         res.status(500).json({
             success: false,
             error: {

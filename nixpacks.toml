@@ -3,17 +3,18 @@ nixPkgs = ['nodejs-18_x', 'npm-9_x']
 
 [phases.install]
 cmds = [
-    'npm ci',
-    'cd server && npm ci',
-    'cd client && npm ci'
+    'npm ci --prefer-offline --no-audit',
+    'cd server && npm ci --prefer-offline --no-audit',
+    'cd client && npm ci --prefer-offline --no-audit'
 ]
 
 [phases.build]
 cmds = [
     'echo "Building client application..."',
-    'cd client && npm install && npm run build',
+    'cd client && npm run build',
     'echo "Client build completed"',
-    'ls -la client/dist || echo "Client dist directory not found"'
+    'ls -la client/dist || echo "Client dist directory not found"',
+    'echo "Build process finished successfully"'
 ]
 
 [start]

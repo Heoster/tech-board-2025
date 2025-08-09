@@ -1,23 +1,23 @@
 {
-  "name": "mcq-testing-system",
+  "name": "tech-board-2025-mcq-system",
   "version": "1.0.0",
-  "description": "MCQ Testing System for TECH BOARD 2025 Selection Test",
+  "description": "TECH BOARD 2025 MCQ Testing System - Production Ready",
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "client:dev": "cd client && npm run dev",
     "server:dev": "cd server && npm run dev",
-    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
-    "build": "cd client && npm install && npm run build && cd ../server && npm install",
-    "start": "cd server && npm start",
+    "build": "cd client && npm ci && npm run build",
+    "start": "cd server && node railway-complete-start.js",
     "railway:start": "cd server && node railway-complete-start.js",
-    "railway:build": "echo 'Building client...' && cd client && npm install && npm run build && echo 'Client build complete' && cd ../server && npm install && echo 'Server dependencies installed'",
-    "postinstall": "cd server && npm install"
+    "railway:build": "npm ci --only=production && cd client && npm ci && npm run build && cd ../server && npm ci --only=production"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "devDependencies": {
-    "axios": "^1.11.0",
     "concurrently": "^8.2.2"
   },
   "dependencies": {
-    "dotenv": "^17.2.1"
+    "dotenv": "^16.3.1"
   }
 }

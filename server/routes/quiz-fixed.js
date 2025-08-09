@@ -6,7 +6,7 @@ const database = require('../config/database');
 const router = express.Router();
 
 // FIXED: Simple question selection without category dependency
-const selectQuizQuestions = async (grade, totalQuestions = 25, studentId = null) => {
+const selectQuizQuestions = async (grade, totalQuestions = 50, studentId = null) => {
     const db = database.getDb();
 
     console.log(`🎯 Selecting ${totalQuestions} unique questions for Grade ${grade} (Student ID: ${studentId})`);
@@ -224,24 +224,24 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
             );
         });
 
-        if (questionCount < 25) {
+        if (questionCount < 50) {
             return res.status(400).json({
                 success: false,
                 error: {
                     code: 'INSUFFICIENT_QUESTIONS',
-                    message: `Not enough questions available for Grade ${grade}. Need at least 25 questions, but only ${questionCount} available.`
+                    message: `Not enough questions available for Grade ${grade}. Need at least 50 questions, but only ${questionCount} available.`
                 }
             });
         }
 
-        // Select 25 unique questions
-        const selectedQuestionIds = await selectQuizQuestions(grade, 25, studentId);
+        // Select 50 unique questions
+        const selectedQuestionIds = await selectQuizQuestions(grade, 50, studentId);
 
         // Create quiz record
         const quizId = await new Promise((resolve, reject) => {
             db.run(
                 'INSERT INTO quizzes (student_id, grade, total_questions, status) VALUES (?, ?, ?, ?)',
-                [studentId, grade, 25, 'in_progress'],
+                [studentId, grade, 50, 'in_progress'],
                 function (err) {
                     if (err) reject(err);
                     else resolve(this.lastID);
@@ -308,16 +308,16 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
             data: {
                 quizId,
                 grade,
-                totalQuestions: 25,
+                totalQuestions: 50,
                 questions: orderedQuestions.map((q, index) => ({
                     ...q,
                     questionNumber: index + 1
                 })),
-                timeLimit: 30, // 30 minutes
+                timeLimit: 50, // 50 minutes
                 questionDistribution: {
-                    basic: Math.floor(25 * 0.6),
-                    medium: Math.floor(25 * 0.3),
-                    advanced: 25 - Math.floor(25 * 0.6) - Math.floor(25 * 0.3)
+                    basic: Math.floor(50 * 0.6),
+                    medium: Math.floor(50 * 0.3),
+                    advanced: 50 - Math.floor(50 * 0.6) - Math.floor(50 * 0.3)
                 }
             }
         });

@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS quizzes (
     start_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     end_time DATETIME,
     score INTEGER,
-    total_questions INTEGER DEFAULT 25,
+    total_questions INTEGER DEFAULT 50,
     status TEXT DEFAULT 'in_progress' CHECK (status IN ('in_progress', 'completed')),
     passed BOOLEAN DEFAULT NULL,
     FOREIGN KEY (student_id) REFERENCES students(id)

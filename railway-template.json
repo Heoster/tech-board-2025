@@ -41,8 +41,20 @@
     }
   ],
   "metadata": {
-    "categories": ["Education", "Testing", "Node.js"],
-    "tags": ["mcq", "testing", "education", "quiz", "tech-board", "sqlite", "express"],
+    "categories": [
+      "Education",
+      "Testing",
+      "Node.js"
+    ],
+    "tags": [
+      "mcq",
+      "testing",
+      "education",
+      "quiz",
+      "tech-board",
+      "sqlite",
+      "express"
+    ],
     "features": [
       "Ultra-strict no-duplicates system",
       "1,250+ questions across 5 grades",

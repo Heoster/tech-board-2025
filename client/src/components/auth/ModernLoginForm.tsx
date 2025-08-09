@@ -319,7 +319,7 @@ const ModernLoginForm: React.FC = () => {
               <div>
                 <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Test Information</h4>
                 <p className="text-blue-800 dark:text-blue-200 text-sm">
-                  After login, you'll have <strong>30 minutes</strong> to complete <strong>25 questions</strong>. 
+                  After login, you'll have <strong>50 minutes</strong> to complete <strong>50 questions</strong>. 
                   Score 72% or higher to join TECHNO BOARD!
                 </p>
               </div>

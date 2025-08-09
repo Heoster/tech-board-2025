@@ -105,7 +105,7 @@ const Dashboard: React.FC = () => {
             Ready for TECHNO BOARD Selection?
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            Take the 25-question computer skills assessment to join the elite TECHNO BOARD community
+            Take the 50-question computer skills assessment to join the elite TECHNO BOARD community
           </p>
           
           <button
@@ -127,7 +127,7 @@ const Dashboard: React.FC = () => {
                 <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold mb-3 font-space">25 Questions</h3>
+            <h3 className="text-xl font-semibold mb-3 font-space">50 Questions</h3>
             <p className="text-gray-600 dark:text-gray-300">Comprehensive assessment covering computer fundamentals, programming, and digital literacy</p>
           </div>
 
@@ -148,7 +148,7 @@ const Dashboard: React.FC = () => {
               </svg>
             </div>
             <h3 className="text-xl font-semibold mb-3 font-space">72% to Pass</h3>
-            <p className="text-gray-600 dark:text-gray-300">Score 18 out of 25 questions correctly to qualify for TECHNO BOARD membership</p>
+            <p className="text-gray-600 dark:text-gray-300">Score 36 out of 50 questions correctly to qualify for TECH BOARD membership</p>
           </div>
         </div>
 

@@ -6,7 +6,7 @@ const database = require('../config/database');
 const router = express.Router();
 
 // ULTRA-STRICT: Zero tolerance duplicate prevention system
-const selectUniqueQuizQuestions = async (grade, totalQuestions = 25, studentId = null) => {
+const selectUniqueQuizQuestions = async (grade, totalQuestions = 50, studentId = null) => {
     const db = database.getDb();
 
     console.log(`🔒 ULTRA-STRICT: Selecting ${totalQuestions} ABSOLUTELY UNIQUE questions for Grade ${grade} (Student ID: ${studentId})`);
@@ -155,10 +155,31 @@ const selectUniqueQuizQuestions = async (grade, totalQuestions = 25, studentId =
     };
 
     try {
-        // Select questions by difficulty with ultra-strict checking
-        const basicQuestions = await selectByDifficultyUltraStrict('basic', basicCount);
-        const mediumQuestions = await selectByDifficultyUltraStrict('medium', mediumCount);
-        const advancedQuestions = await selectByDifficultyUltraStrict('advanced', advancedCount);
+        // Check available questions by difficulty first
+        const difficultyCounts = {};
+        for (const difficulty of ['basic', 'medium', 'advanced']) {
+            const excludeClause = usedQuestionIds.length > 0 ?
+                `AND id NOT IN (${usedQuestionIds.map(() => '?').join(',')})` : '';
+            
+            const count = await new Promise((resolve, reject) => {
+                db.get(
+                    `SELECT COUNT(*) as count FROM questions WHERE grade = ? AND difficulty = ? ${excludeClause}`,
+                    [grade, difficulty, ...usedQuestionIds],
+                    (err, row) => {
+                        if (err) reject(err);
+                        else resolve(row.count);
+                    }
+                );
+            });
+            difficultyCounts[difficulty] = count;
+        }
+
+        console.log(`📊 Available questions by difficulty: Basic=${difficultyCounts.basic}, Medium=${difficultyCounts.medium}, Advanced=${difficultyCounts.advanced}`);
+
+        // Select questions by difficulty with ultra-strict checking, but be flexible with counts
+        const basicQuestions = await selectByDifficultyUltraStrict('basic', Math.min(basicCount, difficultyCounts.basic));
+        const mediumQuestions = await selectByDifficultyUltraStrict('medium', Math.min(mediumCount, difficultyCounts.medium));
+        const advancedQuestions = await selectByDifficultyUltraStrict('advanced', Math.min(advancedCount, difficultyCounts.advanced));
 
         selectedQuestions.push(...basicQuestions, ...mediumQuestions, ...advancedQuestions);
 
@@ -332,10 +353,13 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
             }
         }
 
-        // Check if enough questions are available
+        // Check if enough questions are available (only count questions with options)
         const questionCount = await new Promise((resolve, reject) => {
             db.get(
-                'SELECT COUNT(*) as count FROM questions WHERE grade = ?',
+                `SELECT COUNT(DISTINCT q.id) as count 
+                 FROM questions q 
+                 INNER JOIN options o ON q.id = o.question_id 
+                 WHERE q.grade = ?`,
                 [grade],
                 (err, row) => {
                     if (err) reject(err);
@@ -344,24 +368,27 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
             );
         });
 
-        if (questionCount < 25) {
+        // Use available questions (minimum 15, maximum 50)
+        const targetQuestions = Math.min(50, Math.max(15, questionCount));
+        
+        if (questionCount < 15) {
             return res.status(400).json({
                 success: false,
                 error: {
                     code: 'INSUFFICIENT_QUESTIONS',
-                    message: `Not enough questions available for Grade ${grade}. Need at least 25 questions, but only ${questionCount} available.`
+                    message: `Not enough questions available for Grade ${grade}. Need at least 15 questions, but only ${questionCount} available.`
                 }
             });
         }
 
-        // Select 25 ABSOLUTELY UNIQUE questions using ultra-strict algorithm
-        const selectedQuestionIds = await selectUniqueQuizQuestions(grade, 25, studentId);
+        // Select questions using ultra-strict algorithm
+        const selectedQuestionIds = await selectUniqueQuizQuestions(grade, targetQuestions, studentId);
 
         // Create quiz record
         const quizId = await new Promise((resolve, reject) => {
             db.run(
                 'INSERT INTO quizzes (student_id, grade, total_questions, status) VALUES (?, ?, ?, ?)',
-                [studentId, grade, 25, 'in_progress'],
+                [studentId, grade, targetQuestions, 'in_progress'],
                 function (err) {
                     if (err) reject(err);
                     else resolve(this.lastID);
@@ -428,16 +455,16 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
             data: {
                 quizId,
                 grade,
-                totalQuestions: 25,
+                totalQuestions: targetQuestions,
                 questions: orderedQuestions.map((q, index) => ({
                     ...q,
                     questionNumber: index + 1
                 })),
-                timeLimit: 30, // 30 minutes
+                timeLimit: Math.ceil(targetQuestions * 1.0), // 1 minute per question
                 questionDistribution: {
-                    basic: Math.floor(25 * 0.6),
-                    medium: Math.floor(25 * 0.3),
-                    advanced: 25 - Math.floor(25 * 0.6) - Math.floor(25 * 0.3)
+                    basic: Math.floor(targetQuestions * 0.6),
+                    medium: Math.floor(targetQuestions * 0.3),
+                    advanced: targetQuestions - Math.floor(targetQuestions * 0.6) - Math.floor(targetQuestions * 0.3)
                 },
                 guarantees: {
                     noDuplicates: true,
@@ -590,7 +617,7 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
             }
 
             // Update quiz with final score
-            const passed = correctAnswers >= 18; // TECH BOARD 2025 pass criteria
+            const passed = correctAnswers >= 36; // TECH BOARD 2025 pass criteria (72% for 50 questions)
             await new Promise((resolve, reject) => {
                 db.run(
                     'UPDATE quizzes SET score = ?, passed = ?, end_time = CURRENT_TIMESTAMP, status = "completed" WHERE id = ?',
@@ -610,14 +637,14 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
                 });
             });
 
-            const percentage = Math.round((correctAnswers / 25) * 100);
+            const percentage = Math.round((correctAnswers / 50) * 100);
 
             res.json({
                 success: true,
                 data: {
                     quizId,
                     score: correctAnswers,
-                    totalQuestions: 25,
+                    totalQuestions: 50,
                     percentage,
                     passed,
                     message: 'TECH BOARD 2025 selection test submitted successfully',

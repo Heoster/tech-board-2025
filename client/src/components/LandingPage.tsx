@@ -552,9 +552,9 @@ const LandingPage: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16 max-w-4xl mx-auto">
           {[
             { number: 1100, suffix: '+', label: 'Fun Questions 🎲', emoji: '🎯' },
-            { number: 25, suffix: '', label: 'Questions Per Quiz 📝', emoji: '📚' },
-            { number: 30, suffix: ' min', label: 'Play Time ⏰', emoji: '🎮' },
-            { number: 18, suffix: '+', label: 'Score to Win 🏆', emoji: '⭐' }
+            { number: 50, suffix: '', label: 'Questions Per Quiz 📝', emoji: '📚' },
+            { number: 50, suffix: ' min', label: 'Play Time ⏰', emoji: '🎮' },
+            { number: 36, suffix: '+', label: 'Score to Win 🏆', emoji: '⭐' }
           ].map((stat, index) => (
             <div key={index} className="group">
               <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border-4 border-transparent hover:border-rainbow">

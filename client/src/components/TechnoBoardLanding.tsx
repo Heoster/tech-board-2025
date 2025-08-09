@@ -179,7 +179,7 @@ const TechnoBoardLanding: React.FC = () => {
                   <path d="M3 12L12 17L21 12" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-3 font-space">25 Questions</h3>
+              <h3 className="text-xl font-semibold mb-3 font-space">50 Questions</h3>
               <p className="text-gray-600 dark:text-gray-300">Comprehensive computer skills assessment covering all essential topics</p>
             </div>
           </FloatingElement>
@@ -292,7 +292,7 @@ const TechnoBoardLanding: React.FC = () => {
               <h4 className="text-lg font-semibold text-primary-800 dark:text-primary-200">Passing Score</h4>
             </div>
             <p className="text-primary-700 dark:text-primary-300">
-              Score <strong>18 out of 25 questions (72%)</strong> or higher to qualify for TECHNO BOARD membership
+              Score <strong>36 out of 50 questions (72%)</strong> or higher to qualify for TECHNO BOARD membership
             </p>
           </div>
         </div>

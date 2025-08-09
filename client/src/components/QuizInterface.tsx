@@ -140,8 +140,8 @@ const QuizInterface: React.FC = () => {
 
   const [quizState, setQuizState] = useState<QuizState>({
     currentQuestion: 0,
-    answers: new Array(25).fill(null), // 25 questions
-    timeRemaining: 1800, // 30 minutes
+    answers: new Array(50).fill(null), // 50 questions
+    timeRemaining: 3000, // 50 minutes (50 * 60 seconds)
     isSubmitted: false,
     quizId: null
   });
@@ -334,7 +334,7 @@ const QuizInterface: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="font-bold text-red-800 dark:text-red-200">ATTEMPT ALL QUESTIONS IS COMPULSORY</h3>
-                      <p className="text-red-700 dark:text-red-300">You must attempt all 25 questions. Incomplete tests will not be evaluated.</p>
+                      <p className="text-red-700 dark:text-red-300">You must attempt all 50 questions. Incomplete tests will not be evaluated.</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
@@ -366,7 +366,7 @@ const QuizInterface: React.FC = () => {
                         </svg>
                       </div>
                       <div>
-                        <p className="font-semibold text-blue-800 dark:text-blue-200">Total Questions: 25</p>
+                        <p className="font-semibold text-blue-800 dark:text-blue-200">Total Questions: 50</p>
                         <p className="text-blue-600 dark:text-blue-400 text-sm">All questions are compulsory</p>
                       </div>
                     </div>
@@ -377,7 +377,7 @@ const QuizInterface: React.FC = () => {
                         </svg>
                       </div>
                       <div>
-                        <p className="font-semibold text-blue-800 dark:text-blue-200">Time Limit: 30 Minutes</p>
+                        <p className="font-semibold text-blue-800 dark:text-blue-200">Time Limit: 50 Minutes</p>
                         <p className="text-blue-600 dark:text-blue-400 text-sm">Auto-submit when time expires</p>
                       </div>
                     </div>
@@ -499,7 +499,7 @@ const QuizInterface: React.FC = () => {
             </svg>
           </div>
           <h2 className="text-2xl font-bold gradient-text mb-2">Preparing Your Test</h2>
-          <p className="text-gray-600 dark:text-gray-400">Loading 25 questions for TECH BOARD selection...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading 50 questions for TECH BOARD selection...</p>
         </div>
       </div>
     );

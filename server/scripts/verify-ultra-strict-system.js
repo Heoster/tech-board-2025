@@ -4,10 +4,10 @@ async function verifyUltraStrictSystem() {
     try {
         await database.connect();
         const db = database.getDb();
-        
+
         console.log('🔍 VERIFYING ULTRA-STRICT DUPLICATE PREVENTION SYSTEM');
         console.log('====================================================\n');
-        
+
         // Check 1: Verify no duplicate questions within any quiz
         console.log('📋 Check 1: Verifying no duplicate questions within quizzes...');
         const duplicateWithinQuiz = await new Promise((resolve, reject) => {
@@ -21,7 +21,7 @@ async function verifyUltraStrictSystem() {
                 else resolve(rows);
             });
         });
-        
+
         if (duplicateWithinQuiz.length === 0) {
             console.log('✅ PASS: No duplicate questions found within any quiz');
         } else {
@@ -30,7 +30,7 @@ async function verifyUltraStrictSystem() {
                 console.log(`   Quiz ${dup.quiz_id}: Question ${dup.question_id} appears ${dup.count} times`);
             });
         }
-        
+
         // Check 2: Verify no student has answered the same question multiple times
         console.log('\n📋 Check 2: Verifying no cross-quiz question repetition...');
         const crossQuizDuplicates = await new Promise((resolve, reject) => {
@@ -49,7 +49,7 @@ async function verifyUltraStrictSystem() {
                 else resolve(rows);
             });
         });
-        
+
         if (crossQuizDuplicates.length === 0) {
             console.log('✅ PASS: No student has answered the same question multiple times');
         } else {
@@ -58,7 +58,7 @@ async function verifyUltraStrictSystem() {
                 console.log(`   Student ${dup.student_id}: Question ${dup.question_id} answered ${dup.times_answered} times in quizzes [${dup.quiz_ids}]`);
             });
         }
-        
+
         // Check 3: Verify all completed quizzes have exactly 25 responses
         console.log('\n📋 Check 3: Verifying all completed quizzes have exactly 25 responses...');
         const incorrectResponseCount = await new Promise((resolve, reject) => {
@@ -77,7 +77,7 @@ async function verifyUltraStrictSystem() {
                 else resolve(rows);
             });
         });
-        
+
         if (incorrectResponseCount.length === 0) {
             console.log('✅ PASS: All completed quizzes have exactly 25 responses');
         } else {
@@ -86,7 +86,7 @@ async function verifyUltraStrictSystem() {
                 console.log(`   Quiz ${quiz.quiz_id}: Has ${quiz.response_count} responses instead of 25`);
             });
         }
-        
+
         // Check 4: Verify database constraints are active
         console.log('\n📋 Check 4: Verifying database constraints...');
         const constraints = await new Promise((resolve, reject) => {
@@ -100,12 +100,12 @@ async function verifyUltraStrictSystem() {
                 else resolve(rows);
             });
         });
-        
+
         console.log(`✅ Found ${constraints.length} duplicate prevention constraints active`);
         constraints.forEach(constraint => {
             console.log(`   - ${constraint.name}`);
         });
-        
+
         // Check 5: System integrity report
         console.log('\n📋 Check 5: Overall system integrity...');
         const totalQuizzes = await new Promise((resolve, reject) => {
@@ -114,33 +114,33 @@ async function verifyUltraStrictSystem() {
                 else resolve(row.count);
             });
         });
-        
+
         const totalResponses = await new Promise((resolve, reject) => {
             db.get('SELECT COUNT(*) as count FROM responses', (err, row) => {
                 if (err) reject(err);
                 else resolve(row.count);
             });
         });
-        
+
         const uniqueQuestions = await new Promise((resolve, reject) => {
             db.get('SELECT COUNT(DISTINCT question_id) as count FROM responses', (err, row) => {
                 if (err) reject(err);
                 else resolve(row.count);
             });
         });
-        
+
         console.log(`📊 System Statistics:`);
         console.log(`   Total Quizzes: ${totalQuizzes}`);
         console.log(`   Total Responses: ${totalResponses}`);
         console.log(`   Unique Questions Used: ${uniqueQuestions}`);
-        
+
         // Final verdict
         const allChecksPassed = (
             duplicateWithinQuiz.length === 0 &&
             crossQuizDuplicates.length === 0 &&
             incorrectResponseCount.length === 0
         );
-        
+
         console.log('\n🎯 FINAL VERDICT:');
         console.log('================');
         if (allChecksPassed) {
@@ -153,9 +153,9 @@ async function verifyUltraStrictSystem() {
             console.log('⚠️  System integrity compromised');
             console.log('🔧 Manual intervention required');
         }
-        
+
         await database.close();
-        
+
     } catch (error) {
         console.error('❌ Error verifying ultra-strict system:', error);
         await database.close();
