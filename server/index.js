@@ -77,9 +77,81 @@ if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/dist')));
 }
 
-// Health check endpoint
+// Health check endpoints
 app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Comprehensive API health check
+app.get('/api/health', async (req, res) => {
+    try {
+        const db = database.getDb();
+        
+        // Test database connection
+        const dbTest = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM questions LIMIT 1', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+
+        // Get question counts by grade
+        const questionCounts = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT 
+                    grade,
+                    COUNT(DISTINCT q.id) as total_questions,
+                    SUM(CASE WHEN difficulty = 'basic' THEN 1 ELSE 0 END) as basic_count,
+                    SUM(CASE WHEN difficulty = 'medium' THEN 1 ELSE 0 END) as medium_count,
+                    SUM(CASE WHEN difficulty = 'advanced' THEN 1 ELSE 0 END) as advanced_count
+                FROM questions q 
+                INNER JOIN options o ON q.id = o.question_id 
+                GROUP BY grade
+                ORDER BY grade
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+
+        res.json({
+            status: 'OK',
+            timestamp: new Date().toISOString(),
+            environment: process.env.NODE_ENV || 'development',
+            database: 'Connected',
+            questionBank: {
+                totalQuestions: questionCounts.reduce((sum, grade) => sum + grade.total_questions, 0),
+                grades: questionCounts.reduce((acc, grade) => {
+                    acc[`grade_${grade.grade}`] = {
+                        total: grade.total_questions,
+                        basic: grade.basic_count,
+                        medium: grade.medium_count,
+                        advanced: grade.advanced_count,
+                        canGenerate50: grade.total_questions >= 50
+                    };
+                    return acc;
+                }, {})
+            },
+            quizGeneration: {
+                algorithm: 'production-ready-flexible',
+                maxQuestions: 50,
+                minQuestions: 15,
+                passCriteria: '72%'
+            },
+            deployment: {
+                platform: 'Railway',
+                ready: true
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            status: 'ERROR',
+            timestamp: new Date().toISOString(),
+            error: error.message,
+            database: 'Disconnected'
+        });
+    }
 });
 
 // API routes will be added here

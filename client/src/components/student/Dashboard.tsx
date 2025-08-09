@@ -11,7 +11,7 @@ const Dashboard: React.FC = () => {
     // Check for saved theme preference
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
+
     if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
       setIsDarkMode(true);
       document.documentElement.classList.add('dark');
@@ -59,7 +59,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-400">Student Dashboard</p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Welcome, {user?.name}</p>
@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
                   Grade {user?.grade} • Section {user?.section} • Roll {user?.roll_number}
                 </p>
               </div>
-              
+
               <button
                 onClick={toggleDarkMode}
                 className="p-2 rounded-lg bg-gray-100 dark:bg-dark-700 hover:bg-gray-200 dark:hover:bg-dark-600 transition-colors"
@@ -82,7 +82,7 @@ const Dashboard: React.FC = () => {
                   </svg>
                 )}
               </button>
-              
+
               <button
                 onClick={handleLogout}
                 className="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
@@ -107,7 +107,7 @@ const Dashboard: React.FC = () => {
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
             Take the 50-question computer skills assessment to join the elite TECHNO BOARD community
           </p>
-          
+
           <button
             onClick={handleStartTest}
             className="btn-glow text-xl px-12 py-4 font-space flex items-center space-x-3 mx-auto"
@@ -137,7 +137,7 @@ const Dashboard: React.FC = () => {
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold mb-3 font-space">30 Minutes</h3>
+            <h3 className="text-xl font-semibold mb-3 font-space">50 Minutes</h3>
             <p className="text-gray-600 dark:text-gray-300">Timed assessment to evaluate your problem-solving speed and technical knowledge</p>
           </div>
 
@@ -169,7 +169,7 @@ const Dashboard: React.FC = () => {
             </p>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            This TECHNO BOARD 2025 selection test is being conducted under the supervision of Pankaj Sir from Maples Academy
+            This TECH BOARD 2025 selection test is being conducted under the supervision of Pankaj Sir from Maples Academy
           </p>
         </div>
 

@@ -165,12 +165,13 @@ const QuizInterface: React.FC = () => {
         setLoading(true);
         const response = await axios.get(`/quiz/start/${user.grade}`);
 
-        const { quizId, questions: fetchedQuestions } = response.data.data;
+        const { quizId, questions: fetchedQuestions, totalQuestions } = response.data.data;
         setQuestions(fetchedQuestions);
         setQuizState(prev => ({
           ...prev,
           quizId: quizId,
-          answers: new Array(fetchedQuestions.length).fill(null)
+          answers: new Array(totalQuestions).fill(null),
+          timeRemaining: totalQuestions * 60 // 1 minute per question
         }));
       } catch (error: any) {
         setError(error.response?.data?.error?.message || 'Failed to start quiz');

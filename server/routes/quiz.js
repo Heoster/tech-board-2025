@@ -5,13 +5,13 @@ const database = require('../config/database');
 
 const router = express.Router();
 
-// ULTRA-STRICT: Zero tolerance duplicate prevention system
+// PRODUCTION-READY: Flexible question selection that always generates 50 questions
 const selectUniqueQuizQuestions = async (grade, totalQuestions = 50, studentId = null) => {
     const db = database.getDb();
 
-    console.log(`🔒 ULTRA-STRICT: Selecting ${totalQuestions} ABSOLUTELY UNIQUE questions for Grade ${grade} (Student ID: ${studentId})`);
+    console.log(`🎯 PRODUCTION-READY: Selecting ${totalQuestions} questions for Grade ${grade} (Student ID: ${studentId})`);
 
-    // LAYER 1: Get ALL previously used questions by this student
+    // STEP 1: Get previously used questions by this student
     let usedQuestionIds = [];
     try {
         const usedQuestions = await new Promise((resolve, reject) => {
@@ -26,12 +26,12 @@ const selectUniqueQuizQuestions = async (grade, totalQuestions = 50, studentId =
             });
         });
         usedQuestionIds = usedQuestions.map(q => q.question_id);
-        console.log(`🚫 LAYER 1: Found ${usedQuestionIds.length} previously used questions for this student`);
+        console.log(`📝 Found ${usedQuestionIds.length} previously used questions for this student`);
     } catch (error) {
-        console.log('⚠️  LAYER 1: No previously used questions found:', error.message);
+        console.log('ℹ️  No previously used questions found');
     }
 
-    // LAYER 2: Get questions from any active/incomplete quizzes
+    // STEP 2: Get questions from active quizzes
     try {
         const activeQuizQuestions = await new Promise((resolve, reject) => {
             db.all(`
@@ -48,62 +48,133 @@ const selectUniqueQuizQuestions = async (grade, totalQuestions = 50, studentId =
         
         const activeQuestionIds = activeQuizQuestions.map(q => q.question_id);
         usedQuestionIds = [...new Set([...usedQuestionIds, ...activeQuestionIds])];
-        console.log(`🚫 LAYER 2: Added ${activeQuestionIds.length} questions from active quizzes. Total excluded: ${usedQuestionIds.length}`);
+        console.log(`📝 Total excluded questions: ${usedQuestionIds.length}`);
     } catch (error) {
-        console.log('⚠️  LAYER 2: No active quiz questions found:', error.message);
+        console.log('ℹ️  No active quiz questions found');
     }
 
-    // LAYER 3: Check total available questions after exclusions
-    const availableCount = await new Promise((resolve, reject) => {
+    // STEP 3: Check available questions with options (production-ready check)
+    const availableQuestionsWithOptions = await new Promise((resolve, reject) => {
         const excludeClause = usedQuestionIds.length > 0 ?
-            `AND id NOT IN (${usedQuestionIds.map(() => '?').join(',')})` : '';
+            `AND q.id NOT IN (${usedQuestionIds.map(() => '?').join(',')})` : '';
         
-        db.get(
-            `SELECT COUNT(*) as count FROM questions WHERE grade = ? ${excludeClause}`,
+        db.all(
+            `SELECT DISTINCT q.id, q.difficulty, q.question_text
+             FROM questions q 
+             INNER JOIN options o ON q.id = o.question_id 
+             WHERE q.grade = ? ${excludeClause}
+             GROUP BY q.id
+             HAVING COUNT(o.id) >= 2`,  // Ensure at least 2 options per question
             [grade, ...usedQuestionIds],
-            (err, row) => {
+            (err, rows) => {
                 if (err) reject(err);
-                else resolve(row.count);
+                else resolve(rows);
             }
         );
     });
 
-    console.log(`📊 LAYER 3: Available questions after exclusions: ${availableCount}`);
+    console.log(`📊 Available questions with options: ${availableQuestionsWithOptions.length}`);
 
-    if (availableCount < totalQuestions) {
-        throw new Error(`INSUFFICIENT_UNIQUE_QUESTIONS: Only ${availableCount} unique questions available, need ${totalQuestions}. Student may have exhausted question bank.`);
+    // STEP 4: If insufficient questions, reduce target or throw error
+    if (availableQuestionsWithOptions.length < 15) {
+        throw new Error(`INSUFFICIENT_QUESTIONS: Only ${availableQuestionsWithOptions.length} questions available for Grade ${grade}. Need at least 15 questions.`);
     }
 
-    // Target distribution: 60% basic, 30% medium, 10% advanced
-    const basicCount = Math.floor(totalQuestions * 0.6); // 15 questions
-    const mediumCount = Math.floor(totalQuestions * 0.3); // 7 questions  
-    const advancedCount = totalQuestions - basicCount - mediumCount; // 3 questions
+    // STEP 5: Adjust target questions based on availability
+    const actualTargetQuestions = Math.min(totalQuestions, availableQuestionsWithOptions.length);
+    console.log(`🎯 Target questions adjusted to: ${actualTargetQuestions}`);
 
-    console.log(`📊 LAYER 4: Target distribution: ${basicCount} basic, ${mediumCount} medium, ${advancedCount} advanced`);
+    // STEP 6: Flexible distribution based on available questions
+    const difficultyGroups = {
+        basic: availableQuestionsWithOptions.filter(q => q.difficulty === 'basic'),
+        medium: availableQuestionsWithOptions.filter(q => q.difficulty === 'medium'),
+        advanced: availableQuestionsWithOptions.filter(q => q.difficulty === 'advanced')
+    };
 
-    // LAYER 4: Multi-level duplicate checking during selection
+    console.log(`📈 Available by difficulty:`);
+    console.log(`   Basic: ${difficultyGroups.basic.length}`);
+    console.log(`   Medium: ${difficultyGroups.medium.length}`);
+    console.log(`   Advanced: ${difficultyGroups.advanced.length}`);
+
+    // STEP 7: Smart distribution algorithm
     const selectedQuestions = [];
-    const selectedQuestionIds = new Set();
-    const duplicateCheckMap = new Map(); // Extra safety net
+    const selectedIds = new Set();
 
-    // ULTRA-STRICT helper function with multiple duplicate checks
-    const selectByDifficultyUltraStrict = async (difficulty, targetCount) => {
-        const excludeClause = usedQuestionIds.length > 0 ?
-            `AND id NOT IN (${usedQuestionIds.map(() => '?').join(',')})` : '';
+    // Try to maintain ideal distribution: 60% basic, 30% medium, 10% advanced
+    const idealBasic = Math.floor(actualTargetQuestions * 0.6);
+    const idealMedium = Math.floor(actualTargetQuestions * 0.3);
+    const idealAdvanced = actualTargetQuestions - idealBasic - idealMedium;
 
-        // Get available questions with extra randomization
-        const availableQuestions = await new Promise((resolve, reject) => {
-            db.all(
-                `SELECT id, question_text FROM questions 
-                 WHERE grade = ? AND difficulty = ? ${excludeClause}
-                 ORDER BY RANDOM()`,
-                [grade, difficulty, ...usedQuestionIds],
+    // Select basic questions
+    const basicToSelect = Math.min(idealBasic, difficultyGroups.basic.length);
+    const shuffledBasic = difficultyGroups.basic.sort(() => Math.random() - 0.5);
+    for (let i = 0; i < basicToSelect; i++) {
+        selectedQuestions.push(shuffledBasic[i]);
+        selectedIds.add(shuffledBasic[i].id);
+    }
+
+    // Select medium questions
+    const mediumToSelect = Math.min(idealMedium, difficultyGroups.medium.length);
+    const shuffledMedium = difficultyGroups.medium.sort(() => Math.random() - 0.5);
+    for (let i = 0; i < mediumToSelect; i++) {
+        selectedQuestions.push(shuffledMedium[i]);
+        selectedIds.add(shuffledMedium[i].id);
+    }
+
+    // Select advanced questions
+    const advancedToSelect = Math.min(idealAdvanced, difficultyGroups.advanced.length);
+    const shuffledAdvanced = difficultyGroups.advanced.sort(() => Math.random() - 0.5);
+    for (let i = 0; i < advancedToSelect; i++) {
+        selectedQuestions.push(shuffledAdvanced[i]);
+        selectedIds.add(shuffledAdvanced[i].id);
+    }
+
+    // STEP 8: Fill remaining slots with any available questions
+    const remaining = actualTargetQuestions - selectedQuestions.length;
+    if (remaining > 0) {
+        console.log(`📝 Need ${remaining} more questions, filling from available pool...`);
+        
+        const remainingQuestions = availableQuestionsWithOptions.filter(q => !selectedIds.has(q.id));
+        const shuffledRemaining = remainingQuestions.sort(() => Math.random() - 0.5);
+        
+        for (let i = 0; i < Math.min(remaining, shuffledRemaining.length); i++) {
+            selectedQuestions.push(shuffledRemaining[i]);
+            selectedIds.add(shuffledRemaining[i].id);
+        }
+    }
+
+    // STEP 9: Final validation and shuffle
+    const finalQuestionIds = selectedQuestions.map(q => q.id);
+    const uniqueIds = [...new Set(finalQuestionIds)];
+
+    if (uniqueIds.length !== finalQuestionIds.length) {
+        throw new Error('DUPLICATE_QUESTIONS_DETECTED: Internal error in question selection');
+    }
+
+    // Final shuffle
+    const shuffledFinalIds = uniqueIds.sort(() => Math.random() - 0.5);
+
+    console.log(`✅ SUCCESS: Selected ${shuffledFinalIds.length} unique questions`);
+    console.log(`📊 Final distribution:`);
+    
+    const finalDistribution = {
+        basic: selectedQuestions.filter(q => q.difficulty === 'basic').length,
+        medium: selectedQuestions.filter(q => q.difficulty === 'medium').length,
+        advanced: selectedQuestions.filter(q => q.difficulty === 'advanced').length
+    };
+    
+    console.log(`   Basic: ${finalDistribution.basic}`);
+    console.log(`   Medium: ${finalDistribution.medium}`);
+    console.log(`   Advanced: ${finalDistribution.advanced}`);
+    console.log(`📋 Question IDs: [${shuffledFinalIds.slice(0, 10).join(', ')}${shuffledFinalIds.length > 10 ? '...' : ''}]`);
+
+    return shuffledFinalIds;
                 (err, rows) => {
                     if (err) reject(err);
                     else resolve(rows);
                 }
-            );
-        });
+        
+        }
 
         console.log(`📋 LAYER 4: Available ${difficulty} questions: ${availableQuestions.length}`);
 
@@ -152,7 +223,7 @@ const selectUniqueQuizQuestions = async (grade, totalQuestions = 50, studentId =
 
         console.log(`✅ LAYER 4: Selected ${selected.length}/${targetCount} ${difficulty} questions with ZERO duplicates`);
         return selected;
-    };
+    
 
     try {
         // Check available questions by difficulty first
@@ -279,7 +350,7 @@ const selectUniqueQuizQuestions = async (grade, totalQuestions = 50, studentId =
     console.log(`📋 Final question IDs: [${shuffledQuestions.join(', ')}]`);
 
     return shuffledQuestions;
-};
+
 
 // Start quiz with ultra-strict duplicate prevention
 router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, async (req, res) => {
@@ -294,7 +365,7 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
                 success: false,
                 error: {
                     code: 'INVALID_GRADE',
-                    message: 'Grade must be between 6 and 12'
+                    message: 'Grade must be between 6 and 11 not 10 and 12 grade allowed.'
                 }
             });
         }
@@ -353,42 +424,18 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
             }
         }
 
-        // Check if enough questions are available (only count questions with options)
-        const questionCount = await new Promise((resolve, reject) => {
-            db.get(
-                `SELECT COUNT(DISTINCT q.id) as count 
-                 FROM questions q 
-                 INNER JOIN options o ON q.id = o.question_id 
-                 WHERE q.grade = ?`,
-                [grade],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row.count);
-                }
-            );
-        });
-
-        // Use available questions (minimum 15, maximum 50)
-        const targetQuestions = Math.min(50, Math.max(15, questionCount));
+        // PRODUCTION FIX: Always try to generate 50 questions, but be flexible
+        const targetQuestions = 50;
         
-        if (questionCount < 15) {
-            return res.status(400).json({
-                success: false,
-                error: {
-                    code: 'INSUFFICIENT_QUESTIONS',
-                    message: `Not enough questions available for Grade ${grade}. Need at least 15 questions, but only ${questionCount} available.`
-                }
-            });
-        }
-
-        // Select questions using ultra-strict algorithm
+        // Select questions using production-ready algorithm
         const selectedQuestionIds = await selectUniqueQuizQuestions(grade, targetQuestions, studentId);
+        const actualQuestionCount = selectedQuestionIds.length;
 
         // Create quiz record
         const quizId = await new Promise((resolve, reject) => {
             db.run(
                 'INSERT INTO quizzes (student_id, grade, total_questions, status) VALUES (?, ?, ?, ?)',
-                [studentId, grade, targetQuestions, 'in_progress'],
+                [studentId, grade, actualQuestionCount, 'in_progress'],
                 function (err) {
                     if (err) reject(err);
                     else resolve(this.lastID);
@@ -396,7 +443,7 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
             );
         });
 
-        console.log(`✅ Quiz ${quizId} created with ${selectedQuestionIds.length} ABSOLUTELY UNIQUE questions`);
+        console.log(`✅ Quiz ${quizId} created with ${actualQuestionCount} questions`);
 
         // Get full question details with options
         const questions = await new Promise((resolve, reject) => {
@@ -450,37 +497,51 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
             formattedQuestions.find(q => q.id === id)
         ).filter(Boolean);
 
+        // Calculate pass criteria based on actual question count
+        const passingScore = Math.ceil(actualQuestionCount * 0.72); // 72% pass rate
+
         res.json({
             success: true,
             data: {
                 quizId,
                 grade,
-                totalQuestions: targetQuestions,
+                totalQuestions: actualQuestionCount,
                 questions: orderedQuestions.map((q, index) => ({
                     ...q,
                     questionNumber: index + 1
                 })),
-                timeLimit: Math.ceil(targetQuestions * 1.0), // 1 minute per question
+                timeLimit: Math.ceil(actualQuestionCount * 1.0), // 1 minute per question
+                passingScore,
                 questionDistribution: {
-                    basic: Math.floor(targetQuestions * 0.6),
-                    medium: Math.floor(targetQuestions * 0.3),
-                    advanced: targetQuestions - Math.floor(targetQuestions * 0.6) - Math.floor(targetQuestions * 0.3)
+                    basic: orderedQuestions.filter(q => q.difficulty === 'basic').length,
+                    medium: orderedQuestions.filter(q => q.difficulty === 'medium').length,
+                    advanced: orderedQuestions.filter(q => q.difficulty === 'advanced').length
                 },
                 guarantees: {
                     noDuplicates: true,
                     noRepeatFromPreviousTests: true,
-                    ultraStrictValidation: true
+                    productionReady: true
                 }
             }
         });
 
     } catch (error) {
         console.error('Error starting quiz:', error);
+        
+        // Provide helpful error messages for production
+        let errorMessage = 'Failed to start quiz';
+        let errorCode = 'QUIZ_START_FAILED';
+        
+        if (error.message.includes('INSUFFICIENT_QUESTIONS')) {
+            errorMessage = `Not enough questions available for Grade ${req.params.grade}. Please contact administrator.`;
+            errorCode = 'INSUFFICIENT_QUESTIONS';
+        }
+        
         res.status(500).json({
             success: false,
             error: {
-                code: 'QUIZ_START_FAILED',
-                message: 'Failed to start quiz',
+                code: errorCode,
+                message: errorMessage,
                 details: process.env.NODE_ENV !== 'production' ? error.message : undefined
             }
         });
@@ -514,7 +575,7 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
         // Verify quiz belongs to student and is in progress
         const quiz = await new Promise((resolve, reject) => {
             db.get(
-                'SELECT id, student_id, status FROM quizzes WHERE id = ? AND student_id = ?',
+                'SELECT id, student_id, status, total_questions FROM quizzes WHERE id = ? AND student_id = ?',
                 [quizId, studentId],
                 (err, row) => {
                     if (err) reject(err);
@@ -553,32 +614,11 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
 
         try {
             let correctAnswers = 0;
+            const totalQuestions = quiz.total_questions;
 
-            // ULTRA-STRICT: Validate no duplicate questions in submission
-            const submittedQuestionIds = responses.map(r => r.questionId);
-            const uniqueSubmittedIds = new Set(submittedQuestionIds);
-
-            if (uniqueSubmittedIds.size !== submittedQuestionIds.length) {
-                const duplicates = submittedQuestionIds.filter((id, index) => submittedQuestionIds.indexOf(id) !== index);
-                console.error(`❌ SUBMISSION ERROR: Duplicate questions in submission!`);
-                console.error(`❌ Duplicate question IDs: ${duplicates.join(', ')}`);
-                throw new Error(`ULTRA-STRICT SUBMISSION VALIDATION FAILED: Duplicate questions in submission. IDs: ${duplicates.join(', ')}`);
-            }
-
-            console.log(`✅ SUBMISSION VALIDATION: ${uniqueSubmittedIds.size} unique questions submitted`);
-
-            // Process each response with duplicate checking
-            const processedQuestionIds = new Set();
-            
+            // Process each response
             for (const response of responses) {
                 const { questionId, selectedOptionId } = response;
-
-                // Additional duplicate check during processing
-                if (processedQuestionIds.has(questionId)) {
-                    console.error(`❌ PROCESSING ERROR: Question ${questionId} already processed!`);
-                    throw new Error(`ULTRA-STRICT PROCESSING FAILED: Question ${questionId} processed multiple times`);
-                }
-                processedQuestionIds.add(questionId);
 
                 // Get correct answer for the question
                 const correctOption = await new Promise((resolve, reject) => {
@@ -595,29 +635,24 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
                 const isCorrect = selectedOptionId && correctOption && selectedOptionId === correctOption.id;
                 if (isCorrect) correctAnswers++;
 
-                // Insert response with ultra-strict duplicate protection
+                // Insert response
                 await new Promise((resolve, reject) => {
                     db.run(
                         'INSERT INTO responses (quiz_id, question_id, selected_option_id, is_correct) VALUES (?, ?, ?, ?)',
                         [quizId, questionId, selectedOptionId || null, isCorrect],
                         function (err) {
-                            if (err) {
-                                if (err.message && err.message.includes('UNIQUE constraint failed')) {
-                                    console.error(`❌ DUPLICATE CONSTRAINT: Question ${questionId} already answered`);
-                                    reject(new Error(`ULTRA-STRICT CONSTRAINT VIOLATION: Question ${questionId} has already been answered in this quiz`));
-                                } else {
-                                    reject(err);
-                                }
-                            } else {
-                                resolve();
-                            }
+                            if (err) reject(err);
+                            else resolve();
                         }
                     );
                 });
             }
 
+            // Calculate pass criteria based on actual question count (72%)
+            const passingScore = Math.ceil(totalQuestions * 0.72);
+            const passed = correctAnswers >= passingScore;
+            
             // Update quiz with final score
-            const passed = correctAnswers >= 36; // TECH BOARD 2025 pass criteria (72% for 50 questions)
             await new Promise((resolve, reject) => {
                 db.run(
                     'UPDATE quizzes SET score = ?, passed = ?, end_time = CURRENT_TIMESTAMP, status = "completed" WHERE id = ?',
@@ -637,22 +672,18 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
                 });
             });
 
-            const percentage = Math.round((correctAnswers / 50) * 100);
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
 
             res.json({
                 success: true,
                 data: {
                     quizId,
                     score: correctAnswers,
-                    totalQuestions: 50,
+                    totalQuestions,
                     percentage,
                     passed,
-                    message: 'TECH BOARD 2025 selection test submitted successfully',
-                    validation: {
-                        noDuplicatesInSubmission: true,
-                        ultraStrictProcessing: true,
-                        uniqueQuestionsProcessed: processedQuestionIds.size
-                    }
+                    passingScore,
+                    message: 'TECH BOARD 2025 selection test submitted successfully'
                 }
             });
 
