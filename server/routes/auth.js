@@ -225,10 +225,10 @@ router.post('/admin/login', validateAdminLogin, async (req, res) => {
         const { username, password } = req.body;
         const db = database.getDb();
 
-        // Find admin (include security fields)
+        // Find admin (handle both old and new table structures)
         const admin = await new Promise((resolve, reject) => {
             db.get(
-                'SELECT id, username, password_hash, failed_attempts, locked_until FROM admins WHERE username = ?',
+                'SELECT id, username, password_hash FROM admins WHERE username = ?',
                 [username],
                 (err, row) => {
                     if (err) reject(err);
@@ -248,7 +248,7 @@ router.post('/admin/login', validateAdminLogin, async (req, res) => {
             });
         }
 
-        // Check if account is currently locked
+        // Check if account is currently locked (if column exists)
         if (admin.locked_until) {
             const lockedUntilMs = Date.parse(admin.locked_until);
             if (!Number.isNaN(lockedUntilMs) && lockedUntilMs > Date.now()) {
@@ -270,68 +270,14 @@ router.post('/admin/login', validateAdminLogin, async (req, res) => {
         // Verify password
         const isValidPassword = await authUtils.verifyPassword(password, admin.password_hash);
         if (!isValidPassword) {
-            const currentAttempts = admin.failed_attempts || 0;
-            const newAttempts = currentAttempts + 1;
-
-            if (newAttempts >= ADMIN_MAX_ATTEMPTS) {
-                // Lock account for ADMIN_LOCK_MINUTES
-                const lockedUntil = new Date(Date.now() + ADMIN_LOCK_MINUTES * 60 * 1000).toISOString();
-                await new Promise((resolve, reject) => {
-                    db.run(
-                        'UPDATE admins SET failed_attempts = 0, locked_until = ? WHERE id = ?',
-                        [lockedUntil, admin.id],
-                        function (err) {
-                            if (err) reject(err);
-                            else resolve();
-                        }
-                    );
-                });
-
-                return res.status(423).json({
-                    success: false,
-                    error: {
-                        code: 'ACCOUNT_LOCKED',
-                        message: `Too many failed attempts. Account locked for ${ADMIN_LOCK_MINUTES} minutes.`,
-                        details: {
-                            remainingSeconds: ADMIN_LOCK_MINUTES * 60,
-                            lockedUntil
-                        }
-                    }
-                });
-            } else {
-                // Increment failed attempts
-                await new Promise((resolve, reject) => {
-                    db.run(
-                        'UPDATE admins SET failed_attempts = ? WHERE id = ?',
-                        [newAttempts, admin.id],
-                        function (err) {
-                            if (err) reject(err);
-                            else resolve();
-                        }
-                    );
-                });
-
-                return res.status(401).json({
-                    success: false,
-                    error: {
-                        code: 'INVALID_CREDENTIALS',
-                        message: 'Invalid credentials'
-                    }
-                });
-            }
-        }
-
-        // Success: reset counters and update last login
-        await new Promise((resolve, reject) => {
-            db.run(
-                "UPDATE admins SET failed_attempts = 0, locked_until = NULL, last_login = datetime('now') WHERE id = ?",
-                [admin.id],
-                function (err) {
-                    if (err) reject(err);
-                    else resolve();
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'INVALID_CREDENTIALS',
+                    message: 'Invalid credentials'
                 }
-            );
-        });
+            });
+        }
 
         // Generate token
         const token = authUtils.generateToken({
