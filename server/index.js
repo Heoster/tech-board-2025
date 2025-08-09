@@ -78,8 +78,21 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Health check endpoints
-app.get('/health', (req, res) => {
-    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+app.get('/health', async (req, res) => {
+    try {
+        // Quick health check - just return OK if server is running
+        res.json({ 
+            status: 'OK', 
+            timestamp: new Date().toISOString(),
+            server: 'running'
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            status: 'ERROR', 
+            timestamp: new Date().toISOString(),
+            error: error.message
+        });
+    }
 });
 
 // Comprehensive API health check

@@ -18,12 +18,28 @@ console.log(`   Database: SQLite (embedded)`);
 console.log(`   Railway Deployment: ✅ Configured`);
 console.log('');
 
+// Handle uncaught exceptions gracefully
+process.on('uncaughtException', (error) => {
+    console.error('❌ Uncaught Exception:', error);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+    process.exit(1);
+});
+
 // Import and start the main server
 console.log('🔧 Loading main server...');
-require('./index.js');
+try {
+    require('./index.js');
+    console.log('✅ TECH BOARD 2025 MCQ System started successfully!');
+    console.log('🌐 System ready for student registrations and quizzes');
+    console.log('🔐 Admin access available');
+    console.log('📚 1500 questions loaded across all grades');
+} catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+}
 
-console.log('✅ TECH BOARD 2025 MCQ System started successfully!');
-console.log('🌐 System ready for student registrations and quizzes');
-console.log('🔐 Admin access available');
-console.log('📚 1500 questions loaded across all grades');
 console.log('');
