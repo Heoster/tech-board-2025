@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
+import apiClient from '../utils/apiClient';
 import { InputValidator } from '../utils/security';
 
 interface Question {
@@ -184,7 +184,7 @@ const QuizInterface: React.FC = () => {
         setError('');
 
         console.log('🚀 Starting quiz for grade:', user.grade);
-        const response = await axios.get(`/api/quiz/start/${user.grade}`);
+        const response = await apiClient.get(`/quiz/start/${user.grade}`);
 
         console.log('📊 Quiz response:', response.data);
 
@@ -311,7 +311,7 @@ const QuizInterface: React.FC = () => {
         selectedOptionId: typeof validResponses[0]?.selectedOptionId
       });
 
-      const submitResponse = await axios.post('/api/quiz/submit', {
+      const submitResponse = await apiClient.post('/quiz/submit', {
         quizId: Number(quizState.quizId), // Ensure it's a number
         responses: validResponses
       });

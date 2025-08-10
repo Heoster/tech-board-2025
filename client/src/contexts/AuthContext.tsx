@@ -142,6 +142,9 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Sanitize user data
       const sanitizedUserData = sanitizeUserData(userData)
 
+      // Set auth header FIRST before setting state
+      setAuthHeader(newToken)
+      
       setToken(newToken)
       setUser(sanitizedUserData)
       
@@ -149,9 +152,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       SecureStorage.setToken(newToken)
       SecureStorage.setUserData(sanitizedUserData)
       
-      setAuthHeader(newToken)
-      
-      console.info('User authenticated successfully')
+      console.log('User authenticated successfully with token:', newToken.substring(0, 20) + '...')
     } catch (error) {
       console.error('Login failed:', error)
       logout()
