@@ -253,9 +253,23 @@ class SecureAPIClient {
   setAuthToken(token: string | null): void {
     if (token) {
       this.client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      console.log('Auth token set in apiClient:', token.substring(0, 20) + '...');
     } else {
       delete this.client.defaults.headers.common['Authorization'];
+      console.log('Auth token removed from apiClient');
     }
+  }
+
+  // Get current auth token status
+  getAuthStatus(): { hasToken: boolean; tokenPreview?: string } {
+    const authHeader = this.client.defaults.headers.common['Authorization'];
+    if (authHeader && typeof authHeader === 'string') {
+      return {
+        hasToken: true,
+        tokenPreview: authHeader.substring(0, 20) + '...'
+      };
+    }
+    return { hasToken: false };
   }
 
   // Get base URL
@@ -278,6 +292,7 @@ export const post = apiClient.post.bind(apiClient);
 export const put = apiClient.put.bind(apiClient);
 export const del = apiClient.delete.bind(apiClient);
 export const setAuthToken = apiClient.setAuthToken.bind(apiClient);
+export const getAuthStatus = apiClient.getAuthStatus.bind(apiClient);
 export const healthCheck = apiClient.healthCheck.bind(apiClient);
 
 export default apiClient;

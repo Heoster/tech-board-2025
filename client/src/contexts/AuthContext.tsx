@@ -47,6 +47,8 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedToken = SecureStorage.getToken()
       const storedUser = SecureStorage.getUserData()
 
+      console.log('Initializing auth:', { hasToken: !!storedToken, hasUser: !!storedUser })
+
       if (storedToken && storedUser) {
         // Validate stored user data
         if (validateUserData(storedUser)) {
@@ -54,20 +56,23 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(storedUser)
           setAuthHeader(storedToken)
           
-          // Verify token is still valid
-          try {
-            await verifyToken(storedToken)
-          } catch (error) {
-            console.warn('Token verification failed during initialization')
-            logout()
-          }
+          console.log('Auth initialized successfully with stored credentials')
+          
+          // Verify token is still valid (skip verification for now to avoid blocking)
+          // try {
+          //   await verifyToken(storedToken)
+          // } catch (error) {
+          //   console.warn('Token verification failed during initialization')
+          //   logout()
+          // }
         } else {
           console.warn('Invalid stored user data, clearing storage')
           logout()
         }
       } else {
         // Ensure no stale auth header if no token
-        setAuthHeader('')
+        setAuthHeader(null)
+        console.log('No stored credentials found')
       }
     } catch (error) {
       console.error('Error initializing auth:', error)
