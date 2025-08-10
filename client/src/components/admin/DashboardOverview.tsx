@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../../utils/apiClient';
 
 interface SystemStats {
   totalStudents: number;
@@ -34,11 +34,11 @@ const DashboardOverview: React.FC = () => {
   const fetchDashboardData = async () => {
     try {
       // Fetch system statistics
-      const statsResponse = await axios.get('/admin/system-stats');
+      const statsResponse = await apiClient.get('/admin/system-stats');
       setStats(statsResponse.data.data);
 
       // Fetch recent quiz attempts
-      const resultsResponse = await axios.get('/admin/results');
+      const resultsResponse = await apiClient.get('/admin/results');
       const recentResults = resultsResponse.data.data
         .sort((a: RecentActivity, b: RecentActivity) => 
           new Date(b.end_time).getTime() - new Date(a.end_time).getTime()

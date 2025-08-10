@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../../utils/apiClient';
 
 interface StudentApiError {
   response?: {
@@ -68,7 +68,7 @@ const StudentManagement: React.FC = () => {
 
   const fetchStudents = async () => {
     try {
-      const response = await axios.get('/admin/students');
+      const response = await apiClient.get('/admin/students');
       setStudents(response.data.data);
     } catch (error) {
       console.error('Failed to fetch students:', error);
@@ -80,7 +80,7 @@ const StudentManagement: React.FC = () => {
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('/admin/students', {
+      await apiClient.post('/admin/students', {
         name: newStudent.name,
         rollNumber: newStudent.rollNumber,
         grade: newStudent.grade,
@@ -108,7 +108,7 @@ const StudentManagement: React.FC = () => {
     if (!confirm('Are you sure you want to delete this student?')) return;
     
     try {
-      await axios.delete(`/admin/students/${studentId}`);
+      await apiClient.delete(`/admin/students/${studentId}`);
       fetchStudents();
     } catch (error) {
       console.error('Failed to delete student:', error);
@@ -121,7 +121,7 @@ const StudentManagement: React.FC = () => {
     if (!selectedStudent) return;
     
     try {
-      await axios.put(`/admin/students/${selectedStudent.id}`, {
+      await apiClient.put(`/admin/students/${selectedStudent.id}`, {
         name: editStudent.name,
         rollNumber: editStudent.rollNumber,
         grade: editStudent.grade,
@@ -143,7 +143,7 @@ const StudentManagement: React.FC = () => {
     if (!newPassword) return;
     
     try {
-      await axios.put(`/admin/students/${studentId}/password`, {
+      await apiClient.put(`/admin/students/${studentId}/password`, {
         password: newPassword
       });
       alert('Password reset successfully');

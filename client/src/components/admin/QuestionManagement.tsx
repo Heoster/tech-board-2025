@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import apiClient from '../../utils/apiClient';
 
 interface QuestionApiError {
   response?: {
@@ -71,7 +71,7 @@ const QuestionManagement: React.FC = () => {
             if (filterGrade !== 'all') params.append('grade', filterGrade);
             if (filterDifficulty !== 'all') params.append('difficulty', filterDifficulty);
 
-            const response = await axios.get(`/admin/questions?${params}`);
+            const response = await apiClient.get(`/admin/questions?${params}`);
             setQuestions(response.data.data.questions);
             setTotalPages(response.data.data.pagination.pages);
         } catch (error) {
@@ -96,7 +96,7 @@ const QuestionManagement: React.FC = () => {
         }
 
         try {
-            await axios.post('/admin/questions', newQuestion);
+            await apiClient.post('/admin/questions', newQuestion);
             setShowAddModal(false);
             resetNewQuestion();
             fetchQuestions();
@@ -122,7 +122,7 @@ const QuestionManagement: React.FC = () => {
                 }))
             };
 
-            await axios.put(`/admin/questions/${selectedQuestion.id}`, updateData);
+            await apiClient.put(`/admin/questions/${selectedQuestion.id}`, updateData);
             setShowEditModal(false);
             setSelectedQuestion(null);
             fetchQuestions();
@@ -137,7 +137,7 @@ const QuestionManagement: React.FC = () => {
         if (!confirm('Are you sure you want to delete this question?')) return;
 
         try {
-            await axios.delete(`/admin/questions/${questionId}`);
+            await apiClient.delete(`/admin/questions/${questionId}`);
             fetchQuestions();
         } catch (error) {
             console.error('Failed to delete question:', error);
