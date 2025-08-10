@@ -59,7 +59,7 @@ const securityMiddleware = {
   // Quiz submission rate limiting
   quizLimiter: rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: process.env.NODE_ENV === 'production' ? 2 : 100, // Only 2 quiz submissions per minute
+    max: process.env.NODE_ENV === 'production' ? 400 : 1000, // 400 quiz requests per minute in production
     message: {
       success: false,
       error: {
