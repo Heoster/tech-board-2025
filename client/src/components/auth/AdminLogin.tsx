@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import axios from 'axios'
+import apiClient from '../../utils/apiClient'
 
 interface AdminApiError {
   response?: {
@@ -89,7 +89,7 @@ const AdminLogin: React.FC = () => {
         timestamp: Date.now()
       }
 
-      const response = await axios.post('/api/auth/admin/login', {
+      const response = await apiClient.post('/auth/admin/login', {
         ...formData,
         browserInfo,
         securityLevel: 'normal'

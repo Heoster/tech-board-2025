@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import axios from 'axios'
+import apiClient from '../../utils/apiClient'
 
 interface LoginApiError {
   response?: {
@@ -39,7 +39,7 @@ const LoginForm: React.FC = () => {
     setLoading(true)
 
     try {
-      const response = await axios.post('/api/auth/login', formData)
+      const response = await apiClient.post('/auth/login', formData)
       const { token, student } = response.data.data
       
       login(token, { ...student, role: 'student' })

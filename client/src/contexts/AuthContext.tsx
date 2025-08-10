@@ -55,11 +55,19 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setAuthHeader(storedToken)
           
           // Verify token is still valid
-          await verifyToken(storedToken)
+          try {
+            await verifyToken(storedToken)
+          } catch (error) {
+            console.warn('Token verification failed during initialization')
+            logout()
+          }
         } else {
           console.warn('Invalid stored user data, clearing storage')
           logout()
         }
+      } else {
+        // Ensure no stale auth header if no token
+        setAuthHeader('')
       }
     } catch (error) {
       console.error('Error initializing auth:', error)
@@ -93,7 +101,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true
   }
 
-  const setAuthHeader = (tokenValue: string) => {
+  const setAuthHeader = (tokenValue: string | null) => {
     apiClient.setAuthToken(tokenValue)
   }
 
@@ -182,7 +190,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       SecureStorage.clearAll()
       
       // Remove auth header
-      setAuthHeader('')
+      setAuthHeader(null)
       
       console.info('User logged out successfully')
     } catch (error) {
