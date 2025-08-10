@@ -264,8 +264,16 @@ export class APISecurityManager {
   }
 
   static shouldRetry(error: { response?: { status?: number }; code?: string }, endpoint: string): boolean {
-    // Sanitize endpoint to prevent NoSQL injection
-    const sanitizedEndpoint = InputValidator.sanitizeInput(endpoint);
+    // Validate and sanitize endpoint to prevent NoSQL injection
+    if (!endpoint || typeof endpoint !== 'string') {
+      return false;
+    }
+    
+    const sanitizedEndpoint = this.sanitizeEndpoint(endpoint);
+    if (!sanitizedEndpoint) {
+      return false;
+    }
+    
     const attempts = this.retryAttempts.get(sanitizedEndpoint) || 0;
     
     if (attempts >= this.MAX_RETRY_ATTEMPTS) {
@@ -287,16 +295,52 @@ export class APISecurityManager {
   }
 
   static getRetryDelay(endpoint: string): number {
-    // Sanitize endpoint to prevent NoSQL injection
-    const sanitizedEndpoint = InputValidator.sanitizeInput(endpoint);
+    // Validate and sanitize endpoint to prevent NoSQL injection
+    if (!endpoint || typeof endpoint !== 'string') {
+      return this.RETRY_DELAY;
+    }
+    
+    const sanitizedEndpoint = this.sanitizeEndpoint(endpoint);
+    if (!sanitizedEndpoint) {
+      return this.RETRY_DELAY;
+    }
+    
     const attempts = this.retryAttempts.get(sanitizedEndpoint) || 0;
     return this.RETRY_DELAY * Math.pow(2, attempts); // Exponential backoff
   }
 
   static clearRetryAttempts(endpoint: string): void {
-    // Sanitize endpoint to prevent NoSQL injection
-    const sanitizedEndpoint = InputValidator.sanitizeInput(endpoint);
+    // Validate and sanitize endpoint to prevent NoSQL injection
+    if (!endpoint || typeof endpoint !== 'string') {
+      return;
+    }
+    
+    const sanitizedEndpoint = this.sanitizeEndpoint(endpoint);
+    if (!sanitizedEndpoint) {
+      return;
+    }
+    
     this.retryAttempts.delete(sanitizedEndpoint);
+  }
+
+  private static sanitizeEndpoint(endpoint: string): string | null {
+    // Strict validation for API endpoints
+    const sanitized = InputValidator.sanitizeInput(endpoint);
+    
+    // Only allow valid API endpoint patterns
+    const validEndpointPattern = /^/[a-zA-Z0-9/_-]*$/;
+    if (!validEndpointPattern.test(sanitized)) {
+      console.warn('Invalid endpoint pattern detected:', endpoint);
+      return null;
+    }
+    
+    // Limit endpoint length
+    if (sanitized.length > 200) {
+      console.warn('Endpoint too long:', endpoint);
+      return null;
+    }
+    
+    return sanitized;
   }
 
   static sanitizeErrorMessage(error: { response?: { status?: number; data?: { error?: { message?: string }; message?: string } }; code?: string; message?: string }): string {

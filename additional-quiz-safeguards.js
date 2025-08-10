@@ -12,17 +12,29 @@ function checkAuthorization() {
                         process.argv.includes('--admin-setup');
     
     if (!isAuthorized) {
-        throw new Error('Unauthorized: This script requires admin privileges or development environment');
+        console.error('❌ AUTHORIZATION FAILED: This script requires admin privileges');
+        console.error('   Set NODE_ENV=development or ADMIN_SETUP=true or use --admin-setup flag');
+        return false;
     }
+    
+    console.log('✅ Authorization verified');
+    return true;
 }
 
 async function implementAdditionalSafeguards() {
     try {
         // Check authorization before proceeding
-        checkAuthorization();
+        if (!checkAuthorization()) {
+            process.exit(1);
+        }
         
         console.log('🛡️ IMPLEMENTING ADDITIONAL QUIZ SAFEGUARDS');
         console.log('==========================================\n');
+        
+        // Verify authorization again before database operations
+        if (!checkAuthorization()) {
+            throw new Error('Authorization verification failed');
+        }
         
         await database.connect();
         const db = database.getDb();

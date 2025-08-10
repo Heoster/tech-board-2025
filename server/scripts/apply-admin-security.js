@@ -9,11 +9,39 @@ const fs = require('fs');
 const path = require('path');
 const database = require('../config/database');
 
+// Authorization check function
+function checkAuthorization() {
+    // Check if running with proper authorization
+    const isAuthorized = process.env.NODE_ENV === 'development' || 
+                        process.env.ADMIN_SETUP === 'true' ||
+                        process.argv.includes('--admin-setup') ||
+                        process.getuid && process.getuid() === 0; // Unix root check
+    
+    if (!isAuthorized) {
+        console.error('❌ AUTHORIZATION FAILED: This script requires admin privileges');
+        console.error('   Set NODE_ENV=development or ADMIN_SETUP=true or use --admin-setup flag');
+        return false;
+    }
+    
+    console.log('✅ Authorization verified for admin security operations');
+    return true;
+}
+
 async function applyAdminSecurity() {
     console.log('🔐 Applying Admin Security Enhancements...');
     console.log('===========================================');
 
     try {
+        // Check authorization before proceeding
+        if (!checkAuthorization()) {
+            process.exit(1);
+        }
+        
+        // Verify authorization again before database operations
+        if (!checkAuthorization()) {
+            throw new Error('Authorization verification failed');
+        }
+        
         // Initialize database connection
         await database.initializeDatabase();
         const db = database.getDb();
@@ -86,6 +114,11 @@ async function applyAdminSecurity() {
             console.log(`   ✅ Column '${column}': ${exists ? 'EXISTS' : 'MISSING'}`);
         }
 
+        // Final authorization check before logging
+        if (!checkAuthorization()) {
+            throw new Error('Final authorization check failed');
+        }
+        
         // Log security upgrade
         await new Promise((resolve, reject) => {
             db.run(

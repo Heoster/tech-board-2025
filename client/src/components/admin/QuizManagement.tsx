@@ -68,26 +68,24 @@ const QuizManagement: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
-    fetchResults();
-    calculateAnalytics();
+    const fetchDataAndAnalytics = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('/admin/results');
+        const resultsData = response.data.data;
+        setResults(resultsData);
+        calculateAnalytics(resultsData);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDataAndAnalytics();
   }, []);
 
-  const fetchResults = async () => {
+  const calculateAnalytics = (data: QuizResult[]) => {
     try {
-      const response = await axios.get('/admin/results');
-      setResults(response.data.data);
-    } catch (error) {
-      console.error('Failed to fetch results:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateAnalytics = async () => {
-    try {
-      const response = await axios.get('/admin/results');
-      const data = response.data.data;
-      
       if (data.length === 0) {
         setAnalytics({
           totalAttempts: 0,
@@ -101,7 +99,7 @@ const QuizManagement: React.FC = () => {
 
       const totalAttempts = data.length;
       const averageScore = data.reduce((sum: number, result: QuizResult) => sum + result.score, 0) / totalAttempts;
-      const passedCount = data.filter((result: QuizResult) => result.score >= 36).length;
+      const passedCount = data.filter((result: QuizResult) => (result.score ?? 0) >= 36).length;
       const passRate = (passedCount / totalAttempts) * 100;
 
       // Grade-wise statistics
@@ -115,8 +113,8 @@ const QuizManagement: React.FC = () => {
 
       const gradeStats = Object.keys(gradeGroups).map(grade => {
         const gradeResults = gradeGroups[grade];
-        const gradeAverage = gradeResults.reduce((sum: number, result: QuizResult) => sum + result.score, 0) / gradeResults.length;
-        const gradePassed = gradeResults.filter((result: QuizResult) => result.score >= 36).length;
+        const gradeAverage = gradeResults.reduce((sum: number, result: QuizResult) => sum + (result.score ?? 0), 0) / gradeResults.length;
+        const gradePassed = gradeResults.filter((result: QuizResult) => (result.score ?? 0) >= 36).length;
         const gradePassRate = (gradePassed / gradeResults.length) * 100;
 
         return {

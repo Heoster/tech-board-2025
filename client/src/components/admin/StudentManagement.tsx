@@ -69,7 +69,7 @@ const StudentManagement: React.FC = () => {
   const fetchStudents = async () => {
     try {
       const response = await apiClient.get('/admin/students');
-      setStudents(response.data.data);
+      setStudents((response.data as any)?.data || []);
     } catch (error) {
       console.error('Failed to fetch students:', error);
     } finally {

@@ -72,8 +72,8 @@ const QuestionManagement: React.FC = () => {
             if (filterDifficulty !== 'all') params.append('difficulty', filterDifficulty);
 
             const response = await apiClient.get(`/admin/questions?${params}`);
-            setQuestions(response.data.data.questions);
-            setTotalPages(response.data.data.pagination.pages);
+            setQuestions((response.data as any).data.questions);
+            setTotalPages((response.data as any).data.pagination.pages);
         } catch (error) {
             console.error('Failed to fetch questions:', error);
         } finally {

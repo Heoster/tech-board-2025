@@ -3,13 +3,23 @@ const { body, validationResult } = require('express-validator');
 const { authenticateToken, requireStudent, validateStudent } = require('../middleware/auth');
 const database = require('../config/database');
 
+// Sanitize function to prevent log injection
+function sanitizeForLog(input) {
+    if (input === null || input === undefined) return 'null';
+    const str = String(input);
+    // Remove newlines, carriage returns, and other control characters
+    return str.replace(/[\r\n\t\x00-\x1f\x7f-\x9f]/g, '_')
+              .replace(/[\u0000-\u001f\u007f-\u009f]/g, '_')
+              .substring(0, 200); // Limit length
+}
+
 const router = express.Router();
 
 // FIXED: Simple question selection without category dependency
 const selectQuizQuestions = async (grade, totalQuestions = 25, studentId = null) => {
     const db = database.getDb();
 
-    console.log(`🎯 Selecting ${totalQuestions} unique questions for Grade ${grade} (Student ID: ${studentId})`);
+    console.log(`🎯 Selecting ${sanitizeForLog(totalQuestions)} unique questions for Grade ${sanitizeForLog(grade)} (Student ID: ${sanitizeForLog(studentId)})`);
 
     // Get questions that haven't been used by this student yet
     let usedQuestionIds = [];
@@ -26,9 +36,9 @@ const selectQuizQuestions = async (grade, totalQuestions = 25, studentId = null)
             });
         });
         usedQuestionIds = usedQuestions.map(q => q.question_id);
-        console.log(`🚫 Found ${usedQuestionIds.length} previously used questions for this student`);
+        console.log(`🚫 Found ${sanitizeForLog(usedQuestionIds.length)} previously used questions for this student`);
     } catch (error) {
-        console.log('⚠️  No previously used questions found:', error.message);
+        console.log('⚠️  No previously used questions found:', sanitizeForLog(error.message));
     }
 
     // Target distribution: 60% basic, 30% medium, 10% advanced
@@ -36,7 +46,7 @@ const selectQuizQuestions = async (grade, totalQuestions = 25, studentId = null)
     const mediumCount = Math.floor(totalQuestions * 0.3); // 7 questions  
     const advancedCount = totalQuestions - basicCount - mediumCount; // 3 questions
 
-    console.log(`📊 Target distribution: ${basicCount} basic, ${mediumCount} medium, ${advancedCount} advanced`);
+    console.log(`📊 Target distribution: ${sanitizeForLog(basicCount)} basic, ${sanitizeForLog(mediumCount)} medium, ${sanitizeForLog(advancedCount)} advanced`);
 
     const selectedQuestions = [];
     const selectedQuestionIds = new Set();
@@ -59,7 +69,7 @@ const selectQuizQuestions = async (grade, totalQuestions = 25, studentId = null)
             );
         });
 
-        console.log(`📋 Available ${difficulty} questions: ${availableQuestions.length}`);
+        console.log(`📋 Available ${sanitizeForLog(difficulty)} questions: ${sanitizeForLog(availableQuestions.length)}`);
 
         const selected = [];
         for (const question of availableQuestions) {
@@ -71,7 +81,7 @@ const selectQuizQuestions = async (grade, totalQuestions = 25, studentId = null)
             }
         }
 
-        console.log(`✅ Selected ${selected.length}/${targetCount} ${difficulty} questions`);
+        console.log(`✅ Selected ${sanitizeForLog(selected.length)}/${sanitizeForLog(targetCount)} ${sanitizeForLog(difficulty)} questions`);
         return selected;
     };
 
@@ -87,7 +97,7 @@ const selectQuizQuestions = async (grade, totalQuestions = 25, studentId = null)
         const currentTotal = selectedQuestions.length;
         if (currentTotal < totalQuestions) {
             const remaining = totalQuestions - currentTotal;
-            console.log(`📝 Need ${remaining} more questions, filling gaps...`);
+            console.log(`📝 Need ${sanitizeForLog(remaining)} more questions, filling gaps...`);
 
             const excludeClause = [...usedQuestionIds, ...Array.from(selectedQuestionIds)].length > 0 ?
                 `AND id NOT IN (${[...usedQuestionIds, ...Array.from(selectedQuestionIds)].map(() => '?').join(',')})` : '';
@@ -111,7 +121,7 @@ const selectQuizQuestions = async (grade, totalQuestions = 25, studentId = null)
         }
 
     } catch (error) {
-        console.error('❌ Error in question selection:', error);
+        console.error('❌ Error in question selection:', sanitizeForLog(error.message || error));
         throw error;
     }
 
@@ -122,20 +132,20 @@ const selectQuizQuestions = async (grade, totalQuestions = 25, studentId = null)
     if (uniqueQuestionIds.length !== finalQuestionIds.length) {
         const duplicates = finalQuestionIds.filter((id, index) => finalQuestionIds.indexOf(id) !== index);
         console.error(`❌ CRITICAL: Found duplicates in final selection!`);
-        console.error(`❌ Duplicate IDs: ${duplicates.join(', ')}`);
-        throw new Error(`Duplicate questions detected: ${duplicates.join(', ')}`);
+        console.error(`❌ Duplicate IDs: ${sanitizeForLog(duplicates.join(', '))}`);
+        throw new Error(`Duplicate questions detected: ${sanitizeForLog(duplicates.join(', '))}`);
     }
 
     if (uniqueQuestionIds.length !== totalQuestions) {
-        console.error(`❌ Expected ${totalQuestions} questions, got ${uniqueQuestionIds.length}`);
-        throw new Error(`Expected ${totalQuestions} questions, got ${uniqueQuestionIds.length}`);
+        console.error(`❌ Expected ${sanitizeForLog(totalQuestions)} questions, got ${sanitizeForLog(uniqueQuestionIds.length)}`);
+        throw new Error(`Expected ${sanitizeForLog(totalQuestions)} questions, got ${sanitizeForLog(uniqueQuestionIds.length)}`);
     }
 
     // Shuffle the final selection
     const shuffledQuestions = uniqueQuestionIds.sort(() => Math.random() - 0.5);
 
-    console.log(`✅ Final selection: ${shuffledQuestions.length} unique questions`);
-    console.log(`📋 Question IDs: [${shuffledQuestions.join(', ')}]`);
+    console.log(`✅ Final selection: ${sanitizeForLog(shuffledQuestions.length)} unique questions`);
+    console.log(`📋 Question IDs: [${sanitizeForLog(shuffledQuestions.join(', '))}]`);
 
     return shuffledQuestions;
 };
@@ -194,7 +204,7 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
         } else if (existingQuiz && isDevelopment) {
             // In development mode, clean up in-progress quiz
             if (existingQuiz.status === 'in_progress') {
-                console.log(`🔄 Development mode: Cleaning up in-progress quiz ${existingQuiz.id}`);
+                console.log(`🔄 Development mode: Cleaning up in-progress quiz ${sanitizeForLog(existingQuiz.id)}`);
 
                 await new Promise((resolve, reject) => {
                     db.run('DELETE FROM responses WHERE quiz_id = ?', [existingQuiz.id], (err) => {
@@ -249,7 +259,7 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
             );
         });
 
-        console.log(`✅ Quiz created with ${selectedQuestionIds.length} questions`);
+        console.log(`✅ Quiz created with ${sanitizeForLog(selectedQuestionIds.length)} questions`);
 
         // Get full question details with options
         const questions = await new Promise((resolve, reject) => {
@@ -323,7 +333,7 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
         });
 
     } catch (error) {
-        console.error('Error starting quiz:', error);
+        console.error('Error starting quiz:', sanitizeForLog(error.message || error));
         res.status(500).json({
             success: false,
             error: {
@@ -409,11 +419,11 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
             if (uniqueSubmittedIds.size !== submittedQuestionIds.length) {
                 const duplicates = submittedQuestionIds.filter((id, index) => submittedQuestionIds.indexOf(id) !== index);
                 console.error(`❌ SUBMISSION ERROR: Duplicate questions in submission!`);
-                console.error(`❌ Duplicate question IDs: ${duplicates.join(', ')}`);
-                throw new Error(`Duplicate questions in submission. IDs: ${duplicates.join(', ')}`);
+                console.error(`❌ Duplicate question IDs: ${sanitizeForLog(duplicates.join(', '))}`);
+                throw new Error(`Duplicate questions in submission. IDs: ${sanitizeForLog(duplicates.join(', '))}`);
             }
 
-            console.log(`✅ SUBMISSION VALIDATION: ${uniqueSubmittedIds.size} unique questions submitted`);
+            console.log(`✅ SUBMISSION VALIDATION: ${sanitizeForLog(uniqueSubmittedIds.size)} unique questions submitted`);
 
             // Process each response
             for (const response of responses) {
@@ -442,8 +452,8 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
                         function (err) {
                             if (err) {
                                 if (err.message && err.message.includes('UNIQUE constraint failed')) {
-                                    console.error(`❌ DUPLICATE CONSTRAINT: Question ${questionId} already answered`);
-                                    reject(new Error(`Question ${questionId} has already been answered in this quiz`));
+                                    console.error(`❌ DUPLICATE CONSTRAINT: Question ${sanitizeForLog(questionId)} already answered`);
+                                    reject(new Error(`Question ${sanitizeForLog(questionId)} has already been answered in this quiz`));
                                 } else {
                                     reject(err);
                                 }
@@ -494,7 +504,7 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
             // Rollback transaction
             await new Promise((resolve, reject) => {
                 db.run('ROLLBACK', (err) => {
-                    if (err) console.error('Rollback error:', err);
+                    if (err) console.error('Rollback error:', sanitizeForLog(err.message || err));
                     resolve();
                 });
             });
@@ -502,7 +512,7 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
         }
 
     } catch (error) {
-        console.error('Error submitting quiz:', error);
+        console.error('Error submitting quiz:', sanitizeForLog(error.message || error));
         res.status(500).json({
             success: false,
             error: {

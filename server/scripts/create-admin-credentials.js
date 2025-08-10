@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 const adminCredentials = [
     {
         username: 'admin',
-        password: 'TechBoard2025!',
+        password: 'admin123',
         description: 'Main administrator account'
     },
     {
