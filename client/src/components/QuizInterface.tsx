@@ -163,9 +163,32 @@ const QuizInterface: React.FC = () => {
 
       try {
         setLoading(true);
+        setError('');
+        
+        console.log('🚀 Starting quiz for grade:', user.grade);
         const response = await axios.get(`/quiz/start/${user.grade}`);
+        
+        console.log('📊 Quiz response:', response.data);
+        
+        if (!response.data.success) {
+          throw new Error(response.data.error?.message || 'Quiz generation failed');
+        }
 
         const { quizId, questions: fetchedQuestions, totalQuestions } = response.data.data;
+        
+        console.log('📝 Questions received:', fetchedQuestions.length);
+        console.log('🔍 Sample question:', fetchedQuestions[0]);
+        
+        if (!fetchedQuestions || fetchedQuestions.length === 0) {
+          throw new Error('No questions available for your grade. Please contact administrator.');
+        }
+        
+        // Validate questions have options
+        const invalidQuestions = fetchedQuestions.filter(q => !q.options || q.options.length === 0);
+        if (invalidQuestions.length > 0) {
+          console.warn('⚠️ Found questions without options:', invalidQuestions.length);
+        }
+        
         setQuestions(fetchedQuestions);
         setQuizState(prev => ({
           ...prev,
@@ -173,8 +196,15 @@ const QuizInterface: React.FC = () => {
           answers: new Array(totalQuestions).fill(null),
           timeRemaining: totalQuestions * 60 // 1 minute per question
         }));
+        
+        console.log('✅ Quiz initialized successfully');
       } catch (error: any) {
-        setError(error.response?.data?.error?.message || 'Failed to start quiz');
+        console.error('❌ Quiz start error:', error);
+        const errorMessage = error.response?.data?.error?.message || 
+                           error.response?.data?.message || 
+                           error.message || 
+                           'Failed to start quiz. Please try again.';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -387,7 +417,7 @@ const QuizInterface: React.FC = () => {
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292z" />
                         </svg>
                       </div>
                       <div>
@@ -398,7 +428,7 @@ const QuizInterface: React.FC = () => {
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                          <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
                         </svg>
                       </div>
                       <div>
@@ -509,14 +539,51 @@ const QuizInterface: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-dark-900 dark:via-dark-800 dark:to-dark-700 flex items-center justify-center">
-        <div className="card max-w-md text-center">
+        <div className="card max-w-lg text-center">
           <div className="w-16 h-16 bg-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Quiz Loading Error</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <div className="space-y-3">
+            <button 
+              onClick={() => {
+                setError('');
+                setLoading(true);
+                window.location.reload();
+              }} 
+              className="btn-primary w-full"
+            >
+              🔄 Retry Quiz
+            </button>
+            <button onClick={() => navigate('/dashboard')} className="btn-secondary w-full">
+              ← Back to Dashboard
+            </button>
+          </div>
+          <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg text-sm text-yellow-800 dark:text-yellow-200">
+            <p><strong>Troubleshooting:</strong></p>
+            <p>• Check your internet connection</p>
+            <p>• Try refreshing the page</p>
+            <p>• Contact administrator if issue persists</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-dark-900 dark:via-dark-800 dark:to-dark-700 flex items-center justify-center">
+        <div className="card max-w-md text-center">
+          <div className="w-16 h-16 bg-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-yellow-600 mb-2">No Questions Available</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">No questions found for your grade. Please contact the administrator.</p>
           <button onClick={() => navigate('/dashboard')} className="btn-primary">
             Back to Dashboard
           </button>
@@ -524,8 +591,6 @@ const QuizInterface: React.FC = () => {
       </div>
     );
   }
-
-  if (questions.length === 0) return null;
 
   const currentQuestion = questions[quizState.currentQuestion];
   const selectedAnswer = quizState.answers[quizState.currentQuestion];

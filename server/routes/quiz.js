@@ -320,27 +320,45 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
         // Calculate pass criteria based on actual question count
         const passingScore = Math.ceil(actualQuestionCount * 0.72); // 72% pass rate
 
+        // Validate all questions have proper options before sending
+        const validatedQuestions = orderedQuestions.filter(q => q.options && q.options.length >= 2);
+        
+        if (validatedQuestions.length === 0) {
+            throw new Error('NO_VALID_QUESTIONS: All questions are missing options or invalid');
+        }
+        
+        if (validatedQuestions.length < orderedQuestions.length) {
+            console.warn(`⚠️ Filtered out ${orderedQuestions.length - validatedQuestions.length} questions with invalid options`);
+        }
+
         res.json({
             success: true,
             data: {
                 quizId,
                 grade,
-                totalQuestions: actualQuestionCount,
-                questions: orderedQuestions.map((q, index) => ({
+                totalQuestions: validatedQuestions.length,
+                questions: validatedQuestions.map((q, index) => ({
                     ...q,
-                    questionNumber: index + 1
+                    questionNumber: index + 1,
+                    // Ensure options are properly formatted
+                    options: q.options.map((opt, optIndex) => ({
+                        id: opt.id,
+                        option_text: opt.option_text || `Option ${String.fromCharCode(65 + optIndex)}`,
+                        is_correct: false // Always hide correct answers from students
+                    }))
                 })),
-                timeLimit: Math.ceil(actualQuestionCount * 1.0), // 1 minute per question
-                passingScore,
+                timeLimit: Math.ceil(validatedQuestions.length * 1.0), // 1 minute per question
+                passingScore: Math.ceil(validatedQuestions.length * 0.72), // 72% pass rate
                 questionDistribution: {
-                    basic: orderedQuestions.filter(q => q.difficulty === 'basic').length,
-                    medium: orderedQuestions.filter(q => q.difficulty === 'medium').length,
-                    advanced: orderedQuestions.filter(q => q.difficulty === 'advanced').length
+                    basic: validatedQuestions.filter(q => q.difficulty === 'basic').length,
+                    medium: validatedQuestions.filter(q => q.difficulty === 'medium').length,
+                    advanced: validatedQuestions.filter(q => q.difficulty === 'advanced').length
                 },
                 guarantees: {
                     noDuplicates: true,
                     noRepeatFromPreviousTests: true,
-                    productionReady: true
+                    productionReady: true,
+                    allQuestionsValidated: true
                 }
             }
         });
@@ -532,133 +550,6 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
 });
 
 module.exports = router;
-// Start quiz with production-ready question selection
-
-router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, async (req, res) => {
-    try {
-        const grade = parseInt(req.params.grade);
-        const studentId = req.user.id;
-        const db = database.getDb();
-
-        console.log(`🚀 Starting quiz for Grade ${grade}, Student ID: ${studentId}`);
-
-        // Validate grade
-        if (![6, 7, 8, 9, 11].includes(grade)) {
-            return res.status(400).json({
-                success: false,
-                error: {
-                    code: 'INVALID_GRADE',
-                    message: 'Grade must be 6, 7, 8, 9, or 11'
-                }
-            });
-        }
-
-        // Check if student has already taken the test
-        const existingQuiz = await new Promise((resolve, reject) => {
-            db.get(
-                'SELECT id, status FROM quizzes WHERE student_id = ? ORDER BY id DESC LIMIT 1',
-                [studentId],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row);
-                }
-            );
-        });
-
-        // Development mode: Allow multiple attempts for testing
-        const isDevelopment = process.env.NODE_ENV !== 'production';
-
-        if (existingQuiz && !isDevelopment) {
-            if (existingQuiz.status === 'in_progress') {
-                return res.status(409).json({
-                    success: false,
-                    error: {
-                        code: 'QUIZ_IN_PROGRESS',
-                        message: 'You already have an active quiz. Please complete it first.'
-                    }
-                });
-            } else if (existingQuiz.status === 'completed') {
-                return res.status(409).json({
-                    success: false,
-                    error: {
-                        code: 'QUIZ_ALREADY_TAKEN',
-                        message: 'You have already completed the TECH BOARD 2025 selection test. Only one attempt is allowed per student.'
-                    }
-                });
-            }
-        } else if (existingQuiz && isDevelopment) {
-            // In development mode, clean up in-progress quiz
-            if (existingQuiz.status === 'in_progress') {
-                console.log(`🔄 Development mode: Cleaning up in-progress quiz ${existingQuiz.id}`);
-
-                await new Promise((resolve, reject) => {
-                    db.run('DELETE FROM responses WHERE quiz_id = ?', [existingQuiz.id], (err) => {
-                        if (err) reject(err);
-                        else resolve();
-                    });
-                });
-
-                await new Promise((resolve, reject) => {
-                    db.run('DELETE FROM quizzes WHERE id = ?', [existingQuiz.id], (err) => {
-                        if (err) reject(err);
-                        else resolve();
-                    });
-                });
-            }
-        }
-
-        // PRODUCTION FIX: Always try to generate 50 questions, but be flexible
-        const targetQuestions = 50;
-
-        // Select questions using production-ready algorithm
-        const selectedQuestionIds = await selectUniqueQuizQuestions(grade, targetQuestions, studentId);
-        const actualQuestionCount = selectedQuestionIds.length;
-
-        // Create quiz record
-        const quizId = await new Promise((resolve, reject) => {
-            db.run(
-                'INSERT INTO quizzes (student_id, grade, total_questions, status) VALUES (?, ?, ?, ?)',
-                [studentId, grade, actualQuestionCount, 'in_progress'],
-                function (err) {
-                    if (err) reject(err);
-                    else resolve(this.lastID);
-                }
-            );
-        });
-
-        console.log(`✅ Quiz ${quizId} created with ${actualQuestionCount} questions`);
-
-        // Get full question details with options
-        const questions = await new Promise((resolve, reject) => {
-            const placeholders = selectedQuestionIds.map(() => '?').join(',');
-            db.all(`
-                SELECT q.id, q.question_text, q.difficulty
-                FROM questions q
-                WHERE q.id IN (${placeholders})
-            `, selectedQuestionIds, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
-
-        // Get options for each question
-        for (let question of questions) {
-            const options = await new Promise((resolve, reject) => {
-                db.all(`
-                    SELECT id, option_text, option_order, is_correct
-                    FROM options 
-                    WHERE question_id = ?
-                    ORDER BY option_order
-                `, [question.id], (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
-                });
-            });
-            question.options = options;
-        }
-
-        // Format questions for frontend (hide correct answers)
-        const formattedQuestions = questions.map((q, index) => {
             // Randomize option order
             const randomizedOptions = q.options.sort(() => Math.random() - 0.5);
 
