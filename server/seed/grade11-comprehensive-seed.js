@@ -432,12 +432,12 @@ async function seedGrade11Questions() {
         console.log('📗 Adding basic questions...');
         for (let i = 0; i < grade11Questions.basic.length; i++) {
             const q = grade11Questions.basic[i];
-            
+
             const questionId = await new Promise((resolve, reject) => {
                 db.run(`
                     INSERT INTO questions (grade, difficulty, question_text, created_at, updated_at)
                     VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                `, [grade, 'basic', q.q], function(err) {
+                `, [grade, 'basic', q.q], function (err) {
                     if (err) reject(err);
                     else resolve(this.lastID);
                 });
@@ -462,12 +462,12 @@ async function seedGrade11Questions() {
         console.log('📙 Adding medium questions...');
         for (let i = 0; i < grade11Questions.medium.length; i++) {
             const q = grade11Questions.medium[i];
-            
+
             const questionId = await new Promise((resolve, reject) => {
                 db.run(`
                     INSERT INTO questions (grade, difficulty, question_text, created_at, updated_at)
                     VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                `, [grade, 'medium', q.q], function(err) {
+                `, [grade, 'medium', q.q], function (err) {
                     if (err) reject(err);
                     else resolve(this.lastID);
                 });
@@ -492,12 +492,12 @@ async function seedGrade11Questions() {
         console.log('📕 Adding advanced questions...');
         for (let i = 0; i < grade11Questions.advanced.length; i++) {
             const q = grade11Questions.advanced[i];
-            
+
             const questionId = await new Promise((resolve, reject) => {
                 db.run(`
                     INSERT INTO questions (grade, difficulty, question_text, created_at, updated_at)
                     VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                `, [grade, 'advanced', q.q], function(err) {
+                `, [grade, 'advanced', q.q], function (err) {
                     if (err) reject(err);
                     else resolve(this.lastID);
                 });
@@ -519,7 +519,7 @@ async function seedGrade11Questions() {
         }
 
         await database.close();
-        
+
         console.log('');
         console.log('✅ GRADE 11 SEEDING COMPLETED!');
         console.log('============================');
