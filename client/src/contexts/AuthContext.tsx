@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, type ReactNode } from 'react'
-import axios, { AxiosError } from 'axios'
+import apiClient from '../utils/apiClient'
 import { SecureStorage, InputValidator, APISecurityManager } from '../utils/security'
 
 interface User {
@@ -34,40 +34,9 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Set up axios defaults with security configurations
-  const isDev = import.meta.env.DEV
-  const API_BASE_URL =
-    import.meta.env.VITE_API_URL ||
-    (isDev ? 'http://localhost:8000/api' : '/api')
-  
-  axios.defaults.baseURL = API_BASE_URL
-  axios.defaults.timeout = 30000 // 30 second timeout
-  axios.defaults.headers.common['Content-Type'] = 'application/json'
+  // Use the configured apiClient instead of setting axios defaults
 
-  // Add response interceptor for security
-  axios.interceptors.response.use(
-    (response) => {
-      // Sanitize response data
-      if (response.data) {
-        response.data = APISecurityManager.sanitizeApiResponse(response.data)
-      }
-      return response
-    },
-    (error: AxiosError) => {
-      // Handle authentication errors
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        // Token might be expired or invalid
-        logout()
-      }
-      
-      // Sanitize error messages
-      if (error.response?.data) {
-        error.response.data = APISecurityManager.sanitizeApiResponse(error.response.data)
-      }
-      
-      return Promise.reject(error)
-    }
-  )
+  // Response interceptor is handled by apiClient
 
   useEffect(() => {
     initializeAuth()
@@ -125,16 +94,12 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const setAuthHeader = (tokenValue: string) => {
-    if (tokenValue) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${tokenValue}`
-    } else {
-      delete axios.defaults.headers.common['Authorization']
-    }
+    apiClient.setAuthToken(tokenValue)
   }
 
   const verifyToken = async (tokenToVerify: string): Promise<void> => {
     try {
-      const response = await axios.get('auth/verify', {
+      const response = await apiClient.get('auth/verify', {
         headers: { Authorization: `Bearer ${tokenToVerify}` },
         timeout: 10000 // Short timeout for verification
       })
