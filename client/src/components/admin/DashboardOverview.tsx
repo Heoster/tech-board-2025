@@ -63,11 +63,13 @@ const DashboardOverview: React.FC = () => {
 
       // Fetch recent quiz attempts
       const resultsResponse = await apiClient.get('/admin/results');
-      const recentResults = ((resultsResponse.data as any).data || [])
-        .sort((a: RecentActivity, b: RecentActivity) => 
-          new Date(b.end_time).getTime() - new Date(a.end_time).getTime()
-        )
-        .slice(0, 15);
+      const recentResults = Array.isArray((resultsResponse.data as any).data) 
+        ? (resultsResponse.data as any).data
+            .sort((a: RecentActivity, b: RecentActivity) => 
+              new Date(b.end_time).getTime() - new Date(a.end_time).getTime()
+            )
+            .slice(0, 15)
+        : [];
       setRecentActivity(recentResults);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);

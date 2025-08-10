@@ -153,7 +153,7 @@ const StudentManagement: React.FC = () => {
     }
   };
 
-  const filteredStudents = students.filter(student => {
+  const filteredStudents = (students || []).filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.roll_number.toString().includes(searchTerm);
     const matchesGrade = filterGrade === 'all' || student.grade.toString() === filterGrade;

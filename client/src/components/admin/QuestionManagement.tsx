@@ -72,8 +72,9 @@ const QuestionManagement: React.FC = () => {
             if (filterDifficulty !== 'all') params.append('difficulty', filterDifficulty);
 
             const response = await apiClient.get(`/admin/questions?${params}`);
-            setQuestions((response.data as any).data.questions);
-            setTotalPages((response.data as any).data.pagination.pages);
+            const responseData = (response.data as any).data;
+            setQuestions(Array.isArray(responseData?.questions) ? responseData.questions : []);
+            setTotalPages(responseData?.pagination?.pages || 1);
         } catch (error) {
             console.error('Failed to fetch questions:', error);
         } finally {
@@ -200,7 +201,7 @@ const QuestionManagement: React.FC = () => {
         }
     };
 
-    const filteredQuestions = questions.filter(question =>
+    const filteredQuestions = (questions || []).filter(question =>
         question.question_text.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
