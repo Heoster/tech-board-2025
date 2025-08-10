@@ -2,174 +2,11 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { authenticateToken, requireStudent, validateStudent } = require('../middleware/auth');
 const database = require('../config/database');
+const { selectUniqueQuizQuestions } = require('../services/quizService');
 
 const router = express.Router();
 
-// PRODUCTION-READY: Flexible question selection that always generates 50 questions
-const selectUniqueQuizQuestions = async (grade, totalQuestions = 50, studentId = null) => {
-    const db = database.getDb();
-
-    console.log(`🎯 PRODUCTION-READY: Selecting ${totalQuestions} questions for Grade ${grade} (Student ID: ${studentId})`);
-
-    // STEP 1: Get previously used questions by this student
-    let usedQuestionIds = [];
-    try {
-        const usedQuestions = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT DISTINCT r.question_id 
-                FROM responses r
-                JOIN quizzes q ON r.quiz_id = q.id
-                WHERE q.student_id = ? AND q.grade = ?
-            `, [studentId, grade], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
-        usedQuestionIds = usedQuestions.map(q => q.question_id);
-        console.log(`📝 Found ${usedQuestionIds.length} previously used questions for this student`);
-    } catch (error) {
-        console.log('ℹ️  No previously used questions found');
-    }
-
-    // STEP 2: Get questions from active quizzes
-    try {
-        const activeQuizQuestions = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT DISTINCT q.id as question_id
-                FROM questions q
-                JOIN responses r ON q.id = r.question_id
-                JOIN quizzes qz ON r.quiz_id = qz.id
-                WHERE qz.student_id = ? AND qz.grade = ? AND qz.status = 'in_progress'
-            `, [studentId, grade], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
-        
-        const activeQuestionIds = activeQuizQuestions.map(q => q.question_id);
-        usedQuestionIds = [...new Set([...usedQuestionIds, ...activeQuestionIds])];
-        console.log(`📝 Total excluded questions: ${usedQuestionIds.length}`);
-    } catch (error) {
-        console.log('ℹ️  No active quiz questions found');
-    }
-
-    // STEP 3: Check available questions with options (production-ready check)
-    const availableQuestionsWithOptions = await new Promise((resolve, reject) => {
-        const excludeClause = usedQuestionIds.length > 0 ?
-            `AND q.id NOT IN (${usedQuestionIds.map(() => '?').join(',')})` : '';
-        
-        db.all(
-            `SELECT DISTINCT q.id, q.difficulty, q.question_text
-             FROM questions q 
-             INNER JOIN options o ON q.id = o.question_id 
-             WHERE q.grade = ? ${excludeClause}
-             GROUP BY q.id
-             HAVING COUNT(o.id) >= 2`,  // Ensure at least 2 options per question
-            [grade, ...usedQuestionIds],
-            (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            }
-        );
-    });
-
-    console.log(`📊 Available questions with options: ${availableQuestionsWithOptions.length}`);
-
-    // STEP 4: If insufficient questions, reduce target or throw error
-    if (availableQuestionsWithOptions.length < 15) {
-        throw new Error(`INSUFFICIENT_QUESTIONS: Only ${availableQuestionsWithOptions.length} questions available for Grade ${grade}. Need at least 15 questions.`);
-    }
-
-    // STEP 5: Adjust target questions based on availability
-    const actualTargetQuestions = Math.min(totalQuestions, availableQuestionsWithOptions.length);
-    console.log(`🎯 Target questions adjusted to: ${actualTargetQuestions}`);
-
-    // STEP 6: Flexible distribution based on available questions
-    const difficultyGroups = {
-        basic: availableQuestionsWithOptions.filter(q => q.difficulty === 'basic'),
-        medium: availableQuestionsWithOptions.filter(q => q.difficulty === 'medium'),
-        advanced: availableQuestionsWithOptions.filter(q => q.difficulty === 'advanced')
-    };
-
-    console.log(`📈 Available by difficulty:`);
-    console.log(`   Basic: ${difficultyGroups.basic.length}`);
-    console.log(`   Medium: ${difficultyGroups.medium.length}`);
-    console.log(`   Advanced: ${difficultyGroups.advanced.length}`);
-
-    // STEP 7: Smart distribution algorithm
-    const selectedQuestions = [];
-    const selectedIds = new Set();
-
-    // Try to maintain ideal distribution: 60% basic, 30% medium, 10% advanced
-    const idealBasic = Math.floor(actualTargetQuestions * 0.6);
-    const idealMedium = Math.floor(actualTargetQuestions * 0.3);
-    const idealAdvanced = actualTargetQuestions - idealBasic - idealMedium;
-
-    // Select basic questions
-    const basicToSelect = Math.min(idealBasic, difficultyGroups.basic.length);
-    const shuffledBasic = difficultyGroups.basic.sort(() => Math.random() - 0.5);
-    for (let i = 0; i < basicToSelect; i++) {
-        selectedQuestions.push(shuffledBasic[i]);
-        selectedIds.add(shuffledBasic[i].id);
-    }
-
-    // Select medium questions
-    const mediumToSelect = Math.min(idealMedium, difficultyGroups.medium.length);
-    const shuffledMedium = difficultyGroups.medium.sort(() => Math.random() - 0.5);
-    for (let i = 0; i < mediumToSelect; i++) {
-        selectedQuestions.push(shuffledMedium[i]);
-        selectedIds.add(shuffledMedium[i].id);
-    }
-
-    // Select advanced questions
-    const advancedToSelect = Math.min(idealAdvanced, difficultyGroups.advanced.length);
-    const shuffledAdvanced = difficultyGroups.advanced.sort(() => Math.random() - 0.5);
-    for (let i = 0; i < advancedToSelect; i++) {
-        selectedQuestions.push(shuffledAdvanced[i]);
-        selectedIds.add(shuffledAdvanced[i].id);
-    }
-
-    // STEP 8: Fill remaining slots with any available questions
-    const remaining = actualTargetQuestions - selectedQuestions.length;
-    if (remaining > 0) {
-        console.log(`📝 Need ${remaining} more questions, filling from available pool...`);
-        
-        const remainingQuestions = availableQuestionsWithOptions.filter(q => !selectedIds.has(q.id));
-        const shuffledRemaining = remainingQuestions.sort(() => Math.random() - 0.5);
-        
-        for (let i = 0; i < Math.min(remaining, shuffledRemaining.length); i++) {
-            selectedQuestions.push(shuffledRemaining[i]);
-            selectedIds.add(shuffledRemaining[i].id);
-        }
-    }
-
-    // STEP 9: Final validation and shuffle
-    const finalQuestionIds = selectedQuestions.map(q => q.id);
-    const uniqueIds = [...new Set(finalQuestionIds)];
-
-    if (uniqueIds.length !== finalQuestionIds.length) {
-        throw new Error('DUPLICATE_QUESTIONS_DETECTED: Internal error in question selection');
-    }
-
-    // Final shuffle
-    const shuffledFinalIds = uniqueIds.sort(() => Math.random() - 0.5);
-
-    console.log(`✅ SUCCESS: Selected ${shuffledFinalIds.length} unique questions`);
-    console.log(`📊 Final distribution:`);
-    
-    const finalDistribution = {
-        basic: selectedQuestions.filter(q => q.difficulty === 'basic').length,
-        medium: selectedQuestions.filter(q => q.difficulty === 'medium').length,
-        advanced: selectedQuestions.filter(q => q.difficulty === 'advanced').length
-    };
-    
-    console.log(`   Basic: ${finalDistribution.basic}`);
-    console.log(`   Medium: ${finalDistribution.medium}`);
-    console.log(`   Advanced: ${finalDistribution.advanced}`);
-    console.log(`📋 Question IDs: [${shuffledFinalIds.slice(0, 10).join(', ')}${shuffledFinalIds.length > 10 ? '...' : ''}]`);
-
-    return shuffledFinalIds;
-};
+// Question selection provided by services/quizService
 
 // Start quiz with production-ready question selection
 router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, async (req, res) => {
@@ -331,7 +168,7 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
                     ...q,
                     questionNumber: index + 1
                 })),
-                timeLimit: Math.ceil(actualQuestionCount * 1.0), // 1 minute per question
+                timeLimit: Math.ceil(actualQuestionCount * 60), // 1 minute per question in seconds
                 passingScore,
                 questionDistribution: {
                     basic: orderedQuestions.filter(q => q.difficulty === 'basic').length,

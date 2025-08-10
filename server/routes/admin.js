@@ -69,11 +69,14 @@ router.get('/questions', authenticateToken, requireAdmin, validateAdmin, async (
             });
         });
         
-        // Parse options JSON
-        const formattedQuestions = questions.map(q => ({
-            ...q,
-            options: q.options ? q.options.split(',').map(opt => JSON.parse(opt)).sort((a, b) => a.order - b.order) : []
-        }));
+        // Parse options JSON (robust parsing across commas inside JSON)
+        const formattedQuestions = questions.map(q => {
+            const opts = q.options ? JSON.parse(`[${q.options}]`) : [];
+            return {
+                ...q,
+                options: Array.isArray(opts) ? opts.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) : []
+            };
+        });
         
         // Get total count for pagination
         const countQuery = `SELECT COUNT(*) as total FROM questions q${whereClause}`;

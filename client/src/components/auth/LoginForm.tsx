@@ -3,6 +3,17 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import axios from 'axios'
 
+interface LoginApiError {
+  response?: {
+    data?: {
+      error?: {
+        message?: string
+      }
+    }
+  }
+  message?: string
+}
+
 const LoginForm: React.FC = () => {
   const [formData, setFormData] = useState({
     rollNumber: '',
@@ -28,13 +39,14 @@ const LoginForm: React.FC = () => {
     setLoading(true)
 
     try {
-      const response = await axios.post('/auth/login', formData)
+      const response = await axios.post('auth/login', formData)
       const { token, student } = response.data.data
       
       login(token, { ...student, role: 'student' })
       navigate('/dashboard')
-    } catch (error: any) {
-      setError(error.response?.data?.error?.message || 'Login failed')
+    } catch (error: unknown) {
+      const apiError = error as LoginApiError;
+      setError(apiError.response?.data?.error?.message || 'Login failed')
     } finally {
       setLoading(false)
     }
@@ -82,7 +94,7 @@ const LoginForm: React.FC = () => {
                 onChange={handleChange}
               >
                 <option value="">Select Grade</option>
-                {[6, 7, 8, 9, 10, 11].map(grade => (
+                {[6, 7, 8, 9, 11].map(grade => (
                   <option key={grade} value={grade}>Grade {grade}</option>
                 ))}
               </select>

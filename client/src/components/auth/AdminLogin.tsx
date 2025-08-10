@@ -3,6 +3,21 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import axios from 'axios'
 
+interface AdminApiError {
+  response?: {
+    data?: {
+      error?: {
+        message?: string
+        details?: {
+          remainingSeconds?: number
+        }
+      }
+    }
+    status?: number
+  }
+  message?: string
+}
+
 const AdminLogin: React.FC = () => {
   const [formData, setFormData] = useState({
     username: '',
@@ -74,7 +89,7 @@ const AdminLogin: React.FC = () => {
         timestamp: Date.now()
       }
 
-      const response = await axios.post('/api/auth/admin/login', {
+      const response = await axios.post('auth/admin/login', {
         ...formData,
         browserInfo,
         securityLevel: 'normal'
@@ -86,12 +101,13 @@ const AdminLogin: React.FC = () => {
       login(token, { ...admin, role: 'admin' })
       navigate('/admin/dashboard')
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Admin login error:', error)
+      const apiError = error as AdminApiError;
 
-      if (error.response?.status === 423) {
+      if (apiError.response?.status === 423) {
         // Account locked
-        const lockoutData = error.response.data.error.details
+        const lockoutData = apiError.response.data?.error?.details
         if (lockoutData?.remainingSeconds) {
           const lockoutEnd = Date.now() + (lockoutData.remainingSeconds * 1000)
           localStorage.setItem('adminLockoutEnd', lockoutEnd.toString())
@@ -100,7 +116,7 @@ const AdminLogin: React.FC = () => {
           setError(`Account locked. Try again in ${Math.ceil(lockoutData.remainingSeconds / 60)} minutes.`)
         }
       } else {
-        setError(error.response?.data?.error?.message || 'Login failed. Please try again.')
+        setError(apiError.response?.data?.error?.message || 'Login failed. Please try again.')
       }
     } finally {
       setLoading(false)

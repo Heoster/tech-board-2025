@@ -14,6 +14,21 @@ interface Question {
   explanation?: string;
 }
 
+interface ApiError {
+  response?: {
+    data?: {
+      error?: {
+        message?: string
+        details?: Array<{ msg: string }>
+      }
+      message?: string
+    }
+    status?: number
+  }
+  message?: string
+  code?: string
+}
+
 interface QuizState {
   currentQuestion: number;
   answers: (number | null)[];
@@ -166,7 +181,7 @@ const QuizInterface: React.FC = () => {
         setError('');
 
         console.log('🚀 Starting quiz for grade:', user.grade);
-        const response = await axios.get(`/quiz/start/${user.grade}`);
+        const response = await axios.get(`quiz/start/${user.grade}`);
 
         console.log('📊 Quiz response:', response.data);
 
@@ -174,7 +189,7 @@ const QuizInterface: React.FC = () => {
           throw new Error(response.data.error?.message || 'Quiz generation failed');
         }
 
-        const { quizId, questions: fetchedQuestions, totalQuestions } = response.data.data;
+        const { quizId, questions: fetchedQuestions, totalQuestions, timeLimit } = response.data.data;
 
         console.log('🎯 Quiz started - received quizId:', quizId, 'type:', typeof quizId);
         console.log('📝 Questions received:', fetchedQuestions.length);
@@ -195,16 +210,18 @@ const QuizInterface: React.FC = () => {
           ...prev,
           quizId: quizId,
           answers: new Array(totalQuestions).fill(null),
-          timeRemaining: totalQuestions * 60 // 1 minute per question
+          // Use server-provided timeLimit (already in seconds)
+          timeRemaining: timeLimit ?? totalQuestions * 60
         }));
 
         console.log('🎯 QuizState updated with quizId:', quizId, 'type:', typeof quizId);
         console.log('✅ Quiz initialized successfully');
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('❌ Quiz start error:', error);
-        const errorMessage = error.response?.data?.error?.message ||
-          error.response?.data?.message ||
-          error.message ||
+        const apiError = error as ApiError;
+        const errorMessage = apiError.response?.data?.error?.message ||
+          apiError.response?.data?.message ||
+          apiError.message ||
           'Failed to start quiz. Please try again.';
         setError(errorMessage);
       } finally {
@@ -229,7 +246,7 @@ const QuizInterface: React.FC = () => {
     } else if (quizState.timeRemaining === 0) {
       handleSubmitQuiz();
     }
-  }, [quizState.timeRemaining, quizState.isSubmitted]);
+  }, [quizState.timeRemaining, quizState.isSubmitted]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (quizState.isSubmitted) return;
@@ -287,7 +304,7 @@ const QuizInterface: React.FC = () => {
         selectedOptionId: typeof responses[0]?.selectedOptionId
       });
 
-      const submitResponse = await axios.post('/quiz/submit', {
+      const submitResponse = await axios.post('quiz/submit', {
         quizId: quizState.quizId, // Already a number from interface
         responses
       });
@@ -298,30 +315,31 @@ const QuizInterface: React.FC = () => {
       setTimeout(() => {
         navigate('/test-submitted');
       }, 2000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Quiz submission error:', error);
-      console.error('❌ Error response:', error.response?.data);
-      console.error('❌ Error message:', error.message);
+      const apiError = error as ApiError;
+      console.error('❌ Error response:', apiError.response?.data);
+      console.error('❌ Error message:', apiError.message);
 
       // Reset submission state so user can try again
       setQuizState(prev => ({ ...prev, isSubmitted: false }));
 
       // Show detailed error message with validation details
-      let errorMessage = error.response?.data?.error?.message ||
-        error.response?.data?.message ||
-        error.message ||
+      let errorMessage = apiError.response?.data?.error?.message ||
+        apiError.response?.data?.message ||
+        apiError.message ||
         'Failed to submit quiz. Please try again.';
 
       // If there are validation details, show them in development
-      if (error.response?.data?.error?.details && import.meta.env.DEV) {
-        const validationErrors = error.response.data.error.details.map((err: any) => err.msg).join(', ');
+      if (apiError.response?.data?.error?.details && import.meta.env.DEV) {
+        const validationErrors = apiError.response.data.error.details.map((err) => err.msg).join(', ');
         errorMessage += ` (Validation errors: ${validationErrors})`;
       }
 
       setError(`Submission failed: ${errorMessage}`);
 
       // Auto-retry once if it's a network error
-      if (retryCount === 0 && (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error'))) {
+      if (retryCount === 0 && (apiError.code === 'NETWORK_ERROR' || apiError.message?.includes('Network Error'))) {
         console.log('🔄 Auto-retrying submission...');
         setTimeout(() => handleSubmitQuiz(1), 2000);
       }

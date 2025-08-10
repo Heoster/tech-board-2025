@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+interface QuestionApiError {
+  response?: {
+    data?: {
+      error?: {
+        message?: string
+      }
+    }
+  }
+  message?: string
+}
+
 interface Question {
     id: number;
     grade: number;
@@ -89,9 +100,10 @@ const QuestionManagement: React.FC = () => {
             setShowAddModal(false);
             resetNewQuestion();
             fetchQuestions();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Failed to add question:', error);
-            alert(error.response?.data?.error?.message || 'Failed to add question');
+            const apiError = error as QuestionApiError;
+            alert(apiError.response?.data?.error?.message || 'Failed to add question');
         }
     };
 
@@ -114,9 +126,10 @@ const QuestionManagement: React.FC = () => {
             setShowEditModal(false);
             setSelectedQuestion(null);
             fetchQuestions();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Failed to update question:', error);
-            alert(error.response?.data?.error?.message || 'Failed to update question');
+            const apiError = error as QuestionApiError;
+            alert(apiError.response?.data?.error?.message || 'Failed to update question');
         }
     };
 

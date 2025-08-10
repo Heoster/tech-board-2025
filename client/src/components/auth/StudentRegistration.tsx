@@ -21,6 +21,17 @@ interface ValidationErrors {
   confirmPassword?: string
 }
 
+interface RegistrationApiError {
+  response?: {
+    data?: {
+      error?: {
+        message?: string
+      }
+    }
+  }
+  message?: string
+}
+
 const StudentRegistration: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -70,11 +81,12 @@ const StudentRegistration: React.FC = () => {
         if (!/^[a-zA-Z\s]+$/.test(value)) return 'Name can only contain letters and spaces'
         return ''
 
-      case 'rollNumber':
+      case 'rollNumber': {
         if (!value) return 'Roll number is required'
         const rollNum = parseInt(value)
         if (isNaN(rollNum) || rollNum < 1 || rollNum > 80) return 'Roll number must be between 1 and 80'
         return ''
+      }
 
       case 'grade':
         if (!value) return 'Grade is required'
@@ -196,17 +208,18 @@ const StudentRegistration: React.FC = () => {
 
       console.log('🚀 Sending registration data:', registrationData)
 
-      const response = await axios.post('/auth/register', registrationData)
+      const response = await axios.post('auth/register', registrationData)
 
       console.log('✅ Registration response:', response.data)
 
       const { token, student } = response.data.data
       login(token, { ...student, role: 'student' })
       navigate('/dashboard')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Registration error:', error)
-      console.error('❌ Error response:', error.response?.data)
-      setError(error.response?.data?.error?.message || 'Registration failed')
+      const apiError = error as RegistrationApiError;
+      console.error('❌ Error response:', apiError.response?.data)
+      setError(apiError.response?.data?.error?.message || 'Registration failed')
     } finally {
       setLoading(false)
     }
@@ -377,26 +390,26 @@ const StudentRegistration: React.FC = () => {
                     Section *
                   </label>
                   <div className="grid grid-cols-2 gap-3">
-                    {['A', 'B'].map(section => (
-                      <label key={section} className="relative">
-                        <input
-                          type="radio"
-                          name="section"
-                          value={section}
-                          checked={formData.section === section}
-                          onChange={handleChange}
-                          className="sr-only"
-                        />
-                        <div className={`
-                          cursor-pointer rounded-xl border-2 p-4 text-center transition-all duration-200
-                          ${formData.section === section
-                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                            : 'border-gray-200 dark:border-dark-600 hover:border-primary-300 dark:hover:border-primary-600 bg-white dark:bg-dark-800'
-                          }
-                        `}>
-                          <div className="font-semibold">Section {section}</div>
-                        </div>
-                      </label>
+                    {['A', 'B'].map((section) => (
+                        <label key={section} className="relative">
+                          <input
+                            type="radio"
+                            name="section"
+                            value={section}
+                            checked={formData.section === section}
+                            onChange={handleChange}
+                            className="sr-only"
+                          />
+                          <div className={`
+                            cursor-pointer rounded-xl border-2 p-4 text-center transition-all duration-200
+                            ${formData.section === section
+                              ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                              : 'border-gray-200 dark:border-dark-600 hover:border-primary-300 dark:hover:border-primary-600 bg-white dark:bg-dark-800'
+                            }
+                          `}>
+                            <div className="font-semibold">Section {section}</div>
+                          </div>
+                        </label>
                     ))}
                   </div>
                   {validationErrors.section && (

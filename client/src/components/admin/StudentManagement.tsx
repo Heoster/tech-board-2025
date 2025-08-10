@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+interface StudentApiError {
+  response?: {
+    data?: {
+      error?: {
+        message?: string
+      }
+    }
+  }
+  message?: string
+}
+
 interface Student {
   id: number;
   name: string;
@@ -79,9 +90,10 @@ const StudentManagement: React.FC = () => {
         password: ''
       });
       fetchStudents();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to add student:', error);
-      alert(error.response?.data?.error?.message || 'Failed to add student');
+      const apiError = error as StudentApiError;
+      alert(apiError.response?.data?.error?.message || 'Failed to add student');
     }
   };
 

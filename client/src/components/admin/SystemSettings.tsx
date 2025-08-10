@@ -19,7 +19,8 @@ interface QuizSettings {
 }
 
 const SystemSettings: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'general' | 'quiz' | 'database' | 'maintenance'>('general');
+  type TabType = 'general' | 'quiz' | 'database' | 'maintenance';
+  const [activeTab, setActiveTab] = useState<TabType>('general');
   const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
   const [quizSettings, setQuizSettings] = useState<QuizSettings>({
     timeLimit: 60,
@@ -84,7 +85,7 @@ const SystemSettings: React.FC = () => {
     if (!confirm('Are you sure you want to create a database backup?')) return;
     
     try {
-      const response = await axios.post('/api/admin/backup-database');
+      await axios.post('/api/admin/backup-database');
       alert('Database backup created successfully');
       fetchSystemStats(); // Refresh stats
     } catch (error) {
@@ -134,7 +135,7 @@ const SystemSettings: React.FC = () => {
     }
   };
 
-  const tabs = [
+  const tabs: Array<{ id: TabType; name: string; icon: string }> = [
     { id: 'general', name: 'General', icon: '⚙️' },
     { id: 'quiz', name: 'Quiz Settings', icon: '📝' },
     { id: 'database', name: 'Database', icon: '🗄️' },
@@ -164,7 +165,7 @@ const SystemSettings: React.FC = () => {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
                     ? 'border-red-500 text-red-600 dark:text-red-400'

@@ -21,11 +21,13 @@ const authenticateToken = (req, res, next) => {
         req.user = decoded;
         next();
     } catch (error) {
+        const env = process.env.NODE_ENV || 'development';
+        const message = env === 'production' ? 'Authentication failed' : error.message;
         return res.status(403).json({
             success: false,
             error: {
                 code: 'INVALID_TOKEN',
-                message: error.message
+                message
             }
         });
     }

@@ -2,8 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const database = require('./config/database');
+const logger = require('./utils/logger');
+const securityMiddleware = require('./middleware/security');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -14,45 +15,104 @@ if (process.env.NODE_ENV === 'production') {
     console.log('🔧 Proxy trust enabled for production deployment');
 }
 
-// Security middleware
-app.use(helmet());
+// Enhanced security middleware
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            scriptSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            ...(process.env.NODE_ENV === 'production' && { upgradeInsecureRequests: [] }),
+        },
+    },
+    hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true
+    }
+}));
+
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
         ? [
             'https://tech-board.up.railway.app',
-     process.env.FRONTEND_URL || 'https://tech-board.up.railway.app'
+            process.env.FRONTEND_URL || 'https://tech-board.up.railway.app'
           ]
         : [
-            'http://localhost:5173', 
-            'http://localhost:5174', 
+            'http://localhost:5173',
+            'http://localhost:5174',
             'http://localhost:3000',
             'http://127.0.0.1:5173',
             'http://127.0.0.1:5174',
             'http://127.0.0.1:3000'
         ],
-    credentials: true
+    credentials: true,
+    optionsSuccessStatus: 200,
+    maxAge: 86400 // 24 hours
 }));
 
-// Rate limiting removed - unrestricted access
-// If you need to reimpose limits later, you can configure them here
+// Apply additional security headers
+app.use(securityMiddleware.securityHeaders);
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+// Apply general rate limiting
+app.use(securityMiddleware.generalLimiter);
 
-// Debug middleware to log all requests
+// Apply input sanitization and validation
+app.use(securityMiddleware.sanitizeInput);
+app.use(securityMiddleware.validateRequest);
+
+// Body parsing middleware with enhanced security
+app.use(express.json({
+    limit: process.env.NODE_ENV === 'production' ? '1mb' : '10mb',
+    strict: true,
+    type: ['application/json']
+}));
+app.use(express.urlencoded({
+    extended: false, // More secure - prevents prototype pollution
+    limit: process.env.NODE_ENV === 'production' ? '1mb' : '10mb'
+}));
+
+// Enhanced request logging middleware
 app.use((req, res, next) => {
-    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path} from ${clientIP}`);
+    const startTime = Date.now();
     
-    // Log proxy headers in production for debugging
-    if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-for']) {
-        console.log(`   X-Forwarded-For: ${req.headers['x-forwarded-for']}`);
-    }
-    
-    if (req.method === 'POST' || req.method === 'PUT') {
-        console.log('Request body:', JSON.stringify(req.body, null, 2));
-    }
+    // Log the request
+    logger.info(`${req.method} ${req.path}`, {
+        method: req.method,
+        url: req.originalUrl,
+        path: req.path,
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        contentType: req.headers['content-type'],
+        contentLength: req.headers['content-length'],
+        userId: req.user?.id,
+        userRole: req.user?.role
+    });
+
+    // Override res.end to log response
+    const originalEnd = res.end;
+    res.end = function(...args) {
+        const responseTime = Date.now() - startTime;
+        
+        // Log the response
+        logger.request(req, res, responseTime);
+        
+        // Log security events
+        if (res.statusCode === 401 || res.statusCode === 403) {
+            logger.security(`Authentication/Authorization failure`, {
+                statusCode: res.statusCode,
+                method: req.method,
+                path: req.path,
+                ip: req.ip,
+                userAgent: req.headers['user-agent']
+            });
+        }
+        
+        originalEnd.apply(this, args);
+    };
+
     next();
 });
 
@@ -65,8 +125,8 @@ if (process.env.NODE_ENV === 'production') {
 
 // Multiple health check endpoints for Railway
 app.get('/health', (req, res) => {
-    res.status(200).json({ 
-        status: 'OK', 
+    res.status(200).json({
+        status: 'OK',
         timestamp: new Date().toISOString(),
         server: 'running',
         environment: process.env.NODE_ENV || 'development'
@@ -78,6 +138,15 @@ app.get('/healthz', (req, res) => {
 });
 
 app.get('/ping', (req, res) => {
+    res.status(200).send('pong');
+});
+
+// API health endpoints (for testing)
+app.get('/api/healthz', (req, res) => {
+    res.status(200).send('OK');
+});
+
+app.get('/api/ping', (req, res) => {
     res.status(200).send('pong');
 });
 
@@ -141,7 +210,12 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
-// API routes will be added here
+// API routes with specific security middleware
+app.use('/api/auth', securityMiddleware.authLimiter);
+app.use('/api/auth/admin/login', securityMiddleware.adminLimiter);
+app.use('/api/quiz', securityMiddleware.quizLimiter);
+
+// Route handlers
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/students', require('./routes/students'));
 app.use('/api/quiz', require('./routes/quiz'));
@@ -182,69 +256,126 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
-// Error handling middleware
+// Enhanced error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({
+    const errorId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+    
+    // Log the error with context
+    logger.error('Unhandled application error', {
+        errorId,
+        error: err.message,
+        stack: err.stack,
+        method: req.method,
+        path: req.path,
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        userId: req.user?.id
+    });
+
+    // Send sanitized error response
+    res.status(err.status || 500).json({
         success: false,
         error: {
-            code: 'INTERNAL_SERVER_ERROR',
+            code: err.code || 'INTERNAL_SERVER_ERROR',
             message: process.env.NODE_ENV === 'production'
-                ? 'Something went wrong!'
-                : err.message
+                ? 'Something went wrong! Please try again.'
+                : err.message,
+            errorId: errorId // Helps with debugging
+        }
+    });
+});
+
+// 404 handler for API routes
+app.use('/api/*', (req, res) => {
+    logger.warn('API endpoint not found', {
+        method: req.method,
+        path: req.path,
+        ip: req.ip
+    });
+    
+    res.status(404).json({
+        success: false,
+        error: {
+            code: 'NOT_FOUND',
+            message: 'API endpoint not found'
         }
     });
 });
 
 // This 404 handler is now handled in the catch-all route above for production
 
-// Start server
+// Enhanced server startup
 async function startServer() {
     const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
     
-    // Start server first, then initialize database
-    const server = app.listen(PORT, host, () => {
-        console.log(`🚀 TECH BOARD 2025 Server running on ${host}:${PORT}`);
-        console.log(`🌐 Environment: ${process.env.NODE_ENV}`);
-        console.log(`🔧 Proxy trust: ${app.get('trust proxy') ? 'enabled' : 'disabled'}`);
-        
-        if (process.env.NODE_ENV === 'production') {
-            console.log(`🌍 Production URL: https://tech-board.up.railway.app`);
-            console.log(`📡 API Base: https://tech-board.up.railway.app/api`);
-        } else {
-            console.log(`📡 API endpoints available at http://${host}:${PORT}/api`);
-        }
-        
-        console.log(`📋 Available routes:`);
-        console.log(`   POST /api/auth/register - Student registration`);
-        console.log(`   POST /api/auth/login - Student login`);
-        console.log(`   POST /api/auth/admin/login - Admin login`);
-        console.log(`   GET  /api/auth/verify - Token verification`);
-        console.log(`   GET  /health - Health check`);
-        console.log(`✅ Server ready for TECH BOARD 2025 Selection Test`);
-    });
-
-    // Initialize database in background
     try {
-        console.log('🔧 Initializing database...');
+        // Initialize database first
+        logger.info('Initializing database connection...');
         await database.connect();
-        console.log('✅ Database connected successfully');
-    } catch (error) {
-        console.error('⚠️  Database initialization failed, but server is still running:', error.message);
-        console.log('🔄 Database will retry connection on first request');
-    }
+        logger.info('Database connected and initialized successfully');
+        
+        // Start server after database is ready
+        const server = app.listen(PORT, host, () => {
+            logger.info(`TECH BOARD 2025 Server started`, {
+                host,
+                port: PORT,
+                environment: process.env.NODE_ENV,
+                proxyTrust: app.get('trust proxy') ? 'enabled' : 'disabled',
+                nodeVersion: process.version,
+                pid: process.pid
+            });
+            
+            if (process.env.NODE_ENV === 'production') {
+                logger.info('Production server configuration', {
+                    url: 'https://tech-board.up.railway.app',
+                    apiBase: 'https://tech-board.up.railway.app/api'
+                });
+            }
+            
+            logger.info('Server ready for TECH BOARD 2025 Selection Test');
+        });
 
-    return server;
+        // Enhanced server error handling
+        server.on('error', (error) => {
+            logger.error('Server error', { error: error.message });
+            process.exit(1);
+        });
+
+        // Graceful shutdown handling
+        const gracefulShutdown = async (signal) => {
+            logger.info(`Received ${signal}, shutting down gracefully`);
+            
+            server.close(async () => {
+                logger.info('HTTP server closed');
+                
+                try {
+                    await database.close();
+                    logger.info('Database connection closed');
+                } catch (error) {
+                    logger.error('Error closing database', { error: error.message });
+                }
+                
+                logger.info('Graceful shutdown completed');
+                process.exit(0);
+            });
+        };
+
+        process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+        process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+        return server;
+        
+    } catch (error) {
+        logger.error('Failed to start server', { error: error.message });
+        process.exit(1);
+    }
 }
 
-// Graceful shutdown
-process.on('SIGINT', async () => {
-    console.log('Shutting down gracefully...');
-    await database.close();
-    process.exit(0);
+// Start the server
+startServer().catch(error => {
+    logger.error('Server startup failed', { error: error.message });
+    process.exit(1);
 });
-
-startServer();
 
 // Export app for testing
 module.exports = app;

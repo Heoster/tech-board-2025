@@ -8,10 +8,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_quiz_question_response ON responses
 -- This will be enforced by application logic, but we can add a trigger
 -- Trigger to validate quiz completion
 CREATE TRIGGER IF NOT EXISTS validate_quiz_completion
-AFTER
-UPDATE ON quizzes
-    WHEN NEW.status = 'completed' BEGIN -- Check if quiz has exactly the expected number of responses
-SELECT CASE
+AFTER UPDATE ON quizzes
+WHEN NEW.status = 'completed'
+BEGIN
+    -- Check if quiz has exactly the expected number of responses
+    SELECT CASE
         WHEN (
             SELECT COUNT(*)
             FROM responses
@@ -21,8 +22,8 @@ SELECT CASE
             'Quiz must have expected number of responses'
         )
     END;
--- Check for duplicate questions in the quiz
-SELECT CASE
+    -- Check for duplicate questions in the quiz
+    SELECT CASE
         WHEN (
             SELECT COUNT(DISTINCT question_id)
             FROM responses
@@ -31,13 +32,15 @@ SELECT CASE
     END;
 END;
 -- Trigger to prevent duplicate question selection during quiz creation
-CREATE TRIGGER IF NOT EXISTS prevent_duplicate_questions BEFORE
-INSERT ON responses BEGIN -- Check if this question was already answered by this student
-SELECT CASE
+CREATE TRIGGER IF NOT EXISTS prevent_duplicate_questions
+BEFORE INSERT ON responses
+BEGIN
+    -- Check if this question was already answered by this student
+    SELECT CASE
         WHEN EXISTS (
             SELECT 1
             FROM responses r
-                JOIN quizzes q ON r.quiz_id = q.id
+            JOIN quizzes q ON r.quiz_id = q.id
             WHERE r.question_id = NEW.question_id
                 AND q.student_id = (
                     SELECT student_id
@@ -49,8 +52,8 @@ SELECT CASE
             'Student has already answered this question in a previous quiz'
         )
     END;
--- Check if this question is already in the current quiz
-SELECT CASE
+    -- Check if this question is already in the current quiz
+    SELECT CASE
         WHEN EXISTS (
             SELECT 1
             FROM responses

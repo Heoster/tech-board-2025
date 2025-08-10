@@ -1,0 +1,283 @@
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import { APISecurityManager, InputValidator } from './security';
+
+/**
+ * Secure API client with built-in security features
+ */
+class SecureAPIClient {
+  private client: AxiosInstance;
+  private baseURL: string;
+  private requestQueue: Map<string, Promise<any>> = new Map();
+
+  constructor() {
+    this.baseURL = import.meta.env.VITE_API_URL || 
+                  (import.meta.env.DEV ? 'http://localhost:8000/api' : '/api');
+    
+    this.client = axios.create({
+      baseURL: this.baseURL,
+      timeout: 30000,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      withCredentials: true,
+    });
+
+    this.setupInterceptors();
+  }
+
+  private setupInterceptors(): void {
+    // Request interceptor
+    this.client.interceptors.request.use(
+      (config) => {
+        // Add timestamp to prevent caching issues
+        config.headers['X-Request-ID'] = Date.now().toString();
+        
+        // Validate and sanitize request data
+        if (config.data) {
+          config.data = this.sanitizeRequestData(config.data);
+        }
+        
+        // Add CSRF protection for state-changing requests
+        if (['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase() || '')) {
+          config.headers['X-Requested-With'] = 'XMLHttpRequest';
+        }
+
+        return config;
+      },
+      (error) => {
+        console.error('Request error:', error);
+        return Promise.reject(error);
+      }
+    );
+
+    // Response interceptor
+    this.client.interceptors.response.use(
+      (response) => {
+        // Clear retry attempts on successful response
+        if (response.config.url) {
+          APISecurityManager.clearRetryAttempts(response.config.url);
+        }
+        
+        // Sanitize response data
+        if (response.data) {
+          response.data = APISecurityManager.sanitizeApiResponse(response.data);
+        }
+
+        return response;
+      },
+      async (error: AxiosError) => {
+        return this.handleResponseError(error);
+      }
+    );
+  }
+
+  private async handleResponseError(error: AxiosError): Promise<any> {
+    const endpoint = error.config?.url || '';
+    
+    // Handle different error types
+    if (error.code === 'ECONNABORTED') {
+      console.warn('Request timeout for:', endpoint);
+    }
+    
+    if (error.response?.status === 429) {
+      // Rate limiting - wait before retrying
+      const retryAfter = error.response.headers['retry-after'] || '60';
+      console.warn(`Rate limited. Retry after ${retryAfter} seconds`);
+    }
+
+    // Auto-retry logic for certain errors
+    if (APISecurityManager.shouldRetry(error, endpoint)) {
+      const delay = APISecurityManager.getRetryDelay(endpoint);
+      console.info(`Retrying request to ${endpoint} in ${delay}ms`);
+      
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      try {
+        return await this.client.request(error.config!);
+      } catch (retryError) {
+        console.error('Retry failed for:', endpoint, retryError);
+      }
+    }
+
+    // Sanitize error response
+    if (error.response?.data) {
+      error.response.data = APISecurityManager.sanitizeApiResponse(error.response.data);
+    }
+
+    return Promise.reject(error);
+  }
+
+  private sanitizeRequestData(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+
+    const sanitized = Array.isArray(data) ? [...data] : { ...data };
+
+    // Recursively sanitize object properties
+    Object.keys(sanitized).forEach(key => {
+      if (typeof sanitized[key] === 'string') {
+        sanitized[key] = InputValidator.sanitizeInput(sanitized[key]);
+        
+        // Validate input based on field name
+        if (!InputValidator.isValidInput(sanitized[key])) {
+          console.warn(`Potentially dangerous input detected in field: ${key}`);
+          sanitized[key] = ''; // Clear dangerous input
+        }
+      } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
+        sanitized[key] = this.sanitizeRequestData(sanitized[key]);
+      }
+    });
+
+    return sanitized;
+  }
+
+  // Prevent duplicate requests
+  private async makeUniqueRequest<T>(
+    key: string, 
+    requestFn: () => Promise<AxiosResponse<T>>
+  ): Promise<AxiosResponse<T>> {
+    if (this.requestQueue.has(key)) {
+      return this.requestQueue.get(key)!;
+    }
+
+    const promise = requestFn().finally(() => {
+      this.requestQueue.delete(key);
+    });
+
+    this.requestQueue.set(key, promise);
+    return promise;
+  }
+
+  // Secure GET request
+  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    try {
+      const requestKey = `GET:${url}:${JSON.stringify(config?.params || {})}`;
+      return await this.makeUniqueRequest(requestKey, () => 
+        this.client.get<T>(url, config)
+      );
+    } catch (error) {
+      const sanitizedError = new Error(APISecurityManager.sanitizeErrorMessage(error));
+      throw sanitizedError;
+    }
+  }
+
+  // Secure POST request
+  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    try {
+      // Validate critical endpoints
+      if (url.includes('auth/login') || url.includes('auth/register')) {
+        this.validateAuthData(data);
+      }
+
+      return await this.client.post<T>(url, data, config);
+    } catch (error) {
+      const sanitizedError = new Error(APISecurityManager.sanitizeErrorMessage(error));
+      throw sanitizedError;
+    }
+  }
+
+  // Secure PUT request
+  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    try {
+      return await this.client.put<T>(url, data, config);
+    } catch (error) {
+      const sanitizedError = new Error(APISecurityManager.sanitizeErrorMessage(error));
+      throw sanitizedError;
+    }
+  }
+
+  // Secure DELETE request
+  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    try {
+      return await this.client.delete<T>(url, config);
+    } catch (error) {
+      const sanitizedError = new Error(APISecurityManager.sanitizeErrorMessage(error));
+      throw sanitizedError;
+    }
+  }
+
+  private validateAuthData(data: any): void {
+    if (!data || typeof data !== 'object') {
+      throw new Error('Invalid authentication data');
+    }
+
+    // Validate login data
+    if (data.rollNumber !== undefined) {
+      if (!InputValidator.validateRollNumber(data.rollNumber)) {
+        throw new Error('Invalid roll number format');
+      }
+    }
+
+    if (data.grade !== undefined) {
+      if (!InputValidator.validateGrade(data.grade)) {
+        throw new Error('Invalid grade');
+      }
+    }
+
+    if (data.section !== undefined) {
+      if (!InputValidator.validateSection(data.section)) {
+        throw new Error('Invalid section');
+      }
+    }
+
+    if (data.password !== undefined) {
+      if (!InputValidator.validatePassword(data.password)) {
+        throw new Error('Password does not meet requirements');
+      }
+    }
+
+    if (data.name !== undefined) {
+      if (!InputValidator.validateName(data.name)) {
+        throw new Error('Invalid name format');
+      }
+    }
+  }
+
+  // Health check endpoint
+  async healthCheck(): Promise<{healthy: boolean; responseTime: number}> {
+    const start = Date.now();
+    try {
+      await this.get('/health');
+      return {
+        healthy: true,
+        responseTime: Date.now() - start
+      };
+    } catch (error) {
+      return {
+        healthy: false,
+        responseTime: Date.now() - start
+      };
+    }
+  }
+
+  // Set authorization header
+  setAuthToken(token: string | null): void {
+    if (token) {
+      this.client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete this.client.defaults.headers.common['Authorization'];
+    }
+  }
+
+  // Get base URL
+  getBaseURL(): string {
+    return this.baseURL;
+  }
+
+  // Clear all pending requests
+  cancelAllRequests(): void {
+    this.requestQueue.clear();
+  }
+}
+
+// Create singleton instance
+const apiClient = new SecureAPIClient();
+
+// Export commonly used methods
+export const get = apiClient.get.bind(apiClient);
+export const post = apiClient.post.bind(apiClient);
+export const put = apiClient.put.bind(apiClient);
+export const del = apiClient.delete.bind(apiClient);
+export const setAuthToken = apiClient.setAuthToken.bind(apiClient);
+export const healthCheck = apiClient.healthCheck.bind(apiClient);
+
+export default apiClient;

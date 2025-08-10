@@ -228,7 +228,7 @@ router.post('/admin/login', validateAdminLogin, async (req, res) => {
         // Find admin (handle both old and new table structures)
         const admin = await new Promise((resolve, reject) => {
             db.get(
-                'SELECT id, username, password_hash FROM admins WHERE username = ?',
+                'SELECT id, username, password_hash, failed_attempts, locked_until, last_login FROM admins WHERE username = ?',
                 [username],
                 (err, row) => {
                     if (err) reject(err);
@@ -270,22 +270,88 @@ router.post('/admin/login', validateAdminLogin, async (req, res) => {
         // Verify password
         const isValidPassword = await authUtils.verifyPassword(password, admin.password_hash);
         if (!isValidPassword) {
+            // Increment failed attempts and possibly lock account
+            const currentAttempts = Number(admin.failed_attempts || 0);
+            const newAttempts = currentAttempts + 1;
+            let lockedUntil = admin.locked_until || null;
+
+            if (newAttempts >= ADMIN_MAX_ATTEMPTS) {
+                // Lock account for ADMIN_LOCK_MINUTES
+                lockedUntil = new Date(Date.now() + ADMIN_LOCK_MINUTES * 60 * 1000).toISOString();
+            }
+
+            await new Promise((resolve, reject) => {
+                db.run(
+                    'UPDATE admins SET failed_attempts = ?, locked_until = ? WHERE id = ?',
+                    [newAttempts, lockedUntil, admin.id],
+                    function (err) {
+                        if (err) reject(err);
+                        else resolve();
+                    }
+                );
+            });
+
+            // If now locked, inform the client (423 Locked)
+            if (lockedUntil && Date.parse(lockedUntil) > Date.now()) {
+                const remainingSeconds = Math.ceil((Date.parse(lockedUntil) - Date.now()) / 1000);
+                return res.status(423).json({
+                    success: false,
+                    error: {
+                        code: 'ACCOUNT_LOCKED',
+                        message: `Account locked. Try again in ${Math.ceil(remainingSeconds / 60)} minutes.`,
+                        details: { remainingSeconds, lockedUntil }
+                    }
+                });
+            }
+
+            // Otherwise return generic invalid creds with remaining attempts
+            const remaining = Math.max(ADMIN_MAX_ATTEMPTS - newAttempts, 0);
             return res.status(401).json({
                 success: false,
                 error: {
                     code: 'INVALID_CREDENTIALS',
-                    message: 'Invalid credentials'
+                    message: 'Invalid credentials',
+                    details: { remainingAttempts: remaining }
                 }
             });
         }
 
-        // Generate token
+        // Reset failed attempts on successful login and set last_login
+        await new Promise((resolve, reject) => {
+            db.run(
+                'UPDATE admins SET failed_attempts = 0, locked_until = NULL, last_login = datetime("now") WHERE id = ?',
+                [admin.id],
+                function (err) {
+                    if (err) reject(err);
+                    else resolve();
+                }
+            );
+        });
+
+        // Optionally log session
+        try {
+            const ip = (req.headers['x-forwarded-for'] || '').toString().split(',')[0]?.trim() || req.ip || '';
+            const ua = req.headers['user-agent'] || '';
+            await new Promise((resolve, reject) => {
+                db.run(
+                    'INSERT INTO admin_sessions (admin_id, ip_address, user_agent, login_time) VALUES (?, ?, ?, datetime("now"))',
+                    [admin.id, ip, ua],
+                    function (err) {
+                        if (err) resolve(); else resolve();
+                    }
+                );
+            });
+        } catch (_) {
+            // non-fatal
+        }
+
+        // Generate token with shorter TTL for admin
         const token = authUtils.generateToken({
             id: admin.id,
             username: admin.username,
             role: 'admin'
-        });
-
+        }, '6h');
+ 
         res.json({
             success: true,
             data: {
