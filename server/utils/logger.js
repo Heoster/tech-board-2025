@@ -71,6 +71,39 @@ const logger = {
       };
       console.log(JSON.stringify(logEntry));
     }
+  },
+
+  request: (req, res, responseTime) => {
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      level: 'INFO',
+      message: `${req.method} ${req.path} - ${res.statusCode}`,
+      method: req.method,
+      path: req.path,
+      statusCode: res.statusCode,
+      responseTime: `${responseTime}ms`,
+      ip: req.ip,
+      userAgent: req.headers['user-agent']
+    };
+    console.log(JSON.stringify(logEntry));
+  },
+
+  security: (message, meta = {}) => {
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      level: 'SECURITY',
+      message,
+      ...meta
+    };
+    console.warn(JSON.stringify(logEntry));
+    
+    // Write security events to separate log file in production
+    if (process.env.NODE_ENV === 'production') {
+      fs.appendFileSync(
+        path.join(logsDir, 'security.log'),
+        JSON.stringify(logEntry) + '\n'
+      );
+    }
   }
 };
 
