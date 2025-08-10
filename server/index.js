@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const database = require('./config/database');
 const logger = require('./utils/logger');
 const securityMiddleware = require('./middleware/security');
+const productionMiddleware = require('./middleware/production');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -13,6 +14,11 @@ const PORT = process.env.PORT || 8000;
 if (process.env.NODE_ENV === 'production') {
     app.set('trust proxy', 1); // Trust first proxy (Railway)
     console.log('🔧 Proxy trust enabled for production deployment');
+}
+
+// Apply production middleware in production
+if (process.env.NODE_ENV === 'production') {
+    productionMiddleware(app);
 }
 
 // Enhanced security middleware
@@ -170,8 +176,8 @@ app.get('/api/health', async (req, res) => {
         let questionCount = 0;
         
         try {
-            const db = database.getDb();
-            if (db) {
+            if (database.isConnected()) {
+                const db = database.getDb();
                 const result = await new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => reject(new Error('Database timeout')), 2000);
                     db.get('SELECT COUNT(*) as count FROM questions', (err, row) => {
@@ -182,9 +188,11 @@ app.get('/api/health', async (req, res) => {
                 });
                 dbStatus = 'Connected';
                 questionCount = result;
+            } else {
+                dbStatus = 'Initializing';
             }
         } catch (dbError) {
-            dbStatus = 'Initializing';
+            dbStatus = 'Error: ' + dbError.message;
         }
 
         res.json({

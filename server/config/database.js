@@ -209,6 +209,10 @@ class Database {
         return this.db;
     }
 
+    isConnected() {
+        return this.db !== null && this.isInitialized;
+    }
+
     // Enhanced query method with timeout and logging
     async query(sql, params = []) {
         return new Promise((resolve, reject) => {

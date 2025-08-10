@@ -6,11 +6,12 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "start": "node railway-complete-start.js",
+    "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "start:prod": "NODE_ENV=production node index.js"
   },
   "dependencies": {
     "axios": "^1.11.0",

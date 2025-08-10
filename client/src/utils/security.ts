@@ -29,7 +29,7 @@ class SecureStorage {
         decrypted += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
       }
       return decrypted;
-    } catch (error) {
+    } catch {
       console.warn('Failed to decrypt data, clearing storage');
       return '';
     }
@@ -47,7 +47,7 @@ class SecureStorage {
       // Set expiration (24 hours from now)
       const expiration = Date.now() + (24 * 60 * 60 * 1000);
       localStorage.setItem(this.PREFIX + this.TOKEN_KEY + '_exp', expiration.toString());
-    } catch (error) {
+    } catch {
       console.error('Failed to store token securely');
     }
   }
@@ -76,7 +76,7 @@ class SecureStorage {
       }
 
       return token;
-    } catch (error) {
+    } catch {
       console.warn('Failed to retrieve token, clearing storage');
       this.removeToken();
       return null;
@@ -88,7 +88,7 @@ class SecureStorage {
     localStorage.removeItem(this.PREFIX + this.TOKEN_KEY + '_exp');
   }
 
-  static setUserData(userData: any): void {
+  static setUserData(userData: unknown): void {
     if (!userData) {
       this.removeUserData();
       return;
@@ -99,12 +99,12 @@ class SecureStorage {
       const sanitizedData = this.sanitizeUserData(userData);
       const encrypted = this.encrypt(JSON.stringify(sanitizedData));
       localStorage.setItem(this.PREFIX + this.USER_KEY, encrypted);
-    } catch (error) {
+    } catch {
       console.error('Failed to store user data securely');
     }
   }
 
-  static getUserData(): any | null {
+  static getUserData(): unknown | null {
     try {
       const encrypted = localStorage.getItem(this.PREFIX + this.USER_KEY);
       if (!encrypted) return null;
@@ -113,7 +113,7 @@ class SecureStorage {
       if (!decrypted) return null;
 
       return JSON.parse(decrypted);
-    } catch (error) {
+    } catch {
       console.warn('Failed to retrieve user data, clearing storage');
       this.removeUserData();
       return null;
@@ -129,7 +129,7 @@ class SecureStorage {
     this.removeUserData();
   }
 
-  private static sanitizeUserData(userData: any): any {
+  private static sanitizeUserData(userData: Record<string, unknown>): Record<string, unknown> {
     // Remove sensitive fields and sanitize strings
     const sanitized = { ...userData };
     
@@ -209,7 +209,7 @@ export class InputValidator {
     return this.patterns.password.test(password);
   }
 
-  static isValidInput(input: any): boolean {
+  static isValidInput(input: unknown): boolean {
     if (input === null || input === undefined) return false;
     if (typeof input === 'string' && input.trim() === '') return false;
     
@@ -237,7 +237,7 @@ export class APISecurityManager {
   private static readonly RETRY_DELAY = 1000;
   private static retryAttempts = new Map<string, number>();
 
-  static sanitizeApiResponse(response: any): any {
+  static sanitizeApiResponse(response: unknown): unknown {
     if (!response || typeof response !== 'object') return response;
 
     // Clone the response to avoid mutations
@@ -249,7 +249,7 @@ export class APISecurityManager {
     return sanitized;
   }
 
-  private static sanitizeObject(obj: any): void {
+  private static sanitizeObject(obj: unknown): void {
     if (Array.isArray(obj)) {
       obj.forEach(item => this.sanitizeObject(item));
     } else if (obj && typeof obj === 'object') {
@@ -263,11 +263,13 @@ export class APISecurityManager {
     }
   }
 
-  static shouldRetry(error: any, endpoint: string): boolean {
-    const attempts = this.retryAttempts.get(endpoint) || 0;
+  static shouldRetry(error: { response?: { status?: number }; code?: string }, endpoint: string): boolean {
+    // Sanitize endpoint to prevent NoSQL injection
+    const sanitizedEndpoint = InputValidator.sanitizeInput(endpoint);
+    const attempts = this.retryAttempts.get(sanitizedEndpoint) || 0;
     
     if (attempts >= this.MAX_RETRY_ATTEMPTS) {
-      this.retryAttempts.delete(endpoint);
+      this.retryAttempts.delete(sanitizedEndpoint);
       return false;
     }
 
@@ -277,7 +279,7 @@ export class APISecurityManager {
                        error.code === 'NETWORK_ERROR';
 
     if (isRetryable) {
-      this.retryAttempts.set(endpoint, attempts + 1);
+      this.retryAttempts.set(sanitizedEndpoint, attempts + 1);
       return true;
     }
 
@@ -285,15 +287,19 @@ export class APISecurityManager {
   }
 
   static getRetryDelay(endpoint: string): number {
-    const attempts = this.retryAttempts.get(endpoint) || 0;
+    // Sanitize endpoint to prevent NoSQL injection
+    const sanitizedEndpoint = InputValidator.sanitizeInput(endpoint);
+    const attempts = this.retryAttempts.get(sanitizedEndpoint) || 0;
     return this.RETRY_DELAY * Math.pow(2, attempts); // Exponential backoff
   }
 
   static clearRetryAttempts(endpoint: string): void {
-    this.retryAttempts.delete(endpoint);
+    // Sanitize endpoint to prevent NoSQL injection
+    const sanitizedEndpoint = InputValidator.sanitizeInput(endpoint);
+    this.retryAttempts.delete(sanitizedEndpoint);
   }
 
-  static sanitizeErrorMessage(error: any): string {
+  static sanitizeErrorMessage(error: { response?: { status?: number; data?: { error?: { message?: string }; message?: string } }; code?: string; message?: string }): string {
     if (!error) return 'An unknown error occurred';
 
     // Don't expose internal server errors in production

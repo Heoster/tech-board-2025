@@ -6,7 +6,7 @@
 🌐 **URL:** https://tech-board.up.railway.app
 
 ### System Stats
-- **Questions:** 1,536 MCQs
+- **Questions:** 1,590 MCQs
 - **Grades:** 6, 7, 8, 9, 11
 - **Database:** SQLite (1.11 MB)
 - **Status:** Production Ready
@@ -20,7 +20,7 @@
 - **Login:** https://tech-board.up.railway.app/login
 
 ### Features
-✅ 1,536 unique questions
+✅ 1,590 unique questions
 ✅ Zero duplicates
 ✅ Secure authentication
 ✅ Real-time testing

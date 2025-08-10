@@ -5,8 +5,22 @@ const database = require('./server/config/database.js');
  * Addresses issues found during comprehensive testing
  */
 
+// Authorization check function
+function checkAuthorization() {
+    const isAuthorized = process.env.NODE_ENV === 'development' || 
+                        process.env.ADMIN_SETUP === 'true' ||
+                        process.argv.includes('--admin-setup');
+    
+    if (!isAuthorized) {
+        throw new Error('Unauthorized: This script requires admin privileges or development environment');
+    }
+}
+
 async function implementAdditionalSafeguards() {
     try {
+        // Check authorization before proceeding
+        checkAuthorization();
+        
         console.log('🛡️ IMPLEMENTING ADDITIONAL QUIZ SAFEGUARDS');
         console.log('==========================================\n');
         
@@ -22,6 +36,12 @@ async function implementAdditionalSafeguards() {
         CREATE TRIGGER IF NOT EXISTS validate_quiz_creation
         BEFORE INSERT ON quizzes
         BEGIN
+            -- Validate student exists and is authorized
+            SELECT CASE
+                WHEN NOT EXISTS (SELECT 1 FROM students WHERE id = NEW.student_id) THEN
+                    RAISE(ABORT, 'Unauthorized: Invalid student ID')
+            END;
+            
             -- Validate grade is supported
             SELECT CASE
                 WHEN NEW.grade NOT IN (6, 7, 8, 9, 11) THEN
@@ -105,13 +125,14 @@ async function implementAdditionalSafeguards() {
         CREATE TRIGGER IF NOT EXISTS validate_response_submission
         BEFORE INSERT ON responses
         BEGIN
-            -- Validate quiz exists and is in progress
+            -- Validate quiz exists and is in progress and belongs to authorized student
             SELECT CASE
                 WHEN NOT EXISTS (
-                    SELECT 1 FROM quizzes 
-                    WHERE id = NEW.quiz_id AND status = 'in_progress'
+                    SELECT 1 FROM quizzes q
+                    INNER JOIN students s ON q.student_id = s.id
+                    WHERE q.id = NEW.quiz_id AND q.status = 'in_progress'
                 ) THEN
-                    RAISE(ABORT, 'Cannot submit response: quiz not found or not in progress')
+                    RAISE(ABORT, 'Unauthorized: Cannot submit response - quiz not found, not in progress, or student not authorized')
             END;
             
             -- Validate question exists

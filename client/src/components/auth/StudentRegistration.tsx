@@ -206,9 +206,9 @@ const StudentRegistration: React.FC = () => {
         password: formData.password
       }
 
-      console.log('🚀 Sending registration data:', registrationData)
+      console.log('🚀 Sending registration data:', { ...registrationData, password: '[REDACTED]' })
 
-      const response = await axios.post('auth/register', registrationData)
+      const response = await axios.post('/api/auth/register', registrationData)
 
       console.log('✅ Registration response:', response.data)
 

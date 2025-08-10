@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
+import { InputValidator } from '../utils/security';
 
 interface Question {
   id: number;
@@ -152,6 +153,8 @@ const QuizInterface: React.FC = () => {
   const [error, setError] = useState('');
   const [showInstructions, setShowInstructions] = useState(true);
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [agreeToSubmit, setAgreeToSubmit] = useState(false);
 
   const [quizState, setQuizState] = useState<QuizState>({
     currentQuestion: 0,
@@ -181,7 +184,7 @@ const QuizInterface: React.FC = () => {
         setError('');
 
         console.log('🚀 Starting quiz for grade:', user.grade);
-        const response = await axios.get(`quiz/start/${user.grade}`);
+        const response = await axios.get(`/api/quiz/start/${user.grade}`);
 
         console.log('📊 Quiz response:', response.data);
 
@@ -223,7 +226,7 @@ const QuizInterface: React.FC = () => {
           apiError.response?.data?.message ||
           apiError.message ||
           'Failed to start quiz. Please try again.';
-        setError(errorMessage);
+        setError(InputValidator.sanitizeInput(errorMessage));
       } finally {
         setLoading(false);
       }
@@ -285,6 +288,7 @@ const QuizInterface: React.FC = () => {
     }
 
     setQuizState(prev => ({ ...prev, isSubmitted: true }));
+    setShowSubmitModal(false);
     setError(''); // Clear any previous errors
 
     try {
@@ -294,32 +298,44 @@ const QuizInterface: React.FC = () => {
         selectedOptionId: answer !== null ? questions[index].options[answer].id : null
       }));
 
+      // Filter out any invalid responses
+      const validResponses = responses.filter(r => r.questionId && typeof r.questionId === 'number');
+
       // Debug logging
       console.log('🔍 Quiz submission data validation:');
       console.log('  quizId:', quizState.quizId, '(type:', typeof quizState.quizId, ')');
-      console.log('  responses count:', responses.length);
-      console.log('  first response:', responses[0]);
+      console.log('  responses count:', validResponses.length);
+      console.log('  first response:', validResponses[0]);
       console.log('  response types:', {
-        questionId: typeof responses[0]?.questionId,
-        selectedOptionId: typeof responses[0]?.selectedOptionId
+        questionId: typeof validResponses[0]?.questionId,
+        selectedOptionId: typeof validResponses[0]?.selectedOptionId
       });
 
-      const submitResponse = await axios.post('quiz/submit', {
-        quizId: quizState.quizId, // Already a number from interface
-        responses
+      const submitResponse = await axios.post('/api/quiz/submit', {
+        quizId: Number(quizState.quizId), // Ensure it's a number
+        responses: validResponses
       });
 
-      console.log('Quiz submitted successfully:', submitResponse.data);
+      console.log('✅ Quiz submitted successfully:', submitResponse.data);
 
-      // Don't show results to students - redirect to submission confirmation
+      // Show success message briefly then redirect
+      setError('');
+      
+      // Show success notification
+      const successDiv = document.createElement('div');
+      successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-bounce';
+      successDiv.innerHTML = '✅ Test Submitted Successfully!';
+      document.body.appendChild(successDiv);
+      
       setTimeout(() => {
+        document.body.removeChild(successDiv);
         navigate('/test-submitted');
       }, 2000);
     } catch (error: unknown) {
       console.error('❌ Quiz submission error:', error);
       const apiError = error as ApiError;
       console.error('❌ Error response:', apiError.response?.data);
-      console.error('❌ Error message:', apiError.message);
+      console.error('❌ Error message:', InputValidator.sanitizeInput(apiError.message || 'Unknown error'));
 
       // Reset submission state so user can try again
       setQuizState(prev => ({ ...prev, isSubmitted: false }));
@@ -332,11 +348,11 @@ const QuizInterface: React.FC = () => {
 
       // If there are validation details, show them in development
       if (apiError.response?.data?.error?.details && import.meta.env.DEV) {
-        const validationErrors = apiError.response.data.error.details.map((err) => err.msg).join(', ');
+        const validationErrors = apiError.response.data.error.details.map((err) => InputValidator.sanitizeInput(err.msg)).join(', ');
         errorMessage += ` (Validation errors: ${validationErrors})`;
       }
 
-      setError(`Submission failed: ${errorMessage}`);
+      setError(`Submission failed: ${InputValidator.sanitizeInput(errorMessage)}`);
 
       // Auto-retry once if it's a network error
       if (retryCount === 0 && (apiError.code === 'NETWORK_ERROR' || apiError.message?.includes('Network Error'))) {
@@ -716,7 +732,7 @@ const QuizInterface: React.FC = () => {
           <div className="flex space-x-4">
             {quizState.currentQuestion === questions.length - 1 ? (
               <button
-                onClick={() => handleSubmitQuiz()}
+                onClick={() => setShowSubmitModal(true)}
                 disabled={quizState.isSubmitted}
                 className="btn-glow"
               >
@@ -759,6 +775,109 @@ const QuizInterface: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {/* Submit Confirmation Modal */}
+        {showSubmitModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-dark-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                  ⚠️ Final Submission Confirmation
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  You are about to submit your TECH BOARD 2025 test
+                </p>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4 mb-6">
+                <div className="text-sm space-y-2">
+                  <div className="flex justify-between">
+                    <span>Questions Answered:</span>
+                    <span className="font-semibold">{answeredQuestions}/{questions.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Time Remaining:</span>
+                    <span className="font-semibold">
+                      {Math.floor(quizState.timeRemaining / 60)}:{String(quizState.timeRemaining % 60).padStart(2, '0')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Unanswered Questions:</span>
+                    <span className={`font-semibold ${questions.length - answeredQuestions > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {questions.length - answeredQuestions}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {questions.length - answeredQuestions > 0 && (
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6">
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <p className="text-red-800 dark:text-red-200 font-semibold text-sm">
+                        Warning: You have {questions.length - answeredQuestions} unanswered questions!
+                      </p>
+                      <p className="text-red-700 dark:text-red-300 text-xs mt-1">
+                        Unanswered questions will be marked as incorrect.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="mb-6">
+                <label className="flex items-start space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={agreeToSubmit}
+                    onChange={(e) => setAgreeToSubmit(e.target.checked)}
+                    className="w-5 h-5 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 mt-0.5"
+                  />
+                  <div className="text-sm">
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">
+                      I confirm that I want to submit my test
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">
+                      I understand that once submitted, I cannot make any changes to my answers.
+                      This action is final and irreversible.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowSubmitModal(false);
+                    setAgreeToSubmit(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleSubmitQuiz()}
+                  disabled={!agreeToSubmit}
+                  className={`flex-1 px-4 py-2 rounded-xl font-semibold transition-all ${
+                    agreeToSubmit
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  Submit Test
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

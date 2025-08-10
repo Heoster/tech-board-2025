@@ -74,7 +74,7 @@ const QuizManagement: React.FC = () => {
 
   const fetchResults = async () => {
     try {
-      const response = await axios.get('/api/admin/results');
+      const response = await axios.get('/admin/results');
       setResults(response.data.data);
     } catch (error) {
       console.error('Failed to fetch results:', error);
@@ -85,7 +85,7 @@ const QuizManagement: React.FC = () => {
 
   const calculateAnalytics = async () => {
     try {
-      const response = await axios.get('/api/admin/results');
+      const response = await axios.get('/admin/results');
       const data = response.data.data;
       
       if (data.length === 0) {
@@ -105,7 +105,7 @@ const QuizManagement: React.FC = () => {
       const passRate = (passedCount / totalAttempts) * 100;
 
       // Grade-wise statistics
-      const gradeGroups = data.reduce((acc: any, result: QuizResult) => {
+      const gradeGroups = data.reduce((acc: Record<number, QuizResult[]>, result: QuizResult) => {
         if (!acc[result.grade]) {
           acc[result.grade] = [];
         }
@@ -142,7 +142,7 @@ const QuizManagement: React.FC = () => {
   const fetchDetailedResult = async (quizId: number) => {
     setLoadingDetails(true);
     try {
-      const response = await axios.get(`/api/admin/student-details/${quizId}`);
+      const response = await axios.get(`/admin/student-details/${quizId}`);
       const student = results.find(r => r.id === quizId);
       
       if (student) {

@@ -1,6 +1,34 @@
 const database = require('./server/config/database');
 
+// Authorization check function
+function checkAuthorization() {
+    const isAuthorized = process.env.NODE_ENV === 'development' || 
+                        process.env.ADMIN_SETUP === 'true' ||
+                        process.argv.includes('--admin-cleanup');
+    
+    if (!isAuthorized) {
+        throw new Error('Unauthorized: This script requires admin privileges or development environment');
+    }
+}
+
+// Authorization check function
+function checkAuthorization() {
+    const isAuthorized = process.env.NODE_ENV === 'development' || 
+                        process.env.ADMIN_SETUP === 'true' ||
+                        process.argv.includes('--admin-cleanup');
+    
+    if (!isAuthorized) {
+        throw new Error('Unauthorized: This script requires admin privileges or development environment');
+    }
+}
+
 async function cleanDatabaseIssues() {
+    // Check authorization before proceeding
+    checkAuthorization();
+    
+    // Check authorization before proceeding
+    checkAuthorization();
+    
     console.log('🧹 CLEANING DATABASE ISSUES - TECH BOARD 2025');
     console.log('==============================================');
     console.log('');

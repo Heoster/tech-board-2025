@@ -7,7 +7,7 @@ import { APISecurityManager, InputValidator } from './security';
 class SecureAPIClient {
   private client: AxiosInstance;
   private baseURL: string;
-  private requestQueue: Map<string, Promise<any>> = new Map();
+  private requestQueue: Map<string, Promise<AxiosResponse<unknown>>> = new Map();
 
   constructor() {
     this.baseURL = import.meta.env.VITE_API_URL || 
@@ -71,7 +71,7 @@ class SecureAPIClient {
     );
   }
 
-  private async handleResponseError(error: AxiosError): Promise<any> {
+  private async handleResponseError(error: AxiosError): Promise<never> {
     const endpoint = error.config?.url || '';
     
     // Handle different error types
@@ -107,7 +107,7 @@ class SecureAPIClient {
     return Promise.reject(error);
   }
 
-  private sanitizeRequestData(data: any): any {
+  private sanitizeRequestData(data: unknown): unknown {
     if (!data || typeof data !== 'object') return data;
 
     const sanitized = Array.isArray(data) ? [...data] : { ...data };
@@ -148,7 +148,7 @@ class SecureAPIClient {
   }
 
   // Secure GET request
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     try {
       const requestKey = `GET:${url}:${JSON.stringify(config?.params || {})}`;
       return await this.makeUniqueRequest(requestKey, () => 
@@ -161,7 +161,7 @@ class SecureAPIClient {
   }
 
   // Secure POST request
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     try {
       // Validate critical endpoints
       if (url.includes('auth/login') || url.includes('auth/register')) {
@@ -176,7 +176,7 @@ class SecureAPIClient {
   }
 
   // Secure PUT request
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     try {
       return await this.client.put<T>(url, data, config);
     } catch (error) {
@@ -186,7 +186,7 @@ class SecureAPIClient {
   }
 
   // Secure DELETE request
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     try {
       return await this.client.delete<T>(url, config);
     } catch (error) {
@@ -195,7 +195,7 @@ class SecureAPIClient {
     }
   }
 
-  private validateAuthData(data: any): void {
+  private validateAuthData(data: unknown): void {
     if (!data || typeof data !== 'object') {
       throw new Error('Invalid authentication data');
     }
@@ -241,7 +241,7 @@ class SecureAPIClient {
         healthy: true,
         responseTime: Date.now() - start
       };
-    } catch (error) {
+    } catch {
       return {
         healthy: false,
         responseTime: Date.now() - start

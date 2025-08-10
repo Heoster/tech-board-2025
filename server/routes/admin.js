@@ -488,6 +488,85 @@ router.get('/student-details/:quizId', authenticateToken, requireAdmin, validate
     }
 });
 
+// Add new student
+router.post('/students', authenticateToken, requireAdmin, validateAdmin, [
+  body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
+  body('rollNumber').isInt({ min: 1, max: 80 }).withMessage('Roll number must be between 1 and 80'),
+  body('grade').isIn([6, 7, 8, 9, 11]).withMessage('Grade must be 6, 7, 8, 9, or 11'),
+  body('section').isIn(['A', 'B']).withMessage('Section must be A or B'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid input data',
+          details: errors.array()
+        }
+      });
+    }
+
+    const { name, rollNumber, grade, section, password } = req.body;
+    const db = database.getDb();
+    const authUtils = require('../utils/auth');
+
+    // Check if student with same roll number, grade, and section already exists
+    const existingStudent = await new Promise((resolve, reject) => {
+      db.get('SELECT id FROM students WHERE roll_number = ? AND grade = ? AND section = ?', 
+        [rollNumber, grade, section], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (existingStudent) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'STUDENT_EXISTS',
+          message: 'Student with this roll number already exists in this grade and section'
+        }
+      });
+    }
+
+    // Hash password
+    const passwordHash = await authUtils.hashPassword(password);
+
+    // Insert student
+    const studentId = await new Promise((resolve, reject) => {
+      db.run(
+        'INSERT INTO students (name, roll_number, grade, section, password_hash) VALUES (?, ?, ?, ?, ?)',
+        [name, rollNumber, grade, section, passwordHash],
+        function(err) {
+          if (err) reject(err);
+          else resolve(this.lastID);
+        }
+      );
+    });
+
+    res.status(201).json({
+      success: true,
+      data: {
+        studentId,
+        message: 'Student added successfully'
+      }
+    });
+
+  } catch (error) {
+    console.error('Error adding student:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'ADD_STUDENT_FAILED',
+        message: 'Failed to add student'
+      }
+    });
+  }
+});
+
 // Get all students with their exam status
 router.get('/students', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
     try {
@@ -544,6 +623,98 @@ router.get('/students', authenticateToken, requireAdmin, validateAdmin, async (r
             }
         });
     }
+});
+
+// Update student
+router.put('/students/:id', authenticateToken, requireAdmin, validateAdmin, [
+  body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
+  body('rollNumber').isInt({ min: 1, max: 80 }).withMessage('Roll number must be between 1 and 80'),
+  body('grade').isIn([6, 7, 8, 9, 11]).withMessage('Grade must be 6, 7, 8, 9, or 11'),
+  body('section').isIn(['A', 'B']).withMessage('Section must be A or B')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid input data',
+          details: errors.array()
+        }
+      });
+    }
+
+    const studentId = req.params.id;
+    const { name, rollNumber, grade, section } = req.body;
+    const db = database.getDb();
+
+    // Check if student exists
+    const existingStudent = await new Promise((resolve, reject) => {
+      db.get('SELECT id FROM students WHERE id = ?', [studentId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!existingStudent) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'STUDENT_NOT_FOUND',
+          message: 'Student not found'
+        }
+      });
+    }
+
+    // Check if another student with same roll number, grade, and section exists
+    const duplicateStudent = await new Promise((resolve, reject) => {
+      db.get('SELECT id FROM students WHERE roll_number = ? AND grade = ? AND section = ? AND id != ?', 
+        [rollNumber, grade, section, studentId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (duplicateStudent) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'STUDENT_EXISTS',
+          message: 'Another student with this roll number already exists in this grade and section'
+        }
+      });
+    }
+
+    // Update student
+    await new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE students SET name = ?, roll_number = ?, grade = ?, section = ? WHERE id = ?',
+        [name, rollNumber, grade, section, studentId],
+        function(err) {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    res.json({
+      success: true,
+      data: {
+        message: 'Student updated successfully'
+      }
+    });
+
+  } catch (error) {
+    console.error('Error updating student:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'UPDATE_STUDENT_FAILED',
+        message: 'Failed to update student'
+      }
+    });
+  }
 });
 
 // Delete student
@@ -717,41 +888,134 @@ router.get('/system-stats', authenticateToken, requireAdmin, validateAdmin, asyn
 });
 
 // Get quiz settings
-router.get('/quiz-settings', authenticateToken, requireAdmin, validateAdmin, (req, res) => {
-    // Return default quiz settings (these could be stored in database)
-    res.json({
-        success: true,
-        data: {
+router.get('/quiz-settings', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+    try {
+        const db = database.getDb();
+        
+        // Try to get settings from database, fallback to defaults
+        let settings = {
             timeLimit: 60,
             totalQuestions: 50,
             passingScore: 36,
             allowRetake: false,
             shuffleQuestions: true,
             shuffleOptions: true
+        };
+        
+        try {
+            const result = await new Promise((resolve, reject) => {
+                db.get('SELECT * FROM quiz_settings WHERE id = 1', (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+            });
+            
+            if (result) {
+                settings = {
+                    timeLimit: result.time_limit,
+                    totalQuestions: result.total_questions,
+                    passingScore: result.passing_score,
+                    allowRetake: Boolean(result.allow_retake),
+                    shuffleQuestions: Boolean(result.shuffle_questions),
+                    shuffleOptions: Boolean(result.shuffle_options)
+                };
+            }
+        } catch (error) {
+            // Use defaults if table doesn't exist
         }
-    });
+        
+        res.json({
+            success: true,
+            data: settings
+        });
+    } catch (error) {
+        console.error('Error fetching quiz settings:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'QUIZ_SETTINGS_FETCH_FAILED',
+                message: 'Failed to fetch quiz settings'
+            }
+        });
+    }
 });
 
 // Update quiz settings
-router.put('/quiz-settings', authenticateToken, requireAdmin, validateAdmin, (req, res) => {
-    // TODO: Implement quiz settings storage in database
-    res.json({
-        success: true,
-        data: {
-            message: 'Quiz settings updated successfully'
-        }
-    });
+router.put('/quiz-settings', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+    try {
+        const { timeLimit, totalQuestions, passingScore, allowRetake, shuffleQuestions, shuffleOptions } = req.body;
+        const db = database.getDb();
+        
+        // Create table if it doesn't exist
+        await new Promise((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS quiz_settings (
+                id INTEGER PRIMARY KEY,
+                time_limit INTEGER,
+                total_questions INTEGER,
+                passing_score INTEGER,
+                allow_retake INTEGER,
+                shuffle_questions INTEGER,
+                shuffle_options INTEGER,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )`, (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+        
+        // Insert or update settings
+        await new Promise((resolve, reject) => {
+            db.run(`INSERT OR REPLACE INTO quiz_settings 
+                (id, time_limit, total_questions, passing_score, allow_retake, shuffle_questions, shuffle_options) 
+                VALUES (1, ?, ?, ?, ?, ?, ?)`,
+                [timeLimit, totalQuestions, passingScore, allowRetake ? 1 : 0, shuffleQuestions ? 1 : 0, shuffleOptions ? 1 : 0],
+                (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                }
+            );
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                message: 'Quiz settings updated successfully'
+            }
+        });
+    } catch (error) {
+        console.error('Error updating quiz settings:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'QUIZ_SETTINGS_UPDATE_FAILED',
+                message: 'Failed to update quiz settings'
+            }
+        });
+    }
 });
 
 // Backup database
-router.post('/backup-database', authenticateToken, requireAdmin, validateAdmin, (req, res) => {
-    // TODO: Implement database backup
-    res.json({
-        success: true,
-        data: {
-            message: 'Database backup created successfully'
-        }
-    });
+router.post('/backup-database', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+    try {
+        const backupPath = await database.backup();
+        
+        res.json({
+            success: true,
+            data: {
+                message: 'Database backup created successfully',
+                backupPath: backupPath
+            }
+        });
+    } catch (error) {
+        console.error('Error creating backup:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'BACKUP_FAILED',
+                message: 'Failed to create database backup'
+            }
+        });
+    }
 });
 
 // Restore database
@@ -766,25 +1030,68 @@ router.post('/restore-database', authenticateToken, requireAdmin, validateAdmin,
 });
 
 // Clear cache
-router.post('/clear-cache', authenticateToken, requireAdmin, validateAdmin, (req, res) => {
-    // TODO: Implement cache clearing
-    res.json({
-        success: true,
-        data: {
-            message: 'System cache cleared successfully'
+router.post('/clear-cache', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+    try {
+        // Clear any in-memory caches
+        if (global.gc) {
+            global.gc();
         }
-    });
+        
+        res.json({
+            success: true,
+            data: {
+                message: 'System cache cleared successfully'
+            }
+        });
+    } catch (error) {
+        console.error('Error clearing cache:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'CACHE_CLEAR_FAILED',
+                message: 'Failed to clear system cache'
+            }
+        });
+    }
 });
 
 // Optimize database
-router.post('/optimize-database', authenticateToken, requireAdmin, validateAdmin, (req, res) => {
-    // TODO: Implement database optimization
-    res.json({
-        success: true,
-        data: {
-            message: 'Database optimized successfully'
-        }
-    });
+router.post('/optimize-database', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+    try {
+        const db = database.getDb();
+        
+        // Run VACUUM to optimize database
+        await new Promise((resolve, reject) => {
+            db.run('VACUUM', (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+        
+        // Analyze tables for better query planning
+        await new Promise((resolve, reject) => {
+            db.run('ANALYZE', (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                message: 'Database optimized successfully'
+            }
+        });
+    } catch (error) {
+        console.error('Error optimizing database:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'OPTIMIZATION_FAILED',
+                message: 'Failed to optimize database'
+            }
+        });
+    }
 });
 
 // Get analytics

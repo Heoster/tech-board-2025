@@ -29,8 +29,10 @@ async function fixRailwayAdmin() {
 
         // Create fresh admin account
         console.log('👨‍💼 Creating fresh admin account...');
-        const adminUsername = 'admin';
-        const adminPassword = 'TechBoard2025Admin!';
+        const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+        const adminPassword = process.env.ADMIN_PASSWORD || (() => {
+            throw new Error('ADMIN_PASSWORD environment variable is required');
+        })();
         
         // Hash password directly with bcrypt
         const hashedPassword = await bcrypt.hash(adminPassword, 12);

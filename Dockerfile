@@ -1,39 +1,32 @@
-# Use Node.js 18 LTS
 FROM node:18-alpine
 
-# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY client/package*.json ./client/
 COPY server/package*.json ./server/
+COPY client/package*.json ./client/
 
-# Install all dependencies
-RUN npm install
-RUN cd client && npm install
-RUN cd server && npm install
+# Install dependencies
+RUN npm ci --only=production
+RUN cd client && npm ci
+RUN cd server && npm ci --only=production
 
-# Copy application files
+# Copy source code
 COPY . .
 
 # Build client
 RUN cd client && npm run build
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+# Setup production environment
+RUN cd server && node scripts/production-setup.js
 
-# Change ownership of the app directory
-RUN chown -R nodejs:nodejs /app
-USER nodejs
-
-# Expose port (Render uses PORT env var)
-EXPOSE $PORT
+# Expose port
+EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 10000) + '/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  CMD curl -f http://localhost:8000/health || exit 1
 
-# Start the application
-CMD ["npm", "start"]
+# Start server
+CMD ["npm", "run", "start:prod"]

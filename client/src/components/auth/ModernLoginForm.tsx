@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import axios from 'axios';
 
 const ModernLoginForm: React.FC = () => {
@@ -68,14 +68,15 @@ const ModernLoginForm: React.FC = () => {
 
       console.log('Sending login data:', loginData); // Debug log
 
-      const response = await axios.post('/auth/login', loginData);
+      const response = await axios.post('auth/login', loginData);
       const { token, student } = response.data.data;
       
       login(token, { ...student, role: 'student' });
       navigate('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as { response?: { data?: { error?: { message?: string } } } };
       console.error('Login error:', error); // Debug log
-      setError(error.response?.data?.error?.message || 'Login failed. Please check your credentials.');
+      setError(apiError.response?.data?.error?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }

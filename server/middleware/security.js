@@ -5,7 +5,7 @@ const securityMiddleware = {
   // Strict rate limiting for authentication endpoints
   authLimiter: rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: process.env.NODE_ENV === 'production' ? 5 : 100, // 5 attempts in production, 100 in dev
+    max: process.env.NODE_ENV === 'production' ? 20 : 100, // 20 attempts in production, 100 in dev
     message: {
       success: false,
       error: {
@@ -24,7 +24,7 @@ const securityMiddleware = {
   // Very strict admin rate limiting
   adminLimiter: rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: process.env.NODE_ENV === 'production' ? 3 : 50, // Only 3 attempts in production
+    max: process.env.NODE_ENV === 'production' ? 10 : 50, // 10 attempts in production
     message: {
       success: false,
       error: {

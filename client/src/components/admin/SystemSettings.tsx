@@ -41,7 +41,7 @@ const SystemSettings: React.FC = () => {
   const fetchSystemStats = async () => {
     try {
       // This would be implemented in the backend
-      const response = await axios.get('/api/admin/system-stats');
+      const response = await axios.get('/admin/system-stats');
       setSystemStats(response.data.data);
     } catch (error) {
       console.error('Failed to fetch system stats:', error);
@@ -61,7 +61,7 @@ const SystemSettings: React.FC = () => {
   const fetchQuizSettings = async () => {
     try {
       // This would be implemented in the backend
-      const response = await axios.get('/api/admin/quiz-settings');
+      const response = await axios.get('/admin/quiz-settings');
       setQuizSettings(response.data.data);
     } catch (error) {
       console.error('Failed to fetch quiz settings:', error);
@@ -71,7 +71,7 @@ const SystemSettings: React.FC = () => {
   const saveQuizSettings = async () => {
     setSaving(true);
     try {
-      await axios.put('/api/admin/quiz-settings', quizSettings);
+      await axios.put('/admin/quiz-settings', quizSettings);
       alert('Quiz settings saved successfully');
     } catch (error) {
       console.error('Failed to save quiz settings:', error);
@@ -85,7 +85,7 @@ const SystemSettings: React.FC = () => {
     if (!confirm('Are you sure you want to create a database backup?')) return;
     
     try {
-      await axios.post('/api/admin/backup-database');
+      await axios.post('/admin/backup-database');
       alert('Database backup created successfully');
       fetchSystemStats(); // Refresh stats
     } catch (error) {
@@ -101,7 +101,7 @@ const SystemSettings: React.FC = () => {
     if (!backupFile) return;
     
     try {
-      await axios.post('/api/admin/restore-database', { filename: backupFile });
+      await axios.post('/admin/restore-database', { filename: backupFile });
       alert('Database restored successfully');
       fetchSystemStats(); // Refresh stats
     } catch (error) {
@@ -114,7 +114,7 @@ const SystemSettings: React.FC = () => {
     if (!confirm('Are you sure you want to clear the system cache?')) return;
     
     try {
-      await axios.post('/api/admin/clear-cache');
+      await axios.post('/admin/clear-cache');
       alert('System cache cleared successfully');
     } catch (error) {
       console.error('Failed to clear cache:', error);
@@ -126,7 +126,7 @@ const SystemSettings: React.FC = () => {
     if (!confirm('Are you sure you want to optimize the database? This may take a few minutes.')) return;
     
     try {
-      await axios.post('/api/admin/optimize-database');
+      await axios.post('/admin/optimize-database');
       alert('Database optimized successfully');
       fetchSystemStats(); // Refresh stats
     } catch (error) {

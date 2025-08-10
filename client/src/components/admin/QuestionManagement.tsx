@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 interface QuestionApiError {
@@ -61,11 +61,7 @@ const QuestionManagement: React.FC = () => {
         ]
     });
 
-    useEffect(() => {
-        fetchQuestions();
-    }, [currentPage, filterGrade, filterDifficulty]);
-
-    const fetchQuestions = async () => {
+    const fetchQuestions = useCallback(async () => {
         try {
             const params = new URLSearchParams({
                 page: currentPage.toString(),
@@ -75,7 +71,7 @@ const QuestionManagement: React.FC = () => {
             if (filterGrade !== 'all') params.append('grade', filterGrade);
             if (filterDifficulty !== 'all') params.append('difficulty', filterDifficulty);
 
-            const response = await axios.get(`/api/admin/questions?${params}`);
+            const response = await axios.get(`/admin/questions?${params}`);
             setQuestions(response.data.data.questions);
             setTotalPages(response.data.data.pagination.pages);
         } catch (error) {
@@ -83,7 +79,11 @@ const QuestionManagement: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, filterGrade, filterDifficulty]);
+
+    useEffect(() => {
+        fetchQuestions();
+    }, [fetchQuestions]);
 
     const handleAddQuestion = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -96,7 +96,7 @@ const QuestionManagement: React.FC = () => {
         }
 
         try {
-            await axios.post('/api/admin/questions', newQuestion);
+            await axios.post('/admin/questions', newQuestion);
             setShowAddModal(false);
             resetNewQuestion();
             fetchQuestions();
@@ -122,7 +122,7 @@ const QuestionManagement: React.FC = () => {
                 }))
             };
 
-            await axios.put(`/api/admin/questions/${selectedQuestion.id}`, updateData);
+            await axios.put(`/admin/questions/${selectedQuestion.id}`, updateData);
             setShowEditModal(false);
             setSelectedQuestion(null);
             fetchQuestions();
@@ -137,7 +137,7 @@ const QuestionManagement: React.FC = () => {
         if (!confirm('Are you sure you want to delete this question?')) return;
 
         try {
-            await axios.delete(`/api/admin/questions/${questionId}`);
+            await axios.delete(`/admin/questions/${questionId}`);
             fetchQuestions();
         } catch (error) {
             console.error('Failed to delete question:', error);

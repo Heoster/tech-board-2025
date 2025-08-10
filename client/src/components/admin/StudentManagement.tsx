@@ -43,6 +43,13 @@ const StudentManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [editStudent, setEditStudent] = useState<NewStudent>({
+    name: '',
+    rollNumber: 1,
+    grade: 6,
+    section: 'A',
+    password: ''
+  });
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGrade, setFilterGrade] = useState<string>('all');
@@ -61,7 +68,7 @@ const StudentManagement: React.FC = () => {
 
   const fetchStudents = async () => {
     try {
-      const response = await axios.get('/api/admin/students');
+      const response = await axios.get('/admin/students');
       setStudents(response.data.data);
     } catch (error) {
       console.error('Failed to fetch students:', error);
@@ -73,7 +80,7 @@ const StudentManagement: React.FC = () => {
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('/api/auth/register', {
+      await axios.post('/admin/students', {
         name: newStudent.name,
         rollNumber: newStudent.rollNumber,
         grade: newStudent.grade,
@@ -101,11 +108,33 @@ const StudentManagement: React.FC = () => {
     if (!confirm('Are you sure you want to delete this student?')) return;
     
     try {
-      await axios.delete(`/api/admin/students/${studentId}`);
+      await axios.delete(`/admin/students/${studentId}`);
       fetchStudents();
     } catch (error) {
       console.error('Failed to delete student:', error);
       alert('Failed to delete student');
+    }
+  };
+
+  const handleEditStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedStudent) return;
+    
+    try {
+      await axios.put(`/admin/students/${selectedStudent.id}`, {
+        name: editStudent.name,
+        rollNumber: editStudent.rollNumber,
+        grade: editStudent.grade,
+        section: editStudent.section
+      });
+      
+      setShowEditModal(false);
+      setSelectedStudent(null);
+      fetchStudents();
+    } catch (error: unknown) {
+      console.error('Failed to update student:', error);
+      const apiError = error as StudentApiError;
+      alert(apiError.response?.data?.error?.message || 'Failed to update student');
     }
   };
 
@@ -114,7 +143,7 @@ const StudentManagement: React.FC = () => {
     if (!newPassword) return;
     
     try {
-      await axios.put(`/api/admin/students/${studentId}/password`, {
+      await axios.put(`/admin/students/${studentId}/password`, {
         password: newPassword
       });
       alert('Password reset successfully');
@@ -305,6 +334,13 @@ const StudentManagement: React.FC = () => {
                     <button
                       onClick={() => {
                         setSelectedStudent(student);
+                        setEditStudent({
+                          name: student.name,
+                          rollNumber: parseInt(student.roll_number),
+                          grade: student.grade,
+                          section: student.section,
+                          password: ''
+                        });
                         setShowEditModal(true);
                       }}
                       className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
@@ -425,6 +461,96 @@ const StudentManagement: React.FC = () => {
                   className="px-4 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg hover:from-red-600 hover:to-orange-600 transition-all duration-200"
                 >
                   Add Student
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Student Modal */}
+      {showEditModal && selectedStudent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-dark-800 rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Edit Student
+            </h3>
+            <form onSubmit={handleEditStudent} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editStudent.name}
+                  onChange={(e) => setEditStudent({...editStudent, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-dark-700 dark:text-gray-100"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Roll Number
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="80"
+                    required
+                    value={editStudent.rollNumber}
+                    onChange={(e) => setEditStudent({...editStudent, rollNumber: parseInt(e.target.value)})}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-dark-700 dark:text-gray-100"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Grade
+                  </label>
+                  <select
+                    value={editStudent.grade}
+                    onChange={(e) => setEditStudent({...editStudent, grade: parseInt(e.target.value)})}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-dark-700 dark:text-gray-100"
+                  >
+                    {[6, 7, 8, 9, 11].map(grade => (
+                      <option key={grade} value={grade}>Grade {grade}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Section
+                </label>
+                <select
+                  value={editStudent.section}
+                  onChange={(e) => setEditStudent({...editStudent, section: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-dark-700 dark:text-gray-100"
+                >
+                  <option value="A">Section A</option>
+                  <option value="B">Section B</option>
+                </select>
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setSelectedStudent(null);
+                  }}
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-dark-600 rounded-lg hover:bg-gray-300 dark:hover:bg-dark-500 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200"
+                >
+                  Update Student
                 </button>
               </div>
             </form>
