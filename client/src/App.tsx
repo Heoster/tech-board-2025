@@ -9,7 +9,7 @@ import TestSubmitted from './components/TestSubmitted'
 import StudentRegistration from './components/auth/StudentRegistration'
 import Dashboard from './components/student/Dashboard'
 import AdminLogin from './components/auth/AdminLogin'
-import AdminDashboard from './components/admin/AdminDashboard'
+import AdminPanel from './components/admin/AdminPanel'
 import './App.css'
 
 function App() {
@@ -45,7 +45,7 @@ function App() {
           {/* Protected admin routes - ADMIN LOGIN REQUIRED */}
           <Route path="/admin/dashboard" element={
             <ProtectedRoute role="admin">
-              <AdminDashboard />
+              <AdminPanel />
             </ProtectedRoute>
           } />
 

@@ -164,31 +164,32 @@ const QuizInterface: React.FC = () => {
       try {
         setLoading(true);
         setError('');
-        
+
         console.log('🚀 Starting quiz for grade:', user.grade);
         const response = await axios.get(`/quiz/start/${user.grade}`);
-        
+
         console.log('📊 Quiz response:', response.data);
-        
+
         if (!response.data.success) {
           throw new Error(response.data.error?.message || 'Quiz generation failed');
         }
 
         const { quizId, questions: fetchedQuestions, totalQuestions } = response.data.data;
-        
+
+        console.log('🎯 Quiz started - received quizId:', quizId, 'type:', typeof quizId);
         console.log('📝 Questions received:', fetchedQuestions.length);
         console.log('🔍 Sample question:', fetchedQuestions[0]);
-        
+
         if (!fetchedQuestions || fetchedQuestions.length === 0) {
           throw new Error('No questions available for your grade. Please contact administrator.');
         }
-        
+
         // Validate questions have options
         const invalidQuestions = fetchedQuestions.filter(q => !q.options || q.options.length === 0);
         if (invalidQuestions.length > 0) {
           console.warn('⚠️ Found questions without options:', invalidQuestions.length);
         }
-        
+
         setQuestions(fetchedQuestions);
         setQuizState(prev => ({
           ...prev,
@@ -196,14 +197,15 @@ const QuizInterface: React.FC = () => {
           answers: new Array(totalQuestions).fill(null),
           timeRemaining: totalQuestions * 60 // 1 minute per question
         }));
-        
+
+        console.log('🎯 QuizState updated with quizId:', quizId, 'type:', typeof quizId);
         console.log('✅ Quiz initialized successfully');
       } catch (error: any) {
         console.error('❌ Quiz start error:', error);
-        const errorMessage = error.response?.data?.error?.message || 
-                           error.response?.data?.message || 
-                           error.message || 
-                           'Failed to start quiz. Please try again.';
+        const errorMessage = error.response?.data?.error?.message ||
+          error.response?.data?.message ||
+          error.message ||
+          'Failed to start quiz. Please try again.';
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -269,22 +271,24 @@ const QuizInterface: React.FC = () => {
     setError(''); // Clear any previous errors
 
     try {
-      // Submit quiz responses
+      // Submit quiz responses - ensure proper data types
       const responses = quizState.answers.map((answer, index) => ({
-        questionId: questions[index].id,
+        questionId: questions[index].id, // Already a number from interface
         selectedOptionId: answer !== null ? questions[index].options[answer].id : null
       }));
 
-      console.log('Quiz submission data:', {
-        quizId: quizState.quizId,
-        responses: responses.slice(0, 3), // Log first 3 responses for debugging
-        totalResponses: responses.length
+      // Debug logging
+      console.log('🔍 Quiz submission data validation:');
+      console.log('  quizId:', quizState.quizId, '(type:', typeof quizState.quizId, ')');
+      console.log('  responses count:', responses.length);
+      console.log('  first response:', responses[0]);
+      console.log('  response types:', {
+        questionId: typeof responses[0]?.questionId,
+        selectedOptionId: typeof responses[0]?.selectedOptionId
       });
 
-      console.log('Submitting quiz with data:', { quizId: quizState.quizId, responses: responses.slice(0, 2) }); // Log first 2 responses for debugging
-
       const submitResponse = await axios.post('/quiz/submit', {
-        quizId: quizState.quizId,
+        quizId: quizState.quizId, // Already a number from interface
         responses
       });
 
@@ -302,11 +306,17 @@ const QuizInterface: React.FC = () => {
       // Reset submission state so user can try again
       setQuizState(prev => ({ ...prev, isSubmitted: false }));
 
-      // Show detailed error message
-      const errorMessage = error.response?.data?.error?.message ||
+      // Show detailed error message with validation details
+      let errorMessage = error.response?.data?.error?.message ||
         error.response?.data?.message ||
         error.message ||
         'Failed to submit quiz. Please try again.';
+
+      // If there are validation details, show them in development
+      if (error.response?.data?.error?.details && import.meta.env.DEV) {
+        const validationErrors = error.response.data.error.details.map((err: any) => err.msg).join(', ');
+        errorMessage += ` (Validation errors: ${validationErrors})`;
+      }
 
       setError(`Submission failed: ${errorMessage}`);
 
@@ -421,7 +431,7 @@ const QuizInterface: React.FC = () => {
                         </svg>
                       </div>
                       <div>
-                        <p className="font-semibold text-green-800 dark:text-green-200">Passing Score: 18/25 (72%)</p>
+                        <p className="font-semibold text-green-800 dark:text-green-200">Passing Score: 42/50 (72%)</p>
                         <p className="text-green-600 dark:text-green-400 text-sm">Required for TECH BOARD selection</p>
                       </div>
                     </div>
@@ -504,11 +514,10 @@ const QuizInterface: React.FC = () => {
                     }
                   }}
                   disabled={!hasAcceptedTerms}
-                  className={`px-8 py-4 font-bold text-lg rounded-xl transition-all transform ${
-                    hasAcceptedTerms
-                      ? 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl hover:scale-105'
-                      : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                  }`}
+                  className={`px-8 py-4 font-bold text-lg rounded-xl transition-all transform ${hasAcceptedTerms
+                    ? 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                    : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                    }`}
                 >
                   🚀 START TEST NOW
                 </button>
@@ -548,12 +557,12 @@ const QuizInterface: React.FC = () => {
           <h2 className="text-2xl font-bold text-red-600 mb-2">Quiz Loading Error</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
           <div className="space-y-3">
-            <button 
+            <button
               onClick={() => {
                 setError('');
                 setLoading(true);
                 window.location.reload();
-              }} 
+              }}
               className="btn-primary w-full"
             >
               🔄 Retry Quiz

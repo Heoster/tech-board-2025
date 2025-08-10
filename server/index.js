@@ -20,7 +20,7 @@ app.use(cors({
     origin: process.env.NODE_ENV === 'production'
         ? [
             'https://tech-board.up.railway.app',
-            process.env.FRONTEND_URL || 'https://tech-board.up.railway.app'
+     process.env.FRONTEND_URL || 'https://tech-board.up.railway.app'
           ]
         : [
             'http://localhost:5173', 

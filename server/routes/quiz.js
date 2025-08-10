@@ -321,6 +321,8 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
         // Calculate pass criteria based on actual question count
         const passingScore = Math.ceil(actualQuestionCount * 0.72); // 72% pass rate
 
+        console.log(`🎯 Quiz start response - quizId: ${quizId} (type: ${typeof quizId})`);
+
         res.json({
             success: true,
             data: {
@@ -377,8 +379,20 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
     body('responses.*.selectedOptionId').optional().isInt().withMessage('Selected option ID must be an integer')
 ], async (req, res) => {
     try {
+        // Debug logging for submission data
+        console.log('🔍 Quiz submission received:');
+        console.log('  Raw body:', JSON.stringify(req.body, null, 2));
+        console.log('  quizId type:', typeof req.body.quizId);
+        console.log('  responses type:', Array.isArray(req.body.responses) ? 'array' : typeof req.body.responses);
+        if (req.body.responses && req.body.responses.length > 0) {
+            console.log('  First response:', req.body.responses[0]);
+            console.log('  First response questionId type:', typeof req.body.responses[0]?.questionId);
+            console.log('  First response selectedOptionId type:', typeof req.body.responses[0]?.selectedOptionId);
+        }
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            console.log('❌ Validation errors:', errors.array());
             return res.status(400).json({
                 success: false,
                 error: {

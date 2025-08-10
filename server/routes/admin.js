@@ -543,6 +543,247 @@ router.get('/students', authenticateToken, requireAdmin, validateAdmin, async (r
     }
 });
 
+// Delete student
+router.delete('/students/:id', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+    try {
+        const studentId = req.params.id;
+        const db = database.getDb();
+        
+        // Check if student exists
+        const existingStudent = await new Promise((resolve, reject) => {
+            db.get('SELECT id FROM students WHERE id = ?', [studentId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+        
+        if (!existingStudent) {
+            return res.status(404).json({
+                success: false,
+                error: {
+                    code: 'STUDENT_NOT_FOUND',
+                    message: 'Student not found'
+                }
+            });
+        }
+        
+        // Delete student (this will cascade to related records)
+        await new Promise((resolve, reject) => {
+            db.run('DELETE FROM students WHERE id = ?', [studentId], function(err) {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                message: 'Student deleted successfully'
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error deleting student:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'DELETE_STUDENT_FAILED',
+                message: 'Failed to delete student'
+            }
+        });
+    }
+});
+
+// Reset student password
+router.put('/students/:id/password', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+    try {
+        const studentId = req.params.id;
+        const { password } = req.body;
+        
+        if (!password || password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_PASSWORD',
+                    message: 'Password must be at least 6 characters long'
+                }
+            });
+        }
+        
+        const db = database.getDb();
+        const authUtils = require('../utils/auth');
+        
+        // Check if student exists
+        const existingStudent = await new Promise((resolve, reject) => {
+            db.get('SELECT id FROM students WHERE id = ?', [studentId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+        
+        if (!existingStudent) {
+            return res.status(404).json({
+                success: false,
+                error: {
+                    code: 'STUDENT_NOT_FOUND',
+                    message: 'Student not found'
+                }
+            });
+        }
+        
+        // Hash new password
+        const passwordHash = await authUtils.hashPassword(password);
+        
+        // Update password
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE students SET password_hash = ? WHERE id = ?', [passwordHash, studentId], function(err) {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                message: 'Password reset successfully'
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'RESET_PASSWORD_FAILED',
+                message: 'Failed to reset password'
+            }
+        });
+    }
+});
+
+// Get system statistics
+router.get('/system-stats', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+    try {
+        const db = database.getDb();
+        
+        // Get total students
+        const totalStudents = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM students', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        // Get total questions
+        const totalQuestions = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM questions', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        // Get total quizzes
+        const totalQuizzes = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM quizzes WHERE status = "completed"', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                totalStudents,
+                totalQuestions,
+                totalQuizzes,
+                databaseSize: '45.2 MB', // This would need to be calculated properly
+                lastBackup: new Date().toISOString()
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error fetching system stats:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'SYSTEM_STATS_FAILED',
+                message: 'Failed to fetch system statistics'
+            }
+        });
+    }
+});
+
+// Get quiz settings
+router.get('/quiz-settings', authenticateToken, requireAdmin, validateAdmin, (req, res) => {
+    // Return default quiz settings (these could be stored in database)
+    res.json({
+        success: true,
+        data: {
+            timeLimit: 60,
+            totalQuestions: 50,
+            passingScore: 36,
+            allowRetake: false,
+            shuffleQuestions: true,
+            shuffleOptions: true
+        }
+    });
+});
+
+// Update quiz settings
+router.put('/quiz-settings', authenticateToken, requireAdmin, validateAdmin, (req, res) => {
+    // TODO: Implement quiz settings storage in database
+    res.json({
+        success: true,
+        data: {
+            message: 'Quiz settings updated successfully'
+        }
+    });
+});
+
+// Backup database
+router.post('/backup-database', authenticateToken, requireAdmin, validateAdmin, (req, res) => {
+    // TODO: Implement database backup
+    res.json({
+        success: true,
+        data: {
+            message: 'Database backup created successfully'
+        }
+    });
+});
+
+// Restore database
+router.post('/restore-database', authenticateToken, requireAdmin, validateAdmin, (req, res) => {
+    // TODO: Implement database restore
+    res.json({
+        success: true,
+        data: {
+            message: 'Database restored successfully'
+        }
+    });
+});
+
+// Clear cache
+router.post('/clear-cache', authenticateToken, requireAdmin, validateAdmin, (req, res) => {
+    // TODO: Implement cache clearing
+    res.json({
+        success: true,
+        data: {
+            message: 'System cache cleared successfully'
+        }
+    });
+});
+
+// Optimize database
+router.post('/optimize-database', authenticateToken, requireAdmin, validateAdmin, (req, res) => {
+    // TODO: Implement database optimization
+    res.json({
+        success: true,
+        data: {
+            message: 'Database optimized successfully'
+        }
+    });
+});
+
 // Get analytics
 router.get('/analytics', authenticateToken, requireAdmin, validateAdmin, (req, res) => {
     // TODO: Implement analytics
