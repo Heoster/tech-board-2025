@@ -129,9 +129,13 @@ class SecureStorage {
     this.removeUserData();
   }
 
-  private static sanitizeUserData(userData: Record<string, unknown>): Record<string, unknown> {
+  private static sanitizeUserData(userData: unknown): Record<string, unknown> {
+    if (!userData || typeof userData !== 'object' || Array.isArray(userData)) {
+      return {};
+    }
+    
     // Remove sensitive fields and sanitize strings
-    const sanitized = { ...userData };
+    const sanitized = { ...(userData as Record<string, unknown>) };
     
     // Remove any password fields
     delete sanitized.password;
@@ -253,11 +257,12 @@ export class APISecurityManager {
     if (Array.isArray(obj)) {
       obj.forEach(item => this.sanitizeObject(item));
     } else if (obj && typeof obj === 'object') {
-      Object.keys(obj).forEach(key => {
-        if (typeof obj[key] === 'string') {
-          obj[key] = InputValidator.sanitizeInput(obj[key]);
-        } else if (typeof obj[key] === 'object') {
-          this.sanitizeObject(obj[key]);
+      const objRecord = obj as Record<string, unknown>;
+      Object.keys(objRecord).forEach(key => {
+        if (typeof objRecord[key] === 'string') {
+          objRecord[key] = InputValidator.sanitizeInput(objRecord[key] as string);
+        } else if (typeof objRecord[key] === 'object') {
+          this.sanitizeObject(objRecord[key]);
         }
       });
     }

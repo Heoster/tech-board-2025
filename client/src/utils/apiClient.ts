@@ -110,15 +110,15 @@ class SecureAPIClient {
   private sanitizeRequestData(data: unknown): unknown {
     if (!data || typeof data !== 'object') return data;
 
-    const sanitized = Array.isArray(data) ? [...data] : { ...data };
+    const sanitized: Record<string, unknown> = Array.isArray(data) ? [...data] : { ...(data as Record<string, unknown>) };
 
     // Recursively sanitize object properties
     Object.keys(sanitized).forEach(key => {
       if (typeof sanitized[key] === 'string') {
-        sanitized[key] = InputValidator.sanitizeInput(sanitized[key]);
+        sanitized[key] = InputValidator.sanitizeInput(sanitized[key] as string);
         
         // Validate input based on field name
-        if (!InputValidator.isValidInput(sanitized[key])) {
+        if (!InputValidator.isValidInput(sanitized[key] as string)) {
           console.warn(`Potentially dangerous input detected in field: ${key}`);
           sanitized[key] = ''; // Clear dangerous input
         }
@@ -136,14 +136,14 @@ class SecureAPIClient {
     requestFn: () => Promise<AxiosResponse<T>>
   ): Promise<AxiosResponse<T>> {
     if (this.requestQueue.has(key)) {
-      return this.requestQueue.get(key)!;
+      return this.requestQueue.get(key)! as Promise<AxiosResponse<T>>;
     }
 
     const promise = requestFn().finally(() => {
       this.requestQueue.delete(key);
     });
 
-    this.requestQueue.set(key, promise);
+    this.requestQueue.set(key, promise as Promise<AxiosResponse<unknown>>);
     return promise;
   }
 
@@ -200,33 +200,35 @@ class SecureAPIClient {
       throw new Error('Invalid authentication data');
     }
 
+    const authData = data as Record<string, unknown>;
+
     // Validate login data
-    if (data.rollNumber !== undefined) {
-      if (!InputValidator.validateRollNumber(data.rollNumber)) {
+    if (authData.rollNumber !== undefined) {
+      if (!InputValidator.validateRollNumber(authData.rollNumber as string)) {
         throw new Error('Invalid roll number format');
       }
     }
 
-    if (data.grade !== undefined) {
-      if (!InputValidator.validateGrade(data.grade)) {
+    if (authData.grade !== undefined) {
+      if (!InputValidator.validateGrade(authData.grade as number)) {
         throw new Error('Invalid grade');
       }
     }
 
-    if (data.section !== undefined) {
-      if (!InputValidator.validateSection(data.section)) {
+    if (authData.section !== undefined) {
+      if (!InputValidator.validateSection(authData.section as string)) {
         throw new Error('Invalid section');
       }
     }
 
-    if (data.password !== undefined) {
-      if (!InputValidator.validatePassword(data.password)) {
+    if (authData.password !== undefined) {
+      if (!InputValidator.validatePassword(authData.password as string)) {
         throw new Error('Password does not meet requirements');
       }
     }
 
-    if (data.name !== undefined) {
-      if (!InputValidator.validateName(data.name)) {
+    if (authData.name !== undefined) {
+      if (!InputValidator.validateName(authData.name as string)) {
         throw new Error('Invalid name format');
       }
     }

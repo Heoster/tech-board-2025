@@ -409,7 +409,7 @@ const QuizInterface: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="font-bold text-red-800 dark:text-red-200">ATTEMPT ALL QUESTIONS IS COMPULSORY</h3>
-                      <p className="text-red-700 dark:text-red-300">You must attempt all 50 questions. Incomplete tests will not be evaluated.</p>
+                      <p className="text-red-700 dark:text-red-300">You must attempt all 25 questions. Incomplete tests will not be evaluated.</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
