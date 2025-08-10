@@ -484,7 +484,7 @@ async function seedGrade9Questions() {
                     db.run(`
                         INSERT INTO options (question_id, option_text, is_correct, option_order)
                         VALUES (?, ?, ?, ?)
-                tionId, q.opts[j], j === q.correct ? 1 : 0, j + 1], (err) => {
+                    `, [questionId, q.opts[j], j === q.correct ? 1 : 0, j + 1], (err) => {
                         if (err) reject(err);
                         else resolve();
                     });

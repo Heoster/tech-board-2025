@@ -63,7 +63,7 @@ if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/dist')));
 }
 
-// Simple health check endpoint for Railway
+// Multiple health check endpoints for Railway
 app.get('/health', (req, res) => {
     res.status(200).json({ 
         status: 'OK', 
@@ -71,6 +71,26 @@ app.get('/health', (req, res) => {
         server: 'running',
         environment: process.env.NODE_ENV || 'development'
     });
+});
+
+app.get('/healthz', (req, res) => {
+    res.status(200).send('OK');
+});
+
+app.get('/ping', (req, res) => {
+    res.status(200).send('pong');
+});
+
+app.get('/', (req, res) => {
+    if (req.headers.accept && req.headers.accept.includes('application/json')) {
+        res.json({ 
+            status: 'OK',
+            message: 'TECH BOARD 2025 Server Running',
+            timestamp: new Date().toISOString()
+        });
+    } else {
+        res.send('TECH BOARD 2025 Server Running');
+    }
 });
 
 // API health check with database fallback

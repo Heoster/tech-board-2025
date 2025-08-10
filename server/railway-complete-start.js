@@ -39,20 +39,10 @@ process.on('unhandledRejection', (reason, promise) => {
 console.log('🔧 Loading main server...');
 try {
     require('./index.js');
-    
-    // Auto-seed database if needed (Railway deployment)
-    console.log('🌱 Checking database seeding...');
-    const autoSeed = require('./scripts/railway-auto-seed');
-    autoSeed().then(() => {
-        console.log('✅ Database check completed');
-    }).catch(error => {
-        console.log('⚠️  Database seeding skipped:', error.message);
-    });
-    
     console.log('✅ TECH BOARD 2025 MCQ System started successfully!');
     console.log('🌐 System ready for student registrations and quizzes');
     console.log('🔐 Admin access available');
-    console.log('📚 Questions loading in background...');
+    console.log('📚 Database will initialize on first request');
 } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);

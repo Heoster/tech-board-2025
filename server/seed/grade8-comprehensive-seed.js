@@ -35,8 +35,9 @@ const grade8Questions = {
 
     medium: [],
     advanced: []
-};// Continue with more basic questions
+};
 
+// Continue with more basic questions
 grade8Questions.basic.push(
     // Networking Basics (IP, MAC address) - 20 questions
     { q: "What is an IP address?", opts: ["Internet Password", "Internet Protocol address", "Internal Program", "Internet Provider"], correct: 1 },
@@ -216,8 +217,9 @@ grade8Questions.advanced = [
     { q: "What is interrupt latency?", opts: ["No delay", "Response delay", "Processing speed", "Memory speed"], correct: 1 },
     { q: "What is jitter?", opts: ["Consistent timing", "Timing variation", "No timing", "Perfect timing"], correct: 1 },
     { q: "What is throughput?", opts: ["Input rate", "Processing rate", "Output rate", "Error rate"], correct: 1 }
-];async 
-function seedGrade8Questions() {
+];
+
+async function seedGrade8Questions() {
     console.log('🌱 SEEDING GRADE 8 COMPREHENSIVE QUESTIONS');
     console.log('==========================================');
     console.log('Topics: Logic building, web development, and system concepts');
@@ -281,7 +283,7 @@ function seedGrade8Questions() {
                 await new Promise((resolve, reject) => {
                     db.run(`
                         INSERT INTO options (question_id, option_text, is_correct, option_order)
-                        VALUE, ?, ?)
+                        VALUES (?, ?, ?, ?)
                     `, [questionId, q.opts[j], j === q.correct ? 1 : 0, j + 1], (err) => {
                         if (err) reject(err);
                         else resolve();
