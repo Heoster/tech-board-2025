@@ -210,22 +210,24 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
 
 // Submit quiz (keeping the existing submit logic but with flexible scoring)
 router.post('/submit', authenticateToken, requireStudent, validateStudent, [
-    body('quizId').isInt().withMessage('Quiz ID must be an integer'),
-    body('responses').isArray().withMessage('Responses must be an array'),
-    body('responses.*.questionId').isInt().withMessage('Question ID must be an integer'),
-    body('responses.*.selectedOptionId').optional().isInt().withMessage('Selected option ID must be an integer')
+    body('quizId').isInt({ min: 1 }).withMessage('Quiz ID must be a positive integer'),
+    body('responses').isArray({ min: 1 }).withMessage('Responses must be a non-empty array'),
+    body('responses.*.questionId').isInt({ min: 1 }).withMessage('Question ID must be a positive integer'),
+    body('responses.*.selectedOptionId').optional().isInt({ min: 1 }).withMessage('Selected option ID must be a positive integer')
 ], async (req, res) => {
     try {
         // Debug logging for submission data
         console.log('🔍 Quiz submission received:');
         console.log('  Raw body:', JSON.stringify(req.body, null, 2));
-        console.log('  quizId type:', typeof req.body.quizId);
+        console.log('  quizId:', req.body.quizId, '(type:', typeof req.body.quizId, ')');
         console.log('  responses type:', Array.isArray(req.body.responses) ? 'array' : typeof req.body.responses);
+        console.log('  responses length:', req.body.responses?.length);
         if (req.body.responses && req.body.responses.length > 0) {
             console.log('  First response:', req.body.responses[0]);
-            console.log('  First response questionId type:', typeof req.body.responses[0]?.questionId);
-            console.log('  First response selectedOptionId type:', typeof req.body.responses[0]?.selectedOptionId);
+            console.log('  First response questionId:', req.body.responses[0]?.questionId, '(type:', typeof req.body.responses[0]?.questionId, ')');
+            console.log('  First response selectedOptionId:', req.body.responses[0]?.selectedOptionId, '(type:', typeof req.body.responses[0]?.selectedOptionId, ')');
         }
+        console.log('  User ID:', req.user.id, '(type:', typeof req.user.id, ')');
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -276,11 +278,18 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
             });
         }
 
+        console.log('✅ Quiz validation passed, starting transaction...');
+        
         // Start transaction
         await new Promise((resolve, reject) => {
             db.run('BEGIN TRANSACTION', (err) => {
-                if (err) reject(err);
-                else resolve();
+                if (err) {
+                    console.error('❌ Transaction start failed:', err);
+                    reject(err);
+                } else {
+                    console.log('✅ Transaction started successfully');
+                    resolve();
+                }
             });
         });
 
@@ -288,9 +297,14 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
             let correctAnswers = 0;
             const totalQuestions = quiz.total_questions;
 
+            console.log(`🔄 Processing ${responses.length} responses...`);
+            
             // Process each response
-            for (const response of responses) {
+            for (let i = 0; i < responses.length; i++) {
+                const response = responses[i];
                 const { questionId, selectedOptionId } = response;
+                
+                console.log(`  Processing response ${i + 1}/${responses.length}: questionId=${questionId}, selectedOptionId=${selectedOptionId}`);
 
                 // Get correct answer for the question
                 const correctOption = await new Promise((resolve, reject) => {
@@ -298,53 +312,82 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
                         'SELECT id FROM options WHERE question_id = ? AND is_correct = 1',
                         [questionId],
                         (err, row) => {
-                            if (err) reject(err);
-                            else resolve(row);
+                            if (err) {
+                                console.error(`❌ Error getting correct option for question ${questionId}:`, err);
+                                reject(err);
+                            } else {
+                                console.log(`  Correct option for question ${questionId}:`, row?.id);
+                                resolve(row);
+                            }
                         }
                     );
                 });
 
                 const isCorrect = selectedOptionId && correctOption && selectedOptionId === correctOption.id;
                 if (isCorrect) correctAnswers++;
+                
+                console.log(`  Question ${questionId}: selected=${selectedOptionId}, correct=${correctOption?.id}, isCorrect=${isCorrect}`);
 
                 // Insert response
                 await new Promise((resolve, reject) => {
                     db.run(
                         'INSERT INTO responses (quiz_id, question_id, selected_option_id, is_correct) VALUES (?, ?, ?, ?)',
-                        [quizId, questionId, selectedOptionId || null, isCorrect],
+                        [quizId, questionId, selectedOptionId || null, isCorrect ? 1 : 0],
                         function (err) {
-                            if (err) reject(err);
-                            else resolve();
+                            if (err) {
+                                console.error(`❌ Error inserting response for question ${questionId}:`, err);
+                                reject(err);
+                            } else {
+                                console.log(`  ✅ Response inserted for question ${questionId}`);
+                                resolve();
+                            }
                         }
                     );
                 });
             }
+            
+            console.log(`✅ All responses processed. Correct answers: ${correctAnswers}/${totalQuestions}`);
 
             // Calculate pass criteria based on actual question count (72%)
             const passingScore = Math.ceil(totalQuestions * 0.72);
             const passed = correctAnswers >= passingScore;
             
             // Update quiz with final score
+            console.log(`🏁 Updating quiz ${quizId} with final score: ${correctAnswers}/${totalQuestions}, passed: ${passed}`);
             await new Promise((resolve, reject) => {
                 db.run(
                     'UPDATE quizzes SET score = ?, passed = ?, end_time = CURRENT_TIMESTAMP, status = "completed" WHERE id = ?',
-                    [correctAnswers, passed, quizId],
+                    [correctAnswers, passed ? 1 : 0, quizId],
                     function (err) {
-                        if (err) reject(err);
-                        else resolve();
+                        if (err) {
+                            console.error('❌ Error updating quiz:', err);
+                            reject(err);
+                        } else {
+                            console.log('✅ Quiz updated successfully');
+                            resolve();
+                        }
                     }
                 );
             });
 
             // Commit transaction
+            console.log('💾 Committing transaction...');
             await new Promise((resolve, reject) => {
                 db.run('COMMIT', (err) => {
-                    if (err) reject(err);
-                    else resolve();
+                    if (err) {
+                        console.error('❌ Transaction commit failed:', err);
+                        reject(err);
+                    } else {
+                        console.log('✅ Transaction committed successfully');
+                        resolve();
+                    }
                 });
             });
 
             const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            
+            console.log('🎉 Quiz submission completed successfully!');
+            console.log(`  Final results: ${correctAnswers}/${totalQuestions} (${percentage}%), passed: ${passed}`);
 
             res.json({
                 success: true,
@@ -360,10 +403,13 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
             });
 
         } catch (error) {
+            console.error('❌ Error during quiz processing:', error);
             // Rollback transaction
+            console.log('🔄 Rolling back transaction...');
             await new Promise((resolve, reject) => {
                 db.run('ROLLBACK', (err) => {
-                    if (err) console.error('Rollback error:', err);
+                    if (err) console.error('❌ Rollback error:', err);
+                    else console.log('✅ Transaction rolled back');
                     resolve();
                 });
             });
@@ -371,13 +417,23 @@ router.post('/submit', authenticateToken, requireStudent, validateStudent, [
         }
 
     } catch (error) {
-        console.error('Error submitting quiz:', error);
+        console.error('❌ Quiz submission error details:');
+        console.error('  Error type:', error.constructor.name);
+        console.error('  Error message:', error.message);
+        console.error('  Error stack:', error.stack);
+        console.error('  Request body:', JSON.stringify(req.body, null, 2));
+        console.error('  User:', req.user?.id, req.user?.email);
+        
         res.status(500).json({
             success: false,
             error: {
                 code: 'QUIZ_SUBMIT_FAILED',
                 message: 'Failed to submit quiz',
-                details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+                details: process.env.NODE_ENV !== 'production' ? {
+                    message: error.message,
+                    type: error.constructor.name,
+                    stack: error.stack?.split('\n').slice(0, 5).join('\n')
+                } : undefined
             }
         });
     }
