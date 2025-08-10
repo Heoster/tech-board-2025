@@ -328,7 +328,7 @@ export class APISecurityManager {
     const sanitized = InputValidator.sanitizeInput(endpoint);
     
     // Only allow valid API endpoint patterns
-    const validEndpointPattern = /^/[a-zA-Z0-9/_-]*$/;
+    const validEndpointPattern = /^\/[a-zA-Z0-9/_-]*$/;
     if (!validEndpointPattern.test(sanitized)) {
       console.warn('Invalid endpoint pattern detected:', endpoint);
       return null;
