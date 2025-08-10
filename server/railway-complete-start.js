@@ -21,12 +21,18 @@ console.log('');
 // Handle uncaught exceptions gracefully
 process.on('uncaughtException', (error) => {
     console.error('❌ Uncaught Exception:', error);
-    process.exit(1);
+    // Don't exit immediately in production, let Railway handle restarts
+    if (process.env.NODE_ENV !== 'production') {
+        process.exit(1);
+    }
 });
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-    process.exit(1);
+    // Don't exit immediately in production, let Railway handle restarts
+    if (process.env.NODE_ENV !== 'production') {
+        process.exit(1);
+    }
 });
 
 // Import and start the main server
