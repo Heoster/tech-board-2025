@@ -476,22 +476,42 @@ const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
+            {/* HIGHLIGHTED STUDENT LOGIN */}
             <button
               onClick={() => navigate('/login')}
-              className="group relative px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-pulse"
+              className="group relative px-10 py-4 bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 text-white font-black text-lg rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 animate-pulse border-4 border-white/50"
             >
-              <span className="relative z-10 flex items-center space-x-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="relative z-10 flex items-center space-x-3">
+                <span className="text-2xl animate-bounce">👋</span>
+                <span>STUDENT LOGIN</span>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                 </svg>
-                <span>Login</span>
               </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-green-400 to-purple-600 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse" />
             </button>
+            
+            {/* HIGHLIGHTED NEW REGISTRATION */}
+            <button
+              onClick={() => navigate('/register')}
+              className="group relative px-10 py-4 bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 text-white font-black text-lg rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 animate-bounce border-4 border-white/50"
+            >
+              <span className="relative z-10 flex items-center space-x-3">
+                <span className="text-2xl animate-spin">🚀</span>
+                <span>NEW REGISTRATION</span>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-600 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-red-600 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+            </button>
+            
             <button
               onClick={() => navigate('/admin/login')}
-              className="group relative px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              className="group relative px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 opacity-75 hover:opacity-100"
             >
               <span className="relative z-10 flex items-center space-x-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -500,7 +520,6 @@ const LandingPage: React.FC = () => {
                 </svg>
                 <span>Admin</span>
               </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
             <button
               onClick={toggleDarkMode}
@@ -521,7 +540,7 @@ const LandingPage: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className={`relative z-10 max-w-7xl mx-auto px-6 py-20 text-center transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+      <section className={`relative z-10 max-w-7xl mx-auto px-6 py-16 text-center transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
         {/* Fun Banner */}
         <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-400 to-blue-500 text-white px-6 py-3 rounded-full mb-8 shadow-lg animate-bounce">
           <span className="text-2xl">🏫</span>
@@ -530,76 +549,137 @@ const LandingPage: React.FC = () => {
         </div>
 
         {/* Main Headline */}
-        <h1 className="text-6xl md:text-8xl font-black mb-8 leading-tight">
+        <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
           <span className="bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 bg-clip-text text-transparent animate-gradient">
-            Learn & Play
+            TECH BOARD 2025
           </span>
           <br />
-          <span className="bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
-            With Computers! 🎯
+          <span className="bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 bg-clip-text text-transparent text-4xl md:text-6xl">
+            Official School Programme 🏫
           </span>
         </h1>
 
-        <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed">
-          🏫 Join our official school programme for computer science excellence! 
+        <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-4xl mx-auto leading-relaxed">
+          🎓 <span className="font-bold">Official Computer Science Assessment</span> for students across all grade levels
           <br />
           <span className="font-bold bg-gradient-to-r from-green-500 to-blue-500 bg-clip-text text-transparent">
-            Participate in Tech Board 2025 and showcase your skills! 📚⭐
+            Test your knowledge • Earn certificates • Join the tech leaders of tomorrow! 🚀
           </span>
         </p>
 
-        {/* Fun Statistics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16 max-w-4xl mx-auto">
-          {[
-            { number: 1100, suffix: '+', label: 'Fun Questions 🎲', emoji: '🎯' },
-            { number: 50, suffix: '', label: 'Questions Per Quiz 📝', emoji: '📚' },
-            { number: 50, suffix: ' min', label: 'Play Time ⏰', emoji: '🎮' },
-            { number: 36, suffix: '+', label: 'Score to Win 🏆', emoji: '⭐' }
-          ].map((stat, index) => (
-            <div key={index} className="group">
-              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border-4 border-transparent hover:border-rainbow">
-                <div className="text-4xl mb-2">{stat.emoji}</div>
-                <div className="text-3xl font-black bg-gradient-to-r from-green-500 to-blue-500 bg-clip-text text-transparent mb-2">
-                  <AnimatedCounter end={stat.number} suffix={stat.suffix} />
+        {/* Live Statistics */}
+        <div className="relative mb-16">
+          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-400 to-blue-500 text-white px-6 py-2 rounded-full font-bold text-sm animate-pulse shadow-lg">
+            🔥 LIVE STATS - UPDATED REAL-TIME! 🔥
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto bg-gradient-to-r from-white/80 to-gray-50/80 dark:from-gray-800/80 dark:to-gray-900/80 backdrop-blur-sm rounded-3xl p-8 border-2 border-white/30 shadow-2xl">
+            {[
+              { number: 1935, suffix: '', label: 'Total Questions', emoji: '🎯', color: 'from-green-500 to-emerald-500' },
+              { number: 25, suffix: '', label: 'Quiz Questions', emoji: '📝', color: 'from-blue-500 to-cyan-500' },
+              { number: 30, suffix: ' min', label: 'Time Limit', emoji: '⏱️', color: 'from-purple-500 to-violet-500' },
+              { number: 18, suffix: '+', label: 'Pass Score', emoji: '🏆', color: 'from-orange-500 to-red-500' }
+            ].map((stat, index) => (
+              <div key={index} className="group text-center">
+                <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-110 border border-gray-200/50 dark:border-gray-700/50">
+                  <div className="text-5xl mb-3 group-hover:animate-bounce">{stat.emoji}</div>
+                  <div className={`text-4xl font-black bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-2`}>
+                    <AnimatedCounter end={stat.number} suffix={stat.suffix} />
+                  </div>
+                  <div className="text-sm text-gray-700 dark:text-gray-300 font-semibold">{stat.label}</div>
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 font-bold">{stat.label}</div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Fun Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-          <button
-            onClick={() => navigate('/register')}
-            className="group relative px-16 py-6 bg-gradient-to-r from-green-500 to-blue-500 text-white font-black text-2xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 hover:rotate-1 animate-bounce border-4 border-white/30"
-          >
-            <span className="relative z-10 flex items-center space-x-3">
-              <span className="text-3xl animate-spin">🚀</span>
-              <span>SIGN UP NOW!</span>
-              <span className="text-3xl animate-pulse">⭐</span>
-            </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="absolute -inset-1 bg-gradient-to-r from-green-400 to-blue-600 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse" />
-          </button>
+        {/* MEGA HIGHLIGHTED ACTION BUTTONS */}
+        <div className="relative mb-20">
+          {/* Attention-grabbing banner */}
+          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-8 py-2 rounded-full font-black text-sm animate-bounce shadow-lg z-10">
+            ⚡ QUICK ACCESS - START NOW! ⚡
+          </div>
           
-          <button
-            onClick={() => navigate('/login')}
-            className="group relative px-16 py-6 bg-gradient-to-r from-orange-500 to-pink-500 text-white font-black text-2xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 border-4 border-white/30"
-          >
-            <span className="relative z-10 flex items-center space-x-3">
-              <span className="text-3xl">👋</span>
-              <span>LOGIN HERE!</span>
-              <span className="text-3xl animate-bounce">🎯</span>
-            </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-red-500 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-pink-600 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-          </button>
+          <div className="flex flex-col sm:flex-row gap-8 justify-center items-center bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-red-600/20 backdrop-blur-sm rounded-3xl p-12 border-4 border-white/30 shadow-2xl">
+            {/* NEW REGISTRATION - Primary CTA */}
+            <button
+              onClick={() => navigate('/register')}
+              className="group relative px-20 py-8 bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 text-white font-black text-3xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 hover:rotate-1 animate-pulse border-4 border-white/50"
+            >
+              <span className="relative z-10 flex items-center space-x-4">
+                <span className="text-4xl animate-spin">🚀</span>
+                <div className="text-center">
+                  <div>NEW REGISTRATION</div>
+                  <div className="text-lg font-normal opacity-90">Join Tech Board 2025!</div>
+                </div>
+                <span className="text-4xl animate-pulse">⭐</span>
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute -inset-2 bg-gradient-to-r from-green-400 to-purple-600 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse" />
+            </button>
+            
+            {/* STUDENT LOGIN - Secondary CTA */}
+            <button
+              onClick={() => navigate('/login')}
+              className="group relative px-20 py-8 bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 text-white font-black text-3xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 border-4 border-white/50"
+            >
+              <span className="relative z-10 flex items-center space-x-4">
+                <span className="text-4xl animate-bounce">👋</span>
+                <div className="text-center">
+                  <div>STUDENT LOGIN</div>
+                  <div className="text-lg font-normal opacity-90">Already Registered?</div>
+                </div>
+                <span className="text-4xl animate-bounce">🎯</span>
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-red-500 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute -inset-2 bg-gradient-to-r from-orange-400 to-red-600 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+            </button>
+          </div>
+          
+          {/* Quick stats below buttons */}
+          <div className="flex justify-center space-x-8 mt-6 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center space-x-2">
+              <span className="text-green-500">✅</span>
+              <span>Free Registration</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-blue-500">⚡</span>
+              <span>Instant Access</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-purple-500">🏆</span>
+              <span>Official Certificate</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Start Guide */}
+      <section className="relative z-10 max-w-6xl mx-auto px-6 py-16">
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-3xl p-8 border border-blue-200/50 dark:border-blue-700/50 shadow-xl mb-16">
+          <h2 className="text-3xl font-black text-center mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            🚀 How It Works - 3 Simple Steps!
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { step: '1', title: 'Register Free', desc: 'Create your account in 30 seconds', icon: '📝', color: 'from-green-500 to-emerald-500' },
+              { step: '2', title: 'Take Quiz', desc: '25 questions in 30 minutes', icon: '🎯', color: 'from-blue-500 to-cyan-500' },
+              { step: '3', title: 'Get Results', desc: 'Instant scores & certificates', icon: '🏆', color: 'from-purple-500 to-pink-500' }
+            ].map((item, index) => (
+              <div key={index} className="text-center group">
+                <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-r ${item.color} rounded-full flex items-center justify-center text-white font-black text-2xl shadow-lg group-hover:scale-110 transition-transform`}>
+                  {item.step}
+                </div>
+                <div className="text-4xl mb-3">{item.icon}</div>
+                <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200">{item.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400">{item.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Syllabus Overview */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 py-20">
+      <section className="relative z-10 max-w-7xl mx-auto px-6 py-16">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-black mb-6 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
             📚 Complete Syllabus Overview
@@ -660,7 +740,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Grade Selection */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 py-20">
+      <section className="relative z-10 max-w-7xl mx-auto px-6 py-16">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-black mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Choose Your Grade Level
@@ -837,7 +917,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 py-20">
+      <section className="relative z-10 max-w-7xl mx-auto px-6 py-16">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-black mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Why TECH BOARD 2025?
@@ -898,7 +978,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="relative z-10 max-w-4xl mx-auto px-6 py-20 text-center">
+      <section className="relative z-10 max-w-4xl mx-auto px-6 py-16 text-center">
         <div className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 backdrop-blur-sm rounded-3xl p-12 border border-purple-200/20 dark:border-purple-800/20">
           <h2 className="text-4xl font-black mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Ready to Make History?
