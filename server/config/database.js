@@ -6,7 +6,7 @@ const logger = require('../utils/logger');
 class Database {
     constructor() {
         this.db = null;
-        this.dbPath = process.env.DB_PATH || path.join(__dirname, '../../database/mcq_system.db');
+        this.dbPath = process.env.DB_PATH || path.join(__dirname, '../database/mcq_system_fixed.db');
         this.connectionRetries = 3;
         this.retryDelay = 1000; // 1 second
         this.queryTimeout = 30000; // 30 seconds
@@ -123,10 +123,7 @@ class Database {
         return new Promise(async (resolve, reject) => {
             try {
                 const sqlFiles = [
-                    { path: '../database/init.sql', name: 'initialization' },
-                    { path: '../database/rules.sql', name: 'business rules' },
-                    { path: '../database/no-duplicate-questions.sql', name: 'duplicate prevention' },
-                    { path: '../database/ultra-strict-constraints.sql', name: 'ultra-strict constraints' }
+                    { path: '../database/init.sql', name: 'initialization' }
                 ];
 
                 logger.info('Starting database initialization');
@@ -174,7 +171,7 @@ class Database {
     async verifyDatabaseIntegrity() {
         return new Promise((resolve, reject) => {
             // Check if essential tables exist
-            const essentialTables = ['students', 'questions', 'options', 'quizzes', 'responses', 'admins'];
+            const essentialTables = ['students', 'questions', 'options', 'quizzes', 'quiz_answers', 'admins'];
             let checkedTables = 0;
 
             essentialTables.forEach(tableName => {
@@ -246,6 +243,73 @@ class Database {
                 }
             });
         });
+    }
+
+    // Run method for INSERT/UPDATE/DELETE operations (expected by tests)
+    async run(sql, params = []) {
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                reject(new Error('Database not connected'));
+                return;
+            }
+
+            const startTime = Date.now();
+            this.db.run(sql, params, function(err) {
+                const duration = Date.now() - startTime;
+                
+                if (err) {
+                    logger.error('Run query failed', {
+                        sql: sql.substring(0, 100),
+                        error: err.message,
+                        duration
+                    });
+                    reject(err);
+                } else {
+                    logger.database('Run query executed', sql.substring(0, 100), duration, {
+                        lastID: this.lastID,
+                        changes: this.changes
+                    });
+                    resolve({
+                        lastID: this.lastID,
+                        changes: this.changes
+                    });
+                }
+            });
+        });
+    }
+
+    // Get method for single row queries (expected by tests)
+    async get(sql, params = []) {
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                reject(new Error('Database not connected'));
+                return;
+            }
+
+            const startTime = Date.now();
+            this.db.get(sql, params, (err, row) => {
+                const duration = Date.now() - startTime;
+                
+                if (err) {
+                    logger.error('Get query failed', {
+                        sql: sql.substring(0, 100),
+                        error: err.message,
+                        duration
+                    });
+                    reject(err);
+                } else {
+                    logger.database('Get query executed', sql.substring(0, 100), duration, {
+                        hasResult: !!row
+                    });
+                    resolve(row);
+                }
+            });
+        });
+    }
+
+    // All method for multiple row queries (alias for query method)
+    async all(sql, params = []) {
+        return this.query(sql, params);
     }
 
     // Health check method

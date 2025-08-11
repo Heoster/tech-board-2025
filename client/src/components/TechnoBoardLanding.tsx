@@ -1,410 +1,244 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { BookOpen, Users, Award, ArrowRight, Zap, Shield, Target, Star, CheckCircle, Clock, Trophy } from 'lucide-react';
 
-const FloatingElement = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => (
-  <div 
-    className="animate-float" 
-    style={{ animationDelay: `${delay}s` }}
-  >
-    {children}
-  </div>
-);
-
-const TechnoBoardLanding: React.FC = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  useEffect(() => {
-    // Check for saved theme preference or default to dark mode
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
-
-  useEffect(() => {
-    // If user is already logged in, redirect to dashboard
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    if (!isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
-
-  const handleLoginClick = () => {
-    navigate('/login');
-  };
-
-  const handleRegisterClick = () => {
-    navigate('/register');
-  };
-
+const TechnoBoardLanding = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 dark:from-dark-900 dark:via-dark-800 dark:to-dark-700 transition-all duration-500 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute top-3/4 right-1/4 w-128 h-128 bg-purple-400/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-indigo-400/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
-        <div className="absolute top-1/2 right-1/3 w-48 h-48 bg-pink-400/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '6s' }}></div>
-      </div>
-
-      {/* Header */}
-      <header className="relative z-10 p-6">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl animate-glow">
-                <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L3 7L12 12L21 7L12 2Z" />
-                  <path d="M3 17L12 22L21 17" />
-                  <path d="M3 12L12 17L21 12" />
-                </svg>
-              </div>
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full animate-pulse flex items-center justify-center">
-                <span className="text-white text-xs font-bold">✓</span>
-              </div>
+    <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
+        <div className="container flex items-center justify-between py-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <BookOpen className="w-6 h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-3xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">TECH BOARD</h1>
-              <p className="text-lg text-gray-600 dark:text-gray-400 font-semibold">Selection System 2025</p>
-              <p className="text-sm text-gray-500 dark:text-gray-500">Maples Academy Official</p>
-            </div>
+            <span className="text-2xl font-bold text-gray-900">TechnoBoard</span>
           </div>
           
           <div className="flex items-center space-x-4">
-            <div className="hidden md:flex items-center space-x-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 rounded-full">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-green-700 dark:text-green-300 font-medium text-sm">System Online</span>
-            </div>
-            <button
-              onClick={toggleDarkMode}
-              className="p-3 rounded-xl bg-white/80 dark:bg-dark-800/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            >
-              {isDarkMode ? (
-                <svg className="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                </svg>
-              )}
-            </button>
+            <Link to="/login" className="nav-link">Login</Link>
+            <Link to="/register" className="btn btn-primary">Get Started</Link>
           </div>
         </div>
-      </header>
+      </nav>
 
-      {/* Main Content */}
-      <main className="relative z-10 max-w-7xl mx-auto px-6 py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-20 animate-fade-in">
-          <FloatingElement>
-            <div className="mb-8">
-              <div className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 rounded-full text-white font-bold text-xl shadow-2xl animate-bounce-soft border-4 border-white/20">
-                <span className="text-2xl mr-3">🚀</span>
-                TECH BOARD Selection 2025
-                <span className="text-2xl ml-3">⭐</span>
-              </div>
+      {/* Hero Section */}
+      <section className="section bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="container text-center">
+          <div className="max-w-4xl mx-auto">
+            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-8">
+              <Star className="w-4 h-4 mr-2" />
+              Trusted by 10,000+ professionals
             </div>
-          </FloatingElement>
-          
-          <FloatingElement delay={0.2}>
-            <h1 className="text-6xl md:text-8xl font-bold font-space mb-6 gradient-text text-shadow-lg">
-              Join the Future
+            
+            <h1 className="heading-1 mb-6">
+              Master Your
+              <span className="block text-gradient">Technical Excellence</span>
             </h1>
-          </FloatingElement>
-          
-          <FloatingElement delay={0.4}>
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-6 max-w-4xl mx-auto leading-relaxed">
-              Prove your <span className="font-semibold gradient-text">Computer Skills</span> and become part of the elite 
-              <span className="font-bold text-primary-600 dark:text-primary-400"> TECHNO BOARD</span> community
+            
+            <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Advanced assessment platform designed for technical professionals. 
+              Challenge yourself with real-world problems and accelerate your career growth.
             </p>
             
-            {/* Test Conductor Information */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-8 max-w-2xl mx-auto">
-              <div className="flex items-center justify-center space-x-3 mb-2">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-                <h3 className="text-lg font-bold text-blue-800 dark:text-blue-200">Test Conductor</h3>
-              </div>
-              <p className="text-blue-700 dark:text-blue-300 font-semibold text-lg">
-                <span className="text-blue-900 dark:text-blue-100">Pankaj Sir</span>
-              </p>
-              <p className="text-blue-600 dark:text-blue-400 text-sm mt-1">
-                On behalf of <span className="font-semibold">Maples Academy</span>
-              </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+              <Link to="/register" className="btn btn-primary btn-lg group">
+                <span>Start Free Assessment</span>
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link to="/admin/login" className="btn btn-secondary btn-lg">
+                Admin Portal
+              </Link>
             </div>
-          </FloatingElement>
-
-          {/* Login Required Notice */}
-          <FloatingElement delay={0.6}>
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800 rounded-2xl p-6 mb-12 max-w-2xl mx-auto">
-              <div className="flex items-center justify-center space-x-3 mb-4">
-                <svg className="w-8 h-8 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                <h3 className="text-xl font-bold text-yellow-800 dark:text-yellow-200">Authentication Required</h3>
-              </div>
-              <p className="text-yellow-700 dark:text-yellow-300 font-medium">
-                You must <strong>login with your student credentials</strong> before taking the TECHNO BOARD selection test
-              </p>
-            </div>
-          </FloatingElement>
-        </div>
-
-        {/* Database Stats */}
-        <div className="grid md:grid-cols-4 gap-6 mb-16">
-          <div className="card text-center">
-            <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">1,590</div>
-            <div className="text-gray-600 dark:text-gray-400">Total Questions</div>
-          </div>
-          <div className="card text-center">
-            <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2">5</div>
-            <div className="text-gray-600 dark:text-gray-400">Grade Levels</div>
-          </div>
-          <div className="card text-center">
-            <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">50</div>
-            <div className="text-gray-600 dark:text-gray-400">Questions per Test</div>
-          </div>
-          <div className="card text-center">
-            <div className="text-4xl font-bold text-orange-600 dark:text-orange-400 mb-2">50</div>
-            <div className="text-gray-600 dark:text-gray-400">Minutes Duration</div>
-          </div>
-        </div>
-
-        {/* Grade-wise Topics */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-12 gradient-text">Topics by Grade Level</h2>
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Grade 6 */}
-            <div className="card">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center text-white font-bold text-xl mr-4">6</div>
-                <div>
-                  <h3 className="text-xl font-bold">Grade 6 (345 Questions)</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Basic Computer Fundamentals</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                {['Computer Parts (CPU, Monitor)', 'Input & Output Devices', 'Software Types', 'Storage Devices', 'Desktop Elements', 'Keyboard Shortcuts', 'Computer Uses', 'Digital Safety'].map((topic, i) => (
-                  <div key={i} className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span>{topic}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Grade 7 */}
-            <div className="card">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center text-white font-bold text-xl mr-4">7</div>
-                <div>
-                  <h3 className="text-xl font-bold">Grade 7 (330 Questions)</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Internet & Programming Basics</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                {['Computer Types', 'Operating Systems', 'Internet & Browsers', 'Email Basics', 'File Extensions', 'Cyber Safety', 'Programming Intro', 'Binary Numbers'].map((topic, i) => (
-                  <div key={i} className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>{topic}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Grade 8 */}
-            <div className="card">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-xl mr-4">8</div>
-                <div>
-                  <h3 className="text-xl font-bold">Grade 8 (180 Questions)</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Logic & Web Development</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                {['Computer Memory', 'Networking Basics', 'Cloud Computing', 'HTML Basics', 'Flowcharts', 'Cyber Ethics', 'Database Intro', 'Open Source Software'].map((topic, i) => (
-                  <div key={i} className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    <span>{topic}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Grade 9 */}
-            <div className="card">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-xl mr-4">9</div>
-                <div>
-                  <h3 className="text-xl font-bold">Grade 9 (365 Questions)</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Programming & Data Systems</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                {['Computer Architecture', 'Number Systems', 'Boolean Logic', 'Operating Systems', 'Networking (TCP/IP)', 'Internet Technologies', 'Cybersecurity', 'Database Concepts'].map((topic, i) => (
-                  <div key={i} className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    <span>{topic}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Grade 11 */}
-          <div className="card max-w-2xl mx-auto mt-8">
-            <div className="flex items-center mb-4">
-              <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center text-white font-bold text-xl mr-4">11</div>
-              <div>
-                <h3 className="text-xl font-bold">Grade 11 (370 Questions)</h3>
-                <p className="text-gray-600 dark:text-gray-400">Advanced Programming & Systems</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              {['Python Programming', 'Data Structures', 'File Handling', 'SQL & RDBMS', 'Boolean Algebra', 'Advanced Networking', 'Cyber Ethics', 'Technology Impact'].map((topic, i) => (
-                <div key={i} className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <span>{topic}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="text-center mb-16">
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <button
-              onClick={handleLoginClick}
-              className="btn-glow text-xl px-12 py-4 font-space flex items-center space-x-3"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-              </svg>
-              <span>Student Login</span>
-            </button>
             
-            <button
-              onClick={handleRegisterClick}
-              className="btn-secondary text-xl px-12 py-4 font-space flex items-center space-x-3"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
-              <span>New Registration</span>
-            </button>
+            <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-gray-900 mb-1">10K+</div>
+                <div className="text-sm text-gray-600">Assessments</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-gray-900 mb-1">95%</div>
+                <div className="text-sm text-gray-600">Success Rate</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-gray-900 mb-1">24/7</div>
+                <div className="text-sm text-gray-600">Support</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="section">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="heading-2 mb-4">Why Choose TechnoBoard?</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Built for modern technical assessment with enterprise-grade features
+            </p>
           </div>
           
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-            Don't have an account? Register first, then login to take the test
+          <div className="grid-auto">
+            <div className="card hover-lift group">
+              <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Zap className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Lightning Fast</h3>
+              <p className="text-gray-600">
+                Optimized performance with instant feedback and real-time progress tracking for seamless experience.
+              </p>
+            </div>
+            
+            <div className="card hover-lift group">
+              <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Shield className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Secure & Reliable</h3>
+              <p className="text-gray-600">
+                Enterprise-grade security with comprehensive data protection and privacy controls you can trust.
+              </p>
+            </div>
+            
+            <div className="card hover-lift group">
+              <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Target className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Precision Analytics</h3>
+              <p className="text-gray-600">
+                Detailed performance insights and personalized recommendations for continuous improvement.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Test Information */}
+      <section className="section bg-gray-50">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="heading-2 mb-4">Assessment Details</h2>
+            <p className="text-xl text-gray-600">Everything you need to know about our technical assessments</p>
+          </div>
+          
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">30 Minutes Duration</h3>
+                  <p className="text-gray-600">Carefully timed assessment with 25 multiple-choice questions designed to evaluate your technical knowledge efficiently.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Trophy className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Instant Results</h3>
+                  <p className="text-gray-600">Get immediate feedback with detailed explanations and performance analytics to understand your strengths and areas for improvement.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Users className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Grade-Specific Content</h3>
+                  <p className="text-gray-600">Questions tailored to your academic level, covering topics from basic computer literacy to advanced programming concepts.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="card-gradient p-8 text-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Award className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Ready to Excel?</h3>
+              <p className="text-gray-600 mb-6">Join thousands of students advancing their technical skills</p>
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center justify-center space-x-2">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-sm text-gray-600">Pass with 72% (18/25)</span>
+                </div>
+                <div className="flex items-center justify-center space-x-2">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-sm text-gray-600">TechnoBoard Membership</span>
+                </div>
+                <div className="flex items-center justify-center space-x-2">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-sm text-gray-600">Achievement Certificate</span>
+                </div>
+              </div>
+              <Link to="/register" className="btn btn-primary w-full">
+                Start Your Journey
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Grade Levels */}
+      <section className="section">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="heading-2 mb-4">Topics by Grade Level</h2>
+            <p className="text-xl text-gray-600">Comprehensive curriculum covering all essential computer science concepts</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { grade: 6, questions: 345, topics: ['Computer Parts', 'Input/Output Devices', 'Software Types', 'Digital Safety'], color: 'blue' },
+              { grade: 7, questions: 330, topics: ['Internet Basics', 'Operating Systems', 'Email & Browsers', 'Cyber Safety'], color: 'green' },
+              { grade: 8, questions: 180, topics: ['HTML Basics', 'Networking', 'Cloud Computing', 'Database Intro'], color: 'purple' },
+              { grade: 9, questions: 365, topics: ['Programming Logic', 'Boolean Algebra', 'TCP/IP', 'Cybersecurity'], color: 'orange' },
+              { grade: 11, questions: 370, topics: ['Python Programming', 'Data Structures', 'SQL & RDBMS', 'Advanced Networking'], color: 'red' }
+            ].map((grade, i) => (
+              <div key={i} className="card hover-lift">
+                <div className="flex items-center mb-4">
+                  <div className={`w-12 h-12 bg-${grade.color}-500 rounded-xl flex items-center justify-center text-white font-bold text-xl mr-4`}>
+                    {grade.grade}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Grade {grade.grade}</h3>
+                    <p className="text-sm text-gray-600">{grade.questions} Questions</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {grade.topics.map((topic, j) => (
+                    <div key={j} className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 bg-${grade.color}-500 rounded-full`}></div>
+                      <span className="text-sm text-gray-600">{topic}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="container text-center">
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+              <BookOpen className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-2xl font-bold">TechnoBoard</span>
+          </div>
+          <p className="text-gray-400 mb-6">
+            Empowering technical excellence through innovative assessment
           </p>
-        </div>
-
-        {/* Test Instructions */}
-        <div className="card max-w-4xl mx-auto mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8 gradient-text">Test Instructions</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">📋 Test Format</h3>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span>50 Multiple Choice Questions</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span>50 Minutes Time Limit</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span>Questions from Your Grade Level</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span>Instant Result Display</span>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-green-600 dark:text-green-400">✅ Qualification</h3>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Minimum 36/50 (72%) to Pass</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>TECHNO BOARD Membership</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Certificate of Achievement</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Advanced Workshop Access</span>
-                </div>
-              </div>
-            </div>
+          <div className="text-sm text-gray-500">
+            © 2024 TechnoBoard. All rights reserved.
           </div>
         </div>
-
-        {/* Difficulty Levels */}
-        <div className="card max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8 gradient-text">Question Difficulty Distribution</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-green-50 dark:bg-green-900/20 rounded-xl">
-              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-xl">📗</span>
-              </div>
-              <h3 className="text-xl font-bold text-green-700 dark:text-green-300 mb-2">Basic Level</h3>
-              <p className="text-green-600 dark:text-green-400 text-lg font-semibold mb-2">830 Questions</p>
-              <p className="text-sm text-green-600 dark:text-green-400">Fundamental concepts and definitions</p>
-            </div>
-            <div className="text-center p-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl">
-              <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-xl">📙</span>
-              </div>
-              <h3 className="text-xl font-bold text-yellow-700 dark:text-yellow-300 mb-2">Medium Level</h3>
-              <p className="text-yellow-600 dark:text-yellow-400 text-lg font-semibold mb-2">510 Questions</p>
-              <p className="text-sm text-yellow-600 dark:text-yellow-400">Application and analysis based</p>
-            </div>
-            <div className="text-center p-6 bg-red-50 dark:bg-red-900/20 rounded-xl">
-              <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-xl">📕</span>
-              </div>
-              <h3 className="text-xl font-bold text-red-700 dark:text-red-300 mb-2">Advanced Level</h3>
-              <p className="text-red-600 dark:text-red-400 text-lg font-semibold mb-2">250 Questions</p>
-              <p className="text-sm text-red-600 dark:text-red-400">Complex problem solving</p>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-accent-purple/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-1/4 left-1/3 w-48 h-48 bg-accent-glow/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
-      </div>
+      </footer>
     </div>
   );
 };

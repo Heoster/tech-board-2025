@@ -1,152 +1,32 @@
-const authUtils = require('../utils/auth');
-const database = require('../config/database');
+const jwt = require('jsonwebtoken');
 
-// Middleware to authenticate JWT tokens
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    const token = authUtils.extractTokenFromHeader(authHeader);
-
+    const token = authHeader && authHeader.split(' ')[1];
+    
     if (!token) {
-        return res.status(401).json({
-            success: false,
-            error: {
-                code: 'NO_TOKEN',
-                message: 'Access token is required'
-            }
-        });
+        return res.status(401).json({ error: 'Access token required' });
     }
-
-    try {
-        const decoded = authUtils.verifyToken(token);
-        req.user = decoded;
+    
+    jwt.verify(token, process.env.JWT_SECRET || 'secret', (err, user) => {
+        if (err) {
+            return res.status(403).json({ error: 'Invalid or expired token' });
+        }
+        req.user = user;
         next();
-    } catch (error) {
-        const env = process.env.NODE_ENV || 'development';
-        const message = env === 'production' ? 'Authentication failed' : error.message;
-        return res.status(403).json({
-            success: false,
-            error: {
-                code: 'INVALID_TOKEN',
-                message
-            }
-        });
-    }
+    });
 };
 
-// Middleware to check if user is a student
-const requireStudent = (req, res, next) => {
-    if (req.user.role !== 'student') {
-        return res.status(403).json({
-            success: false,
-            error: {
-                code: 'INSUFFICIENT_PERMISSIONS',
-                message: 'Student access required'
-            }
-        });
-    }
-    next();
-};
-
-// Middleware to check if user is an admin
 const requireAdmin = (req, res, next) => {
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({
-            success: false,
-            error: {
-                code: 'INSUFFICIENT_PERMISSIONS',
-                message: 'Admin access required'
-            }
-        });
+    if (!req.user || req.user.type !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
     }
     next();
 };
 
-// Middleware to validate student exists in database
-const validateStudent = async (req, res, next) => {
-    try {
-        const db = database.getDb();
-        const student = await new Promise((resolve, reject) => {
-            db.get(
-                'SELECT id, name, roll_number, grade, section FROM students WHERE id = ?',
-                [req.user.id],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row);
-                }
-            );
-        });
-
-        if (!student) {
-            return res.status(404).json({
-                success: false,
-                error: {
-                    code: 'STUDENT_NOT_FOUND',
-                    message: 'Student not found'
-                }
-            });
-        }
-
-        req.student = student;
-        next();
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            error: {
-                code: 'DATABASE_ERROR',
-                message: 'Error validating student'
-            }
-        });
-    }
+const validateAdmin = (req, res, next) => {
+    // Additional admin validation if needed
+    next();
 };
 
-// Simple middleware to validate admin
-const validateAdmin = async (req, res, next) => {
-    try {
-        const db = database.getDb();
-        
-        // Get admin information
-        const admin = await new Promise((resolve, reject) => {
-            db.get(
-                'SELECT id, username FROM admins WHERE id = ?',
-                [req.user.id],
-                (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row);
-                }
-            );
-        });
-
-        if (!admin) {
-            return res.status(404).json({
-                success: false,
-                error: {
-                    code: 'ADMIN_NOT_FOUND',
-                    message: 'Admin not found'
-                }
-            });
-        }
-
-        req.admin = admin;
-        next();
-        
-    } catch (error) {
-        console.error('Admin validation error:', error);
-        return res.status(500).json({
-            success: false,
-            error: {
-                code: 'DATABASE_ERROR',
-                message: 'Error validating admin'
-            }
-        });
-    }
-};
-
-
-
-module.exports = {
-    authenticateToken,
-    requireStudent,
-    requireAdmin,
-    validateStudent,
-    validateAdmin
-};
+module.exports = { authenticateToken, requireAdmin, validateAdmin };

@@ -1,110 +1,57 @@
 const fs = require('fs');
 const path = require('path');
 
-// Ensure logs directory exists
-const logsDir = path.join(__dirname, '../logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
+const logDir = path.join(__dirname, '../logs');
+if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
 }
 
 const logLevels = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  debug: 3
+    error: 0,
+    warn: 1,
+    info: 2,
+    debug: 3
 };
 
 const currentLogLevel = logLevels[process.env.LOG_LEVEL] || logLevels.info;
 
-const logger = {
-  error: (message, meta = {}) => {
-    if (currentLogLevel >= logLevels.error) {
-      const logEntry = {
-        timestamp: new Date().toISOString(),
-        level: 'ERROR',
-        message,
-        ...meta
-      };
-      console.error(JSON.stringify(logEntry));
-      
-      // Write to error log file in production
-      if (process.env.NODE_ENV === 'production') {
-        fs.appendFileSync(
-          path.join(logsDir, 'error.log'),
-          JSON.stringify(logEntry) + '\n'
-        );
-      }
-    }
-  },
-
-  warn: (message, meta = {}) => {
-    if (currentLogLevel >= logLevels.warn) {
-      const logEntry = {
-        timestamp: new Date().toISOString(),
-        level: 'WARN',
-        message,
-        ...meta
-      };
-      console.warn(JSON.stringify(logEntry));
-    }
-  },
-
-  info: (message, meta = {}) => {
-    if (currentLogLevel >= logLevels.info) {
-      const logEntry = {
-        timestamp: new Date().toISOString(),
-        level: 'INFO',
-        message,
-        ...meta
-      };
-      console.log(JSON.stringify(logEntry));
-    }
-  },
-
-  debug: (message, meta = {}) => {
-    if (currentLogLevel >= logLevels.debug) {
-      const logEntry = {
-        timestamp: new Date().toISOString(),
-        level: 'DEBUG',
-        message,
-        ...meta
-      };
-      console.log(JSON.stringify(logEntry));
-    }
-  },
-
-  request: (req, res, responseTime) => {
-    const logEntry = {
-      timestamp: new Date().toISOString(),
-      level: 'INFO',
-      message: `${req.method} ${req.path} - ${res.statusCode}`,
-      method: req.method,
-      path: req.path,
-      statusCode: res.statusCode,
-      responseTime: `${responseTime}ms`,
-      ip: req.ip,
-      userAgent: req.headers['user-agent']
-    };
-    console.log(JSON.stringify(logEntry));
-  },
-
-  security: (message, meta = {}) => {
-    const logEntry = {
-      timestamp: new Date().toISOString(),
-      level: 'SECURITY',
-      message,
-      ...meta
-    };
-    console.warn(JSON.stringify(logEntry));
+const writeLog = (level, message, meta = {}) => {
+    if (logLevels[level] > currentLogLevel) return;
     
-    // Write security events to separate log file in production
-    if (process.env.NODE_ENV === 'production') {
-      fs.appendFileSync(
-        path.join(logsDir, 'security.log'),
-        JSON.stringify(logEntry) + '\n'
-      );
+    const timestamp = new Date().toISOString();
+    const logEntry = {
+        timestamp,
+        level: level.toUpperCase(),
+        message,
+        ...meta
+    };
+    
+    const logString = JSON.stringify(logEntry) + '\n';
+    
+    // Write to file
+    const logFile = path.join(logDir, `${level}.log`);
+    fs.appendFileSync(logFile, logString);
+    
+    // Also log to console in development
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`[${timestamp}] ${level.toUpperCase()}: ${message}`, meta);
     }
-  }
+};
+
+const logger = {
+    error: (message, meta) => writeLog('error', message, meta),
+    warn: (message, meta) => writeLog('warn', message, meta),
+    info: (message, meta) => writeLog('info', message, meta),
+    debug: (message, meta) => writeLog('debug', message, meta),
+    database: (message, query, duration, meta = {}) => {
+        if (logLevels.debug <= currentLogLevel) {
+            writeLog('debug', message, {
+                query: query ? query.substring(0, 100) : 'N/A',
+                duration: `${duration}ms`,
+                ...meta
+            });
+        }
+    }
 };
 
 module.exports = logger;

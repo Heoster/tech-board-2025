@@ -5,6 +5,133 @@ const database = require('../config/database');
 
 const router = express.Router();
 
+// Dashboard route
+router.get('/dashboard', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+    try {
+        const db = database.getDb();
+        
+        // Get total students
+        const totalStudents = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM students', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        // Get total questions
+        const totalQuestions = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM questions', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        // Get total completed quizzes
+        const totalQuizzes = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM quizzes WHERE status = "completed"', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        // Get recent quizzes
+        const recentQuizzes = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT 
+                    q.id,
+                    s.name as student_name,
+                    s.roll_number,
+                    s.grade,
+                    q.score,
+                    q.total_questions,
+                    q.status,
+                    q.completed_at
+                FROM quizzes q
+                JOIN students s ON q.student_id = s.id
+                WHERE q.status = 'completed'
+                ORDER BY q.completed_at DESC
+                LIMIT 10
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        res.json({
+            success: true,
+            totalStudents,
+            totalQuestions,
+            totalQuizzes,
+            recentQuizzes
+        });
+        
+    } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'DASHBOARD_FETCH_FAILED',
+                message: 'Failed to fetch dashboard data'
+            }
+        });
+    }
+});
+
+// Quiz results route
+router.get('/quiz-results', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+    try {
+        const { grade } = req.query;
+        const db = database.getDb();
+        
+        let whereClause = '';
+        let params = [];
+        
+        if (grade) {
+            whereClause = ' AND s.grade = ?';
+            params.push(grade);
+        }
+        
+        const results = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT 
+                    q.id,
+                    s.name as student_name,
+                    s.roll_number,
+                    s.grade,
+                    s.section,
+                    q.score,
+                    q.total_questions,
+                    q.status,
+                    q.started_at,
+                    q.completed_at,
+                    ROUND((CAST(q.score AS FLOAT) / q.total_questions) * 100, 1) as percentage
+                FROM quizzes q
+                JOIN students s ON q.student_id = s.id
+                WHERE q.status = 'completed'${whereClause}
+                ORDER BY q.completed_at DESC
+            `, params, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        res.json({
+            success: true,
+            results
+        });
+        
+    } catch (error) {
+        console.error('Error fetching quiz results:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'QUIZ_RESULTS_FETCH_FAILED',
+                message: 'Failed to fetch quiz results'
+            }
+        });
+    }
+});
+
 // Validation middleware for questions
 const validateQuestion = [
     body('grade').isIn([6, 7, 8, 9, 11]).withMessage('Grade must be 6, 7, 8, 9, or 11'),
@@ -91,14 +218,12 @@ router.get('/questions', authenticateToken, requireAdmin, validateAdmin, async (
         
         res.json({
             success: true,
-            data: {
-                questions: formattedQuestions,
-                pagination: {
-                    page: parseInt(page),
-                    limit: parseInt(limit),
-                    total: totalCount,
-                    pages: Math.ceil(totalCount / limit)
-                }
+            questions: formattedQuestions,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total: totalCount,
+                pages: Math.ceil(totalCount / limit)
             }
         });
         
@@ -178,10 +303,8 @@ router.post('/questions', authenticateToken, requireAdmin, validateAdmin, valida
             
             res.status(201).json({
                 success: true,
-                data: {
-                    questionId,
-                    message: 'Question created successfully'
-                }
+                questionId,
+                message: 'Question created successfully'
             });
             
         } catch (error) {
@@ -387,15 +510,14 @@ router.get('/results', authenticateToken, requireAdmin, validateAdmin, async (re
                     s.section,
                     q.score,
                     q.total_questions,
-                    q.passed,
-                    q.start_time,
-                    q.end_time,
+                    q.started_at,
+                    q.completed_at,
                     q.status,
                     ROUND((CAST(q.score AS FLOAT) / q.total_questions) * 100, 1) as percentage
                 FROM quizzes q
                 JOIN students s ON q.student_id = s.id
                 WHERE q.status = 'completed'
-                ORDER BY q.end_time DESC
+                ORDER BY q.completed_at DESC
             `, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
@@ -570,7 +692,16 @@ router.post('/students', authenticateToken, requireAdmin, validateAdmin, [
 // Get all students with their exam status
 router.get('/students', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
     try {
+        const { grade } = req.query;
         const db = database.getDb();
+        
+        let whereClause = '';
+        let params = [];
+        
+        if (grade) {
+            whereClause = ' WHERE s.grade = ?';
+            params.push(grade);
+        }
         
         // Get all students with their quiz status
         const students = await new Promise((resolve, reject) => {
@@ -585,9 +716,8 @@ router.get('/students', authenticateToken, requireAdmin, validateAdmin, async (r
                     q.id as quiz_id,
                     q.score,
                     q.total_questions,
-                    q.passed,
-                    q.start_time,
-                    q.end_time,
+                    q.started_at,
+                    q.completed_at,
                     q.status as quiz_status,
                     CASE 
                         WHEN q.status = 'completed' THEN ROUND((CAST(q.score AS FLOAT) / q.total_questions) * 100, 1)
@@ -601,8 +731,9 @@ router.get('/students', authenticateToken, requireAdmin, validateAdmin, async (r
                     END as exam_status
                 FROM students s
                 LEFT JOIN quizzes q ON s.id = q.student_id
+                ${whereClause}
                 ORDER BY s.grade, s.section, s.roll_number
-            `, (err, rows) => {
+            `, params, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
@@ -610,7 +741,7 @@ router.get('/students', authenticateToken, requireAdmin, validateAdmin, async (r
         
         res.json({
             success: true,
-            data: students
+            students
         });
         
     } catch (error) {
