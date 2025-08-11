@@ -213,8 +213,8 @@ const QuizInterface: React.FC = () => {
           ...prev,
           quizId: quizId,
           answers: new Array(totalQuestions).fill(null),
-          // Use server-provided timeLimit (already in seconds)
-          timeRemaining: timeLimit ?? totalQuestions * 60
+          // Use server-provided timeLimit or fallback to 30 minutes
+          timeRemaining: timeLimit || 1800
         }));
 
         console.log('🎯 QuizState updated with quizId:', quizId, 'type:', typeof quizId);

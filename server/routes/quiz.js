@@ -169,7 +169,7 @@ router.get('/start/:grade', authenticateToken, requireStudent, validateStudent, 
                     ...q,
                     questionNumber: index + 1
                 })),
-                timeLimit: Math.ceil(actualQuestionCount * 60), // 1 minute per question in seconds
+                timeLimit: 1800, // 30 minutes in seconds
                 passingScore,
                 questionDistribution: {
                     basic: orderedQuestions.filter(q => q.difficulty === 'basic').length,
