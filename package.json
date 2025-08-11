@@ -7,11 +7,14 @@
     "client:dev": "cd client && npm run dev",
     "server:dev": "cd server && npm run dev",
     "build": "cd client && npm ci && npm run build",
-    "start": "cd server && node index.js",
-    "start:prod": "cd server && NODE_ENV=production node index.js",
-    "setup:prod": "cd server && node scripts/production-setup.js",
-    "railway:start": "cd server && node index.js",
-    "railway:build": "npm ci --only=production && cd client && npm ci && npm run build && cd ../server && npm ci --only=production && node scripts/production-setup.js"
+    "start": "node server/index.js",
+    "start:prod": "NODE_ENV=production node server/index.js",
+    "setup:prod": "node server/scripts/production-setup.js",
+    "railway:start": "node server/index.js",
+    "railway:build": "npm ci --only=production && cd client && npm ci && npm run build && cd ../server && npm ci --only=production && node scripts/production-setup.js",
+    "docker:build": "docker build -t mcq-system .",
+    "docker:run": "docker run -p 8000:8000 mcq-system",
+    "docker:compose": "docker-compose up --build"
   },
   "engines": {
     "node": ">=18.0.0"

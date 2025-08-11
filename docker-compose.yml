@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  mcq-system:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-here}
+    volumes:
+      - ./server/database:/app/server/database
+      - ./server/logs:/app/server/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

@@ -1,38 +1,102 @@
 # Deployment Guide
 
-## Production Configuration
-- Domain: https://tech-board.up.railway.app
-- Environment: Production
-- Database: SQLite (auto-created)
+## Docker Deployment
 
-## Deploy to Railway
-1. Connect GitHub repository to Railway
-2. Set environment variables from `.env.production`
-3. Deploy using `Dockerfile`
+### Quick Start with Docker Compose
+```bash
+# Build and run with docker-compose
+npm run docker:compose
 
-## Environment Variables
-```
-NODE_ENV=production
-PORT=8000
-JWT_SECRET=tech-board-2025-super-secret-jwt-key-production
-DB_PATH=./database/mcq_system.db
-FRONTEND_URL=https://tech-board.up.railway.app
-CORS_ORIGIN=https://tech-board.up.railway.app
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-ALLOW_MULTIPLE_ATTEMPTS=false
+# Or manually:
+docker-compose up --build
 ```
 
-## Health Check
-- Endpoint: `/api/health`
-- Expected: `{"status":"OK","timestamp":"...","environment":"production"}`
+### Manual Docker Build
+```bash
+# Build the image
+npm run docker:build
 
-## Security Features
-- ✅ Helmet security headers
-- ✅ CORS configured for domain
-- ✅ Rate limiting (100 req/15min)
-- ✅ CSRF protection
-- ✅ Input sanitization
-- ✅ Error handling
+# Run the container
+npm run docker:run
 
-App is ready for production deployment.
+# Or manually:
+docker build -t mcq-system .
+docker run -p 8000:8000 -e JWT_SECRET=your-secret-key mcq-system
+```
+
+### Environment Variables
+- `NODE_ENV`: Set to `production` for production deployment
+- `PORT`: Server port (default: 8000)
+- `JWT_SECRET`: Secret key for JWT tokens (required in production)
+- `DB_PATH`: Database file path (optional, defaults to `./database/mcq_system.db`)
+
+### Health Check
+The application includes a health check endpoint at `/api/health` that returns:
+```json
+{
+  "status": "OK",
+  "message": "Server is running",
+  "timestamp": "2025-08-11T12:00:00.000Z",
+  "environment": "production"
+}
+```
+
+## Railway Deployment
+
+The application is configured for Railway deployment with:
+- `railway:build` script for build process
+- `railway:start` script for starting the application
+- Automatic database initialization
+
+## Production Checklist
+
+- [ ] Set `JWT_SECRET` environment variable
+- [ ] Set `NODE_ENV=production`
+- [ ] Ensure database directory is writable
+- [ ] Configure proper logging
+- [ ] Set up monitoring and alerts
+- [ ] Configure backup strategy for database
+- [ ] Test health check endpoint
+- [ ] Verify all API endpoints are working
+- [ ] Test performance monitoring features
+
+## Performance Monitoring
+
+The application includes built-in performance monitoring:
+- Core Web Vitals tracking (FCP, LCP, FID, CLS, TTFB)
+- Server performance metrics
+- Database query performance
+- Memory usage monitoring
+- SEO performance scoring
+
+Access performance data via:
+- `/api/performance/metrics` - Current metrics
+- `/api/performance/health` - Health status with performance info
+- Client-side performance monitoring with `usePerformance` hook
+
+## SEO Optimization
+
+The application includes comprehensive SEO features:
+- Meta tags generation
+- Structured data (JSON-LD)
+- Sitemap generation utilities
+- Performance-based SEO recommendations
+- Core Web Vitals optimization
+
+## Troubleshooting
+
+### Container fails to start
+- Check if all required environment variables are set
+- Verify the database directory is accessible
+- Check logs: `docker logs <container-id>`
+
+### Database issues
+- Ensure database directory has write permissions
+- Check if database file exists and is not corrupted
+- Run production setup: `npm run setup:prod`
+
+### Performance issues
+- Monitor memory usage via health endpoint
+- Check database query performance
+- Review Core Web Vitals metrics
+- Use performance monitoring dashboard
