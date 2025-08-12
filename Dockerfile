@@ -4,13 +4,13 @@ WORKDIR /app
 
 # Install server dependencies first
 COPY server/package*.json ./
-RUN npm install --production
+RUN npm install --omit=dev
 
 # Copy server source
 COPY server/ ./
 
-# Copy database
-COPY server/database/ ./database/
+# Initialize database
+RUN node database/create-db.js
 
 # Build client separately with memory limits
 WORKDIR /app/client
