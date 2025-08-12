@@ -8,11 +8,18 @@ const TechnoBoardLanding = () => {
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
         <div className="container flex items-center justify-between py-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <BookOpen className="w-6 h-6 text-white" />
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <BookOpen className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-2xl font-bold text-gray-900">Tech Board</span>
             </div>
-            <span className="text-2xl font-bold text-gray-900">TechnoBoard</span>
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <span>powered by</span>
+              <img src="/logoSch.png" alt="Maples Academy" className="h-8 w-auto" />
+              <span className="font-semibold text-orange-600">Maples Academy</span>
+            </div>
           </div>
           
           <div className="flex items-center space-x-4">
@@ -28,22 +35,22 @@ const TechnoBoardLanding = () => {
           <div className="max-w-4xl mx-auto">
             <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-8">
               <Star className="w-4 h-4 mr-2" />
-              Trusted by 10,000+ professionals
+              Led by PANKAJ Sir - Maples Academy
             </div>
             
             <h1 className="heading-1 mb-6">
-              Master Your
-              <span className="block text-gradient">Technical Excellence</span>
+              Tech Board
+              <span className="block text-gradient">Selection Test</span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Advanced assessment platform designed for technical professionals. 
-              Challenge yourself with real-world problems and accelerate your career growth.
+              Join the exclusive Tech Board - an elite NFO (Non-Formal Organization) founded by Maples Academy. 
+              Prove your technical skills and become part of a prestigious community of tech enthusiasts.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
               <Link to="/register" className="btn btn-primary btn-lg group">
-                <span>Start Free Assessment</span>
+                <span>Take Selection Test</span>
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link to="/admin/login" className="btn btn-secondary btn-lg">
@@ -53,16 +60,16 @@ const TechnoBoardLanding = () => {
             
             <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
               <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900 mb-1">10K+</div>
-                <div className="text-sm text-gray-600">Assessments</div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">1500+</div>
+                <div className="text-sm text-gray-600">Students Tested</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900 mb-1">95%</div>
-                <div className="text-sm text-gray-600">Success Rate</div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">72%</div>
+                <div className="text-sm text-gray-600">Pass Rate</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900 mb-1">24/7</div>
-                <div className="text-sm text-gray-600">Support</div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">5</div>
+                <div className="text-sm text-gray-600">Grade Levels</div>
               </div>
             </div>
           </div>
@@ -73,30 +80,30 @@ const TechnoBoardLanding = () => {
       <section className="section">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="heading-2 mb-4">Why Choose TechnoBoard?</h2>
+            <h2 className="heading-2 mb-4">Benefits of Joining Tech Board</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Built for modern technical assessment with enterprise-grade features
+              Exclusive advantages for Tech Board members under PANKAJ Sir's guidance
             </p>
           </div>
           
           <div className="grid-auto">
             <div className="card hover-lift group">
               <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Zap className="w-7 h-7 text-white" />
+                <Users className="w-7 h-7 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Lightning Fast</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Elite Community</h3>
               <p className="text-gray-600">
-                Optimized performance with instant feedback and real-time progress tracking for seamless experience.
+                Join an exclusive network of tech enthusiasts and get mentorship from PANKAJ Sir and Maples Academy experts.
               </p>
             </div>
             
             <div className="card hover-lift group">
               <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Shield className="w-7 h-7 text-white" />
+                <Award className="w-7 h-7 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Secure & Reliable</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Recognition & Certificates</h3>
               <p className="text-gray-600">
-                Enterprise-grade security with comprehensive data protection and privacy controls you can trust.
+                Earn official Tech Board certification and gain recognition for your technical skills and achievements.
               </p>
             </div>
             
@@ -104,9 +111,9 @@ const TechnoBoardLanding = () => {
               <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Target className="w-7 h-7 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Precision Analytics</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Skill Development</h3>
               <p className="text-gray-600">
-                Detailed performance insights and personalized recommendations for continuous improvement.
+                Access exclusive workshops, coding sessions, and technical training programs designed by Maples Academy.
               </p>
             </div>
           </div>
@@ -117,8 +124,8 @@ const TechnoBoardLanding = () => {
       <section className="section bg-gray-50">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="heading-2 mb-4">Assessment Details</h2>
-            <p className="text-xl text-gray-600">Everything you need to know about our technical assessments</p>
+            <h2 className="heading-2 mb-4">Selection Test Details</h2>
+            <p className="text-xl text-gray-600">Everything you need to know about the Tech Board selection process</p>
           </div>
           
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -128,8 +135,8 @@ const TechnoBoardLanding = () => {
                   <Clock className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">30 Minutes Duration</h3>
-                  <p className="text-gray-600">Carefully timed assessment with 25 multiple-choice questions designed to evaluate your technical knowledge efficiently.</p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">60 Minutes Duration</h3>
+                  <p className="text-gray-600">Comprehensive selection test with 50 carefully crafted questions to assess your technical aptitude and problem-solving skills.</p>
                 </div>
               </div>
               
@@ -139,7 +146,7 @@ const TechnoBoardLanding = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Instant Results</h3>
-                  <p className="text-gray-600">Get immediate feedback with detailed explanations and performance analytics to understand your strengths and areas for improvement.</p>
+                  <p className="text-gray-600">Receive immediate feedback on your performance and know instantly if you qualify for Tech Board membership.</p>
                 </div>
               </div>
               
@@ -149,7 +156,7 @@ const TechnoBoardLanding = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Grade-Specific Content</h3>
-                  <p className="text-gray-600">Questions tailored to your academic level, covering topics from basic computer literacy to advanced programming concepts.</p>
+                  <p className="text-gray-600">Questions designed by Maples Academy experts, covering essential computer science topics relevant to your academic level.</p>
                 </div>
               </div>
             </div>
@@ -158,16 +165,16 @@ const TechnoBoardLanding = () => {
               <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Award className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Ready to Excel?</h3>
-              <p className="text-gray-600 mb-6">Join thousands of students advancing their technical skills</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Ready to Join Tech Board?</h3>
+              <p className="text-gray-600 mb-6">Take the selection test and become part of an elite tech community</p>
               <div className="space-y-3 mb-6">
                 <div className="flex items-center justify-center space-x-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-sm text-gray-600">Pass with 72% (18/25)</span>
+                  <span className="text-sm text-gray-600">Pass with 72% (36/50)</span>
                 </div>
                 <div className="flex items-center justify-center space-x-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-sm text-gray-600">TechnoBoard Membership</span>
+                  <span className="text-sm text-gray-600">Tech Board Membership</span>
                 </div>
                 <div className="flex items-center justify-center space-x-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
@@ -175,7 +182,7 @@ const TechnoBoardLanding = () => {
                 </div>
               </div>
               <Link to="/register" className="btn btn-primary w-full">
-                Start Your Journey
+                Take Selection Test
               </Link>
             </div>
           </div>
@@ -192,11 +199,11 @@ const TechnoBoardLanding = () => {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { grade: 6, questions: 345, topics: ['Computer Parts', 'Input/Output Devices', 'Software Types', 'Digital Safety'], color: 'blue' },
-              { grade: 7, questions: 330, topics: ['Internet Basics', 'Operating Systems', 'Email & Browsers', 'Cyber Safety'], color: 'green' },
-              { grade: 8, questions: 180, topics: ['HTML Basics', 'Networking', 'Cloud Computing', 'Database Intro'], color: 'purple' },
-              { grade: 9, questions: 365, topics: ['Programming Logic', 'Boolean Algebra', 'TCP/IP', 'Cybersecurity'], color: 'orange' },
-              { grade: 11, questions: 370, topics: ['Python Programming', 'Data Structures', 'SQL & RDBMS', 'Advanced Networking'], color: 'red' }
+              { grade: 6, questions: 300, topics: ['Computer Parts', 'Input/Output Devices', 'Software Types', 'Digital Safety'], color: 'blue' },
+              { grade: 7, questions: 300, topics: ['Internet Basics', 'Operating Systems', 'Email & Browsers', 'Cyber Safety'], color: 'green' },
+              { grade: 8, questions: 300, topics: ['HTML Basics', 'Networking', 'Cloud Computing', 'Database Intro'], color: 'purple' },
+              { grade: 9, questions: 300, topics: ['Programming Logic', 'Boolean Algebra', 'TCP/IP', 'Cybersecurity'], color: 'orange' },
+              { grade: 11, questions: 300, topics: ['Python Programming', 'Data Structures', 'SQL & RDBMS', 'Advanced Networking'], color: 'red' }
             ].map((grade, i) => (
               <div key={i} className="card hover-lift">
                 <div className="flex items-center mb-4">
@@ -229,13 +236,18 @@ const TechnoBoardLanding = () => {
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
               <BookOpen className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold">TechnoBoard</span>
+            <span className="text-2xl font-bold">Tech Board</span>
           </div>
           <p className="text-gray-400 mb-6">
             Empowering technical excellence through innovative assessment
           </p>
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <span className="text-sm text-gray-400">Powered by</span>
+            <img src="/logoSch.png" alt="Maples Academy" className="h-6 w-auto" />
+            <span className="text-sm font-semibold text-orange-400">Maples Academy</span>
+          </div>
           <div className="text-sm text-gray-500">
-            © 2024 TechnoBoard. All rights reserved.
+            © 2025 Tech Board. All rights reserved.
           </div>
         </div>
       </footer>

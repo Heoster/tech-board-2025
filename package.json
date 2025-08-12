@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "start": "cd server && npm start",
-    "build": "cd server && npm install --production"
+    "build": "cd client && npm install && npm run build && cd ../server && npm install --production",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\""
   },
   "engines": {
     "node": "18.x"

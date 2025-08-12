@@ -35,7 +35,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   return (
     <>
       <title>{title}</title>
-      
+
       {metaTags.map((tag, index) => {
         if ('name' in tag) {
           return <meta key={index} name={tag.name} content={tag.content} />;
@@ -52,7 +52,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       {/* Open Graph meta tags for social sharing */}
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="TECH BOARD 2025 MCQ System" />
-      
+
       {/* Twitter Card meta tags */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
@@ -72,7 +72,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       {/* Preconnect to external domains for performance */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      
+
       {/* DNS prefetch for external resources */}
       <link rel="dns-prefetch" href="//fonts.googleapis.com" />
       <link rel="dns-prefetch" href="//fonts.gstatic.com" />
@@ -89,7 +89,7 @@ export const QuizPageSEO: React.FC<{
 }> = ({ grade, subject, questionCount, difficulty }) => {
   const title = `${grade} ${subject} MCQ Quiz - ${questionCount} Questions | TECH BOARD 2025`;
   const description = `Test your knowledge with our comprehensive ${grade} ${subject} multiple choice quiz. ${questionCount} carefully crafted questions${difficulty ? ` at ${difficulty} level` : ''}.`;
-  
+
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'Quiz',
@@ -118,7 +118,7 @@ export const GradePageSEO: React.FC<{
 }> = ({ grade, subjects, totalQuestions }) => {
   const title = `${grade} MCQ Practice Tests - All Subjects | TECH BOARD 2025`;
   const description = `Comprehensive ${grade} MCQ practice tests covering ${subjects.join(', ')}. Over ${totalQuestions} questions to help you excel in your exams.`;
-  
+
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'Course',
@@ -145,7 +145,7 @@ export const HomePageSEO: React.FC<{
 }> = ({ totalQuestions, grades }) => {
   const title = 'TECH BOARD 2025 MCQ Testing System - Practice Tests for All Grades';
   const description = `Master your exams with our comprehensive MCQ testing system. Over ${totalQuestions} questions across ${grades.join(', ')}. Start practicing today!`;
-  
+
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'EducationalOrganization',
@@ -159,7 +159,7 @@ export const HomePageSEO: React.FC<{
     <SEOHead
       title={title}
       description={description}
-      keywords="MCQ, multiple choice questions, exam practice, test preparation, online quiz, education"
+      keywords="MCQ, multiple choice questions, exam practice, test preparation, online quiz, education, heoster"
       structuredData={structuredData}
     />
   );

@@ -1,40 +1,18 @@
-# Dependencies
-node_modules/
-client/node_modules/
-server/node_modules/
-
-# Development files
-.git/
+node_modules
+npm-debug.log
+.git
 .gitignore
 README.md
-.env.local
-.env.development
-
-# Build artifacts
-client/dist/
-client/build/
-
-# Logs
-*.log
-logs/
-server/logs/
-
-# Test files
-**/*.test.js
-**/*.spec.js
-**/tests/
-coverage/
-
-# Development tools
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS files
+.env
+.nyc_output
+coverage
+.nyc_output
+.vscode
 .DS_Store
-Thumbs.db
-
-# Temporary files
-tmp/
-temp/
+*.log
+client/node_modules
+server/node_modules
+server/tests
+server/logs/*.log
+*.test.js
+.github

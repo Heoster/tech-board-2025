@@ -12,7 +12,7 @@ interface SEOMetaTags {
     noindex?: boolean;
 }
 
-interface StructuredData {
+export interface StructuredData {
     '@context': string;
     '@type': string;
     [key: string]: any;

@@ -48,7 +48,13 @@ router.post('/start', authenticateToken, async (req, res) => {
                 });
         });
 
-        res.json({ quizId, questions });
+        res.json({ 
+            success: true,
+            data: {
+                quizId, 
+                questions 
+            }
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Failed to start quiz' });
     }

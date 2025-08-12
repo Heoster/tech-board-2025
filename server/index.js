@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 const database = require('./config/database');
 require('dotenv').config();
 
@@ -31,11 +32,16 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 
-// Routes
+// API Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/quiz', require('./routes/quiz'));
 app.use('/api/students', require('./routes/students'));
+app.use('/api/performance', require('./routes/performance'));
+
+// Serve static files from React build
+const clientDistPath = path.join(__dirname, '../client/dist');
+app.use(express.static(clientDistPath));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -43,7 +49,39 @@ app.get('/api/health', (req, res) => {
         status: 'OK', 
         message: 'Server is running',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
+        features: {
+            authentication: 'Available',
+            quizSystem: 'Available', 
+            adminPanel: 'Available',
+            performanceMonitoring: 'Available',
+            seoOptimization: 'Available'
+        }
+    });
+});
+
+// API info endpoint
+app.get('/api', (req, res) => {
+    res.json({
+        name: 'TECH BOARD 2025 MCQ Testing System API',
+        version: '1.0.0',
+        status: 'operational',
+        endpoints: {
+            health: '/api/health',
+            auth: '/api/auth/*',
+            admin: '/api/admin/*',
+            quiz: '/api/quiz/*',
+            students: '/api/students/*',
+            performance: '/api/performance/*'
+        },
+        features: [
+            'Student Authentication',
+            'Admin Panel',
+            'Quiz Management', 
+            'Performance Monitoring',
+            'SEO Optimization',
+            'Core Web Vitals Tracking'
+        ]
     });
 });
 
@@ -56,9 +94,71 @@ app.use((err, req, res, next) => {
     });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-    res.status(404).json({ error: 'Route not found' });
+// Serve React app for all non-API routes (SPA routing)
+app.get('*', (req, res) => {
+    // Don't serve React app for API routes
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'Route not found' });
+    }
+    
+    // Serve React app
+    const indexPath = path.join(clientDistPath, 'index.html');
+    const fs = require('fs');
+    
+    // Check if React build exists
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath, (err) => {
+            if (err) {
+                console.error('Error serving React app:', err);
+                res.status(500).send(`
+                    <html>
+                        <head><title>TECH BOARD 2025 MCQ System</title></head>
+                        <body>
+                            <h1>TECH BOARD 2025 MCQ Testing System</h1>
+                            <p>The application is starting up...</p>
+                            <p>API is available at <a href="/api/health">/api/health</a></p>
+                        </body>
+                    </html>
+                `);
+            }
+        });
+    } else {
+        // Fallback HTML if React build is not available
+        res.send(`
+            <html>
+                <head>
+                    <title>TECH BOARD 2025 MCQ System</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 40px; }
+                        .container { max-width: 600px; margin: 0 auto; }
+                        .status { background: #f0f8ff; padding: 20px; border-radius: 8px; }
+                        .api-link { color: #0066cc; text-decoration: none; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>🎓 TECH BOARD 2025 MCQ Testing System</h1>
+                        <div class="status">
+                            <h2>✅ Server is Running</h2>
+                            <p>The backend API is operational and ready to serve requests.</p>
+                            <p><strong>API Health Check:</strong> <a href="/api/health" class="api-link">/api/health</a></p>
+                            <p><strong>Performance Metrics:</strong> <a href="/api/performance/health" class="api-link">/api/performance/health</a></p>
+                        </div>
+                        <h3>📊 Features Available:</h3>
+                        <ul>
+                            <li>✅ Student Authentication</li>
+                            <li>✅ Admin Panel</li>
+                            <li>✅ Quiz Management</li>
+                            <li>✅ Performance Monitoring</li>
+                            <li>✅ SEO Optimization</li>
+                            <li>✅ Core Web Vitals Tracking</li>
+                        </ul>
+                        <p><em>Frontend React app will be served when built and deployed.</em></p>
+                    </div>
+                </body>
+            </html>
+        `);
+    }
 });
 
 // Start server

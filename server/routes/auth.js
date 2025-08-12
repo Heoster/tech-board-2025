@@ -107,11 +107,14 @@ router.post('/admin/login', async (req, res) => {
         
         const token = jwt.sign({ id: admin.id, type: 'admin', username: admin.username }, process.env.JWT_SECRET || 'secret');
         res.json({ 
-            token, 
-            user: { 
-                id: admin.id, 
-                username: admin.username 
-            } 
+            success: true,
+            data: {
+                token, 
+                user: { 
+                    id: admin.id, 
+                    username: admin.username 
+                }
+            }
         });
     } catch (error) {
         console.error('Admin login error:', error);
