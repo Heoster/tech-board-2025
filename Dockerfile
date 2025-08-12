@@ -2,31 +2,26 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install server dependencies first
+# Install server dependencies
 COPY server/package*.json ./
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 
 # Copy server source
 COPY server/ ./
 
-# Initialize database
-RUN node database/create-db.js
-
-# Build client separately with memory limits
+# Build client
 WORKDIR /app/client
 COPY client/package*.json ./
-RUN npm install
+RUN npm ci
 COPY client/ ./
-RUN NODE_OPTIONS="--max-old-space-size=1024" npm run build
+RUN npm run build
 
-# Move built client to server directory
+# Move built client to server
 RUN mv dist ../client/
 
-# Back to app directory
+# Cleanup and back to app
 WORKDIR /app
-
-# Clean up client build files to save space
-RUN rm -rf client/node_modules client/src client/public client/package*.json
+RUN rm -rf client/node_modules client/src client/public client/package*.json client/tsconfig* client/vite* client/tailwind* client/postcss*
 
 EXPOSE 8000
 
