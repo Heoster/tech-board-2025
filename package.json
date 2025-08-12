@@ -1,31 +1,11 @@
 {
-  "name": "tech-board-2025-mcq-system",
+  "name": "technoboard",
   "version": "1.0.0",
-  "description": "TECH BOARD 2025 MCQ Testing System - Production Ready",
   "scripts": {
-    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
-    "client:dev": "cd client && npm run dev",
-    "server:dev": "cd server && npm run dev",
-    "build": "cd client && npm ci && npm run build",
-    "start": "node server/index.js",
-    "start:prod": "NODE_ENV=production node server/index.js",
-    "setup:prod": "node server/scripts/production-setup.js",
-    "railway:start": "node server/index.js",
-    "railway:build": "npm ci --only=production && cd client && npm ci && npm run build && cd ../server && npm ci --only=production && node scripts/production-setup.js",
-    "docker:build": "docker build -t mcq-system .",
-    "docker:run": "docker run -p 8000:8000 mcq-system",
-    "docker:compose": "docker-compose up --build"
+    "start": "cd server && npm start",
+    "build": "cd server && npm install --production"
   },
   "engines": {
-    "node": ">=18.0.0"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
-  },
-  "dependencies": {
-    "axios": "^1.11.0",
-    "dotenv": "^16.3.1",
-    "react": "^19.1.1",
-    "sqlite3": "^5.1.7"
+    "node": "18.x"
   }
 }
