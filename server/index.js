@@ -40,7 +40,7 @@ app.use('/api/students', require('./routes/students'));
 app.use('/api/performance', require('./routes/performance'));
 
 // Serve static files from React build
-const clientDistPath = path.join(__dirname, '../client/dist');
+const clientDistPath = path.join(__dirname, 'client/dist');
 app.use(express.static(clientDistPath));
 
 // Health check
@@ -107,21 +107,7 @@ app.get('*', (req, res) => {
     
     // Check if React build exists
     if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath, (err) => {
-            if (err) {
-                console.error('Error serving React app:', err);
-                res.status(500).send(`
-                    <html>
-                        <head><title>TECH BOARD 2025 MCQ System</title></head>
-                        <body>
-                            <h1>TECH BOARD 2025 MCQ Testing System</h1>
-                            <p>The application is starting up...</p>
-                            <p>API is available at <a href="/api/health">/api/health</a></p>
-                        </body>
-                    </html>
-                `);
-            }
-        });
+        res.sendFile(indexPath);
     } else {
         // Fallback HTML if React build is not available
         res.send(`
