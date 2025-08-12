@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { authService } from '../../services/authService';
 import { BookOpen, User, Mail, Lock, Eye, EyeOff, ArrowLeft, AlertCircle, GraduationCap, Sparkles, CheckCircle, Shield } from 'lucide-react';
 
 const StudentRegistration = () => {
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    roll_number: '',
     password: '',
     confirmPassword: '',
-    grade: ''
+    grade: '',
+    section: 'A'
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -36,7 +38,24 @@ const StudentRegistration = () => {
     setLoading(true);
 
     try {
-      await register(formData.name, formData.email, formData.password, parseInt(formData.grade));
+      const response = await authService.register({
+        name: formData.name,
+        roll_number: parseInt(formData.roll_number),
+        password: formData.password,
+        grade: parseInt(formData.grade),
+        section: formData.section
+      });
+
+      if (response.success) {
+        login(response.data.token, {
+          id: response.data.user.id,
+          role: 'student',
+          name: response.data.user.name,
+          rollNumber: response.data.user.roll_number,
+          grade: response.data.user.grade,
+          section: response.data.user.section
+        });
+      }
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
@@ -67,8 +86,8 @@ const StudentRegistration = () => {
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-lg">
           {/* Back to Home */}
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-8 transition-all duration-300 hover:translate-x-1"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -133,24 +152,26 @@ const StudentRegistration = () => {
                 </div>
               </div>
 
-              {/* Email Field */}
+              {/* Roll Number Field */}
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
-                  Email Address
+                <label htmlFor="roll_number" className="block text-sm font-semibold text-gray-700">
+                  Roll Number (1-100)
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-purple-500">
-                    <Mail className="w-5 h-5 text-gray-400 group-focus-within:text-purple-500" />
+                    <User className="w-5 h-5 text-gray-400 group-focus-within:text-purple-500" />
                   </div>
                   <input
-                    id="email"
-                    name="email"
-                    type="email"
+                    id="roll_number"
+                    name="roll_number"
+                    type="number"
+                    min="1"
+                    max="100"
                     required
-                    value={formData.email}
+                    value={formData.roll_number}
                     onChange={handleChange}
                     className="w-full pl-12 pr-4 py-3 bg-white/50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300/50 focus:border-purple-500 transition-all duration-300 text-gray-900 placeholder-gray-500 hover:bg-white/70"
-                    placeholder="Enter your email address"
+                    placeholder="Enter your roll number (1-100)"
                   />
                 </div>
               </div>
@@ -173,11 +194,34 @@ const StudentRegistration = () => {
                     className="w-full pl-12 pr-4 py-3 bg-white/50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300/50 focus:border-purple-500 transition-all duration-300 text-gray-900 hover:bg-white/70"
                   >
                     <option value="">Select your grade level</option>
-                    <option value="6">Grade 6 - Computer Basics</option>
-                    <option value="7">Grade 7 - Internet & Systems</option>
-                    <option value="8">Grade 8 - Web & Networking</option>
-                    <option value="9">Grade 9 - Programming Logic</option>
-                    <option value="11">Grade 11 - Advanced Programming</option>
+                    <option value="6">Grade 6 </option>
+                    <option value="7">Grade 7 </option>
+                    <option value="8">Grade 8 </option>
+                    <option value="9">Grade 9 </option>
+                    <option value="11">Grade 11 </option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Section Field */}
+              <div className="space-y-2">
+                <label htmlFor="section" className="block text-sm font-semibold text-gray-700">
+                  Section
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-purple-500">
+                    <User className="w-5 h-5 text-gray-400 group-focus-within:text-purple-500" />
+                  </div>
+                  <select
+                    id="section"
+                    name="section"
+                    required
+                    value={formData.section}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3 bg-white/50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300/50 focus:border-purple-500 transition-all duration-300 text-gray-900 hover:bg-white/70"
+                  >
+                    <option value="A">Section A</option>
+                    <option value="B">Section B</option>
                   </select>
                 </div>
               </div>
@@ -215,16 +259,14 @@ const StudentRegistration = () => {
                 </div>
                 {formData.password && (
                   <div className="flex items-center space-x-2 mt-2">
-                    <div className={`h-1 flex-1 rounded-full ${
-                      passwordStrength === 'strong' ? 'bg-green-500' :
-                      passwordStrength === 'medium' ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}></div>
-                    <span className={`text-xs font-medium ${
-                      passwordStrength === 'strong' ? 'text-green-600' :
-                      passwordStrength === 'medium' ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
+                    <div className={`h-1 flex-1 rounded-full ${passwordStrength === 'strong' ? 'bg-green-500' :
+                        passwordStrength === 'medium' ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}></div>
+                    <span className={`text-xs font-medium ${passwordStrength === 'strong' ? 'text-green-600' :
+                        passwordStrength === 'medium' ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
                       {passwordStrength === 'strong' ? 'Strong' :
-                       passwordStrength === 'medium' ? 'Medium' : 'Weak'}
+                        passwordStrength === 'medium' ? 'Medium' : 'Weak'}
                     </span>
                   </div>
                 )}
@@ -246,9 +288,8 @@ const StudentRegistration = () => {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-12 py-3 bg-white/50 border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300/50 transition-all duration-300 text-gray-900 placeholder-gray-500 hover:bg-white/70 ${
-                      passwordsMatch ? 'border-green-300 focus:border-green-500' : 'border-gray-200 focus:border-purple-500'
-                    }`}
+                    className={`w-full pl-12 pr-12 py-3 bg-white/50 border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-300/50 transition-all duration-300 text-gray-900 placeholder-gray-500 hover:bg-white/70 ${passwordsMatch ? 'border-green-300 focus:border-green-500' : 'border-gray-200 focus:border-purple-500'
+                      }`}
                     placeholder="Confirm your password"
                   />
                   <button

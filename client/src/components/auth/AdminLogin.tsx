@@ -18,6 +18,20 @@ interface AdminApiError {
   message?: string
 }
 
+interface AdminLoginResponse {
+  data: {
+    data: {
+      token: string
+      admin: {
+        id: number
+        username: string
+        email?: string
+        [key: string]: any
+      }
+    }
+  }
+}
+
 const AdminLogin: React.FC = () => {
   const [formData, setFormData] = useState({
     username: '',
@@ -93,12 +107,16 @@ const AdminLogin: React.FC = () => {
         ...formData,
         browserInfo,
         securityLevel: 'normal'
-      })
+      }) as AdminLoginResponse
 
       const { token, admin } = response.data.data
 
       // Store token and redirect
-      login(token, { ...admin, role: 'admin' })
+      login(token, { 
+        ...admin, 
+        id: typeof admin.id === 'string' ? parseInt(admin.id) : admin.id,
+        role: 'admin' 
+      })
       navigate('/admin/dashboard')
 
     } catch (error: unknown) {

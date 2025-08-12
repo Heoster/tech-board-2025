@@ -1,6 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Users, Award, ArrowRight, Zap, Shield, Target, Star, CheckCircle, Clock, Trophy } from 'lucide-react';
+
+// Simple SVG icon components
+const BookOpen = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>;
+const Users = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a4 4 0 11-8 0 4 4 0 018 0z" /></svg>;
+const Award = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>;
+const ArrowRight = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>;
+const Target = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+const Star = () => <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>;
+const CheckCircle = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+const Clock = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+const Trophy = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>;
 
 const TechnoBoardLanding = () => {
   return (
@@ -11,17 +21,17 @@ const TechnoBoardLanding = () => {
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <BookOpen className="w-6 h-6 text-white" />
+                <BookOpen />
               </div>
               <span className="text-2xl font-bold text-gray-900">Tech Board</span>
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <span>powered by</span>
-              <img src="/logoSch.png" alt="Maples Academy" className="h-8 w-auto" />
+              <img src="/logoSch.png" alt="Maples Academy" className="h-8 w-auto" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               <span className="font-semibold text-orange-600">Maples Academy</span>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             <Link to="/login" className="nav-link">Login</Link>
             <Link to="/register" className="btn btn-primary">Get Started</Link>
@@ -34,30 +44,30 @@ const TechnoBoardLanding = () => {
         <div className="container text-center">
           <div className="max-w-4xl mx-auto">
             <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-8">
-              <Star className="w-4 h-4 mr-2" />
+              <div className="mr-2"><Star /></div>
               Led by PANKAJ Sir - Maples Academy
             </div>
-            
+
             <h1 className="heading-1 mb-6">
               Tech Board
               <span className="block text-gradient">Selection Test</span>
             </h1>
-            
+
             <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Join the exclusive Tech Board - an elite NFO (Non-Formal Organization) founded by Maples Academy. 
+              Join the exclusive Tech Board - an elite group of tech experts founded by Maples Academy.
               Prove your technical skills and become part of a prestigious community of tech enthusiasts.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
               <Link to="/register" className="btn btn-primary btn-lg group">
                 <span>Take Selection Test</span>
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                <div className="ml-2 group-hover:translate-x-1 transition-transform"><ArrowRight /></div>
               </Link>
               <Link to="/admin/login" className="btn btn-secondary btn-lg">
                 Admin Portal
               </Link>
             </div>
-            
+
             <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
               <div className="text-center">
                 <div className="text-3xl font-bold text-gray-900 mb-1">1500+</div>
@@ -85,31 +95,31 @@ const TechnoBoardLanding = () => {
               Exclusive advantages for Tech Board members under PANKAJ Sir's guidance
             </p>
           </div>
-          
+
           <div className="grid-auto">
             <div className="card hover-lift group">
-              <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Users className="w-7 h-7 text-white" />
+              <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform text-white">
+                <Users />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Elite Community</h3>
               <p className="text-gray-600">
                 Join an exclusive network of tech enthusiasts and get mentorship from PANKAJ Sir and Maples Academy experts.
               </p>
             </div>
-            
+
             <div className="card hover-lift group">
-              <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Award className="w-7 h-7 text-white" />
+              <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform text-white">
+                <Award />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Recognition & Certificates</h3>
               <p className="text-gray-600">
                 Earn official Tech Board certification and gain recognition for your technical skills and achievements.
               </p>
             </div>
-            
+
             <div className="card hover-lift group">
-              <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Target className="w-7 h-7 text-white" />
+              <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform text-white">
+                <Target />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Skill Development</h3>
               <p className="text-gray-600">
@@ -127,32 +137,32 @@ const TechnoBoardLanding = () => {
             <h2 className="heading-2 mb-4">Selection Test Details</h2>
             <p className="text-xl text-gray-600">Everything you need to know about the Tech Board selection process</p>
           </div>
-          
+
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Clock className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 text-blue-600">
+                  <Clock />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">60 Minutes Duration</h3>
                   <p className="text-gray-600">Comprehensive selection test with 50 carefully crafted questions to assess your technical aptitude and problem-solving skills.</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Trophy className="w-6 h-6 text-green-600" />
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0 text-green-600">
+                  <Trophy />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Instant Results</h3>
                   <p className="text-gray-600">Receive immediate feedback on your performance and know instantly if you qualify for Tech Board membership.</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Users className="w-6 h-6 text-purple-600" />
+                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0 text-purple-600">
+                  <Users />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Grade-Specific Content</h3>
@@ -160,24 +170,24 @@ const TechnoBoardLanding = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="card-gradient p-8 text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Award className="w-10 h-10 text-white" />
+              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-white">
+                <div className="w-10 h-10"><Award /></div>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Ready to Join Tech Board?</h3>
               <p className="text-gray-600 mb-6">Take the selection test and become part of an elite tech community</p>
               <div className="space-y-3 mb-6">
                 <div className="flex items-center justify-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <div className="text-green-500"><CheckCircle /></div>
                   <span className="text-sm text-gray-600">Pass with 72% (36/50)</span>
                 </div>
                 <div className="flex items-center justify-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <div className="text-green-500"><CheckCircle /></div>
                   <span className="text-sm text-gray-600">Tech Board Membership</span>
                 </div>
                 <div className="flex items-center justify-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <div className="text-green-500"><CheckCircle /></div>
                   <span className="text-sm text-gray-600">Achievement Certificate</span>
                 </div>
               </div>
@@ -196,7 +206,7 @@ const TechnoBoardLanding = () => {
             <h2 className="heading-2 mb-4">Topics by Grade Level</h2>
             <p className="text-xl text-gray-600">Comprehensive curriculum covering all essential computer science concepts</p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               { grade: 6, questions: 300, topics: ['Computer Parts', 'Input/Output Devices', 'Software Types', 'Digital Safety'], color: 'blue' },
@@ -233,8 +243,8 @@ const TechnoBoardLanding = () => {
       <footer className="bg-gray-900 text-white py-12">
         <div className="container text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white">
+              <BookOpen />
             </div>
             <span className="text-2xl font-bold">Tech Board</span>
           </div>
@@ -243,7 +253,7 @@ const TechnoBoardLanding = () => {
           </p>
           <div className="flex items-center justify-center space-x-2 mb-4">
             <span className="text-sm text-gray-400">Powered by</span>
-            <img src="/logoSch.png" alt="Maples Academy" className="h-6 w-auto" />
+            <img src="/logoSch.png" alt="Maples Academy" className="h-6 w-auto" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
             <span className="text-sm font-semibold text-orange-400">Maples Academy</span>
           </div>
           <div className="text-sm text-gray-500">

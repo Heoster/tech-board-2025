@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { authService } from '../../services/authService';
 import { BookOpen, Mail, Lock, Eye, EyeOff, ArrowLeft, AlertCircle, Sparkles, Shield } from 'lucide-react';
 
 const ModernLoginForm = () => {
   const [formData, setFormData] = useState({
-    email: '',
+    roll_number: '',
+    grade: '',
+    section: 'A',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +24,21 @@ const ModernLoginForm = () => {
     setLoading(true);
 
     try {
-      await login(formData.email, formData.password);
+      const response = await authService.login({
+        roll_number: parseInt(formData.roll_number),
+        password: formData.password,
+        grade: parseInt(formData.grade),
+        section: formData.section
+      });
+      
+      login(response.token, {
+        id: response.user.id,
+        role: 'student',
+        name: response.user.name,
+        rollNumber: response.user.roll_number,
+        grade: response.user.grade,
+        section: response.user.section
+      });
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
@@ -87,25 +104,77 @@ const ModernLoginForm = () => {
 
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Field */}
+              {/* Roll Number Field */}
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
-                  Email Address
+                <label htmlFor="roll_number" className="block text-sm font-semibold text-gray-700">
+                  Roll Number
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500">
                     <Mail className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500" />
                   </div>
                   <input
-                    id="email"
-                    name="email"
-                    type="email"
+                    id="roll_number"
+                    name="roll_number"
+                    type="number"
+                    min="1"
+                    max="100"
                     required
-                    value={formData.email}
+                    value={formData.roll_number}
                     onChange={handleChange}
                     className="w-full pl-12 pr-4 py-4 bg-white/50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-300/50 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500 hover:bg-white/70"
-                    placeholder="Enter your email address"
+                    placeholder="Enter your roll number"
                   />
+                </div>
+              </div>
+
+              {/* Grade Field */}
+              <div className="space-y-2">
+                <label htmlFor="grade" className="block text-sm font-semibold text-gray-700">
+                  Grade
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500">
+                    <Mail className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500" />
+                  </div>
+                  <select
+                    id="grade"
+                    name="grade"
+                    required
+                    value={formData.grade}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-4 bg-white/50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-300/50 focus:border-blue-500 transition-all duration-300 text-gray-900 hover:bg-white/70"
+                  >
+                    <option value="">Select Grade</option>
+                    <option value="6">Grade 6</option>
+                    <option value="7">Grade 7</option>
+                    <option value="8">Grade 8</option>
+                    <option value="9">Grade 9</option>
+                    <option value="11">Grade 11</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Section Field */}
+              <div className="space-y-2">
+                <label htmlFor="section" className="block text-sm font-semibold text-gray-700">
+                  Section
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500">
+                    <Mail className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500" />
+                  </div>
+                  <select
+                    id="section"
+                    name="section"
+                    required
+                    value={formData.section}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-4 bg-white/50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-300/50 focus:border-blue-500 transition-all duration-300 text-gray-900 hover:bg-white/70"
+                  >
+                    <option value="A">Section A</option>
+                    <option value="B">Section B</option>
+                  </select>
                 </div>
               </div>
 

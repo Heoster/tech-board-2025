@@ -2,14 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import apiClient from '../../utils/apiClient';
 
 interface QuestionApiError {
-  response?: {
-    data?: {
-      error?: {
-        message?: string
-      }
+    response?: {
+        data?: {
+            error?: {
+                message?: string
+            }
+        }
     }
-  }
-  message?: string
+    message?: string
 }
 
 interface Question {
@@ -211,8 +211,8 @@ const QuestionManagement: React.FC = () => {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
             </div>
         );
-    }  
-     return (
+    }
+    return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex justify-between items-center">
@@ -453,26 +453,26 @@ const QuestionManagement: React.FC = () => {
                                     Options (Select one correct answer)
                                 </label>
                                 <div className="space-y-3">
-                                    {newQuestion.options.map((option, index) => (                                     <div key={index} className="flex items-center space-x-3">
-                                            <input
-                                                type="radio"
-                                                name="correctOption"
-                                                checked={option.isCorrect}
-                                                onChange={() => handleOptionChange(index, 'isCorrect', true)}
-                                                className="text-red-500 focus:ring-red-500"
-                                            />
-                                            <span className="font-semibold text-gray-700 dark:text-gray-300">
-                                                {String.fromCharCode(65 + index)}.
-                                            </span>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={option.text}
-                                                onChange={(e) => handleOptionChange(index, 'text', e.target.value)}
-                                                className="flex-1 px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-dark-700 dark:text-gray-100"
-                                                placeholder={`Option ${String.fromCharCode(65 + index)}`}
-                                            />
-                                        </div>
+                                    {newQuestion.options.map((option, index) => (<div key={index} className="flex items-center space-x-3">
+                                        <input
+                                            type="radio"
+                                            name="correctOption"
+                                            checked={option.isCorrect}
+                                            onChange={() => handleOptionChange(index, 'isCorrect', true)}
+                                            className="text-red-500 focus:ring-red-500"
+                                        />
+                                        <span className="font-semibold text-gray-700 dark:text-gray-300">
+                                            {String.fromCharCode(65 + index)}.
+                                        </span>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={option.text}
+                                            onChange={(e) => handleOptionChange(index, 'text', e.target.value)}
+                                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-dark-700 dark:text-gray-100"
+                                            placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                                        />
+                                    </div>
                                     ))}
                                 </div>
                             </div>
