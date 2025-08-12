@@ -14,6 +14,21 @@ interface LoginApiError {
   message?: string
 }
 
+interface LoginResponse {
+  data: {
+    data: {
+      token: string;
+      student: {
+        id: number;
+        name: string;
+        rollNumber: number;
+        grade: number;
+        section: string;
+      };
+    };
+  };
+}
+
 const LoginForm: React.FC = () => {
   const [formData, setFormData] = useState({
     rollNumber: '',
@@ -39,7 +54,7 @@ const LoginForm: React.FC = () => {
     setLoading(true)
 
     try {
-      const response = await apiClient.post('/auth/login', formData)
+      const response = await apiClient.post('/auth/login', formData) as LoginResponse
       const { token, student } = response.data.data
       
       login(token, { ...student, role: 'student' })
