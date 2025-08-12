@@ -1,10 +1,10 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
 # Install server dependencies
 COPY server/package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Copy server source
 COPY server/ ./
@@ -12,7 +12,7 @@ COPY server/ ./
 # Build client
 WORKDIR /app/client
 COPY client/package*.json ./
-RUN npm ci --legacy-peer-deps
+RUN npm install --legacy-peer-deps
 COPY client/ ./
 RUN npm run build
 
