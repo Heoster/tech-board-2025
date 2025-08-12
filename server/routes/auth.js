@@ -9,14 +9,19 @@ const router = express.Router();
 // Student registration
 router.post('/register', [
     body('name').trim().isLength({ min: 2 }),
-    body('roll_number').isInt({ min: 1 }),
+    body('roll_number').isInt({ min: 1, max: 100 }),
     body('password').isLength({ min: 6 }),
     body('grade').isIn([6, 7, 8, 9, 11]),
-    body('section').optional().isLength({ min: 1, max: 1 })
+    body('section').isIn(['A', 'B'])
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: 'Invalid input' });
+        console.log('Validation errors:', errors.array());
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Invalid input',
+            details: errors.array()
+        });
     }
     
     try {
@@ -49,7 +54,11 @@ router.post('/register', [
         });
     } catch (error) {
         console.error('Registration error:', error);
-        res.status(500).json({ success: false, error: 'Registration failed' });
+        res.status(500).json({ 
+            success: false, 
+            error: 'Registration failed',
+            details: error.message
+        });
     }
 });
 
