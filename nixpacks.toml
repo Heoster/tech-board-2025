@@ -1,15 +1,11 @@
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "npm-9_x", "python3", "sqlite"]
+nixPkgs = ["nodejs_20", "python3", "sqlite"]
 
 [phases.install]
-cmds = [
-  "npm install",
-  "cd client && npm install",
-  "cd server && npm install"
-]
+cmds = ["npm install"]
 
 [phases.build]
-cmds = ["node build-production.js"]
+cmds = ["node railway-build.js"]
 
 [start]
 cmd = "node railway-start.js"

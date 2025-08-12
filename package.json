@@ -4,20 +4,20 @@
   "description": "Tech Board 2025 MCQ Testing System - Complete quiz management platform",
   "main": "server/index.js",
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   },
   "scripts": {
     "start": "node railway-start.js",
     "start:prod": "node railway-start.js",
     "dev": "cd server && npm run dev",
-    "build": "node build-production.js",
-    "build:production": "node build-production.js",
+    "build": "node railway-build.js",
+    "build:production": "node railway-build.js",
     "postinstall": "echo 'Dependencies will be installed during build'",
     "setup:production": "node production-setup.js",
     "verify": "node verify-deployment.js",
     "test": "cd server && npm test",
-    "railway:build": "node build-production.js",
+    "railway:build": "node railway-build.js",
     "railway:start": "node railway-start.js"
   },
   "keywords": [

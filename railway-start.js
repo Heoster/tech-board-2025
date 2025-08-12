@@ -1,4 +1,3 @@
-const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -13,21 +12,7 @@ async function startRailwayApp() {
       console.log('📁 Created database directory');
     }
 
-    // Step 2: Check if database needs seeding
-    const dbPath = path.join(dbDir, 'mcq_system_fixed.db');
-    if (!fs.existsSync(dbPath)) {
-      console.log('🗄️ Database not found, initializing...');
-      try {
-        execSync('node ensure-300-questions.js', { stdio: 'inherit' });
-        console.log('✅ Database initialized successfully');
-      } catch (error) {
-        console.log('⚠️ Database initialization failed, will create at runtime');
-      }
-    } else {
-      console.log('✅ Database found, checking integrity...');
-    }
-
-    // Step 3: Verify client build exists
+    // Step 2: Check if client build exists
     const clientPath = path.join(__dirname, 'server/client/index.html');
     if (fs.existsSync(clientPath)) {
       console.log('✅ Client build found');
@@ -35,9 +20,11 @@ async function startRailwayApp() {
       console.log('⚠️ Client build not found, server will serve fallback HTML');
     }
 
-    // Step 4: Start the server
+    // Step 3: Set working directory and start server
     console.log('🚀 Starting server...');
     process.chdir('server');
+    
+    // Import and start the server
     require('./server/index.js');
 
   } catch (error) {

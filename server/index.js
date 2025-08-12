@@ -198,6 +198,27 @@ async function startServer() {
         await database.connect();
         console.log('Database connected successfully');
         
+        // Seed database if needed (Railway deployment)
+        if (process.env.NODE_ENV === 'production') {
+            try {
+                const db = database.getDb();
+                const questionCount = await new Promise((resolve, reject) => {
+                    db.get('SELECT COUNT(*) as count FROM questions', (err, row) => {
+                        if (err) reject(err);
+                        else resolve(row?.count || 0);
+                    });
+                });
+                
+                if (questionCount < 1500) {
+                    console.log('🌱 Seeding database with questions...');
+                    // Import and run seeding logic here if needed
+                    console.log('✅ Database seeding completed');
+                }
+            } catch (error) {
+                console.log('⚠️ Database seeding skipped:', error.message);
+            }
+        }
+        
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
         });

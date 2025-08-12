@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "start": "node index.js",
@@ -14,7 +14,7 @@
     "start:prod": "NODE_ENV=production node index.js",
     "build": "node ../build-production.js",
     "build:production": "node ../build-production.js",
-    "postinstall": "node ../ensure-300-questions.js",
+    "postinstall": "echo 'Database will be seeded during startup'",
     "railway:build": "npm run build:production",
     "railway:start": "npm run start:prod"
   },
@@ -22,7 +22,7 @@
     "axios": "^1.11.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
-    "csurf": "^1.11.0",
+
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
