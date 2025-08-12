@@ -1,40 +1,75 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, ChevronLeft, ChevronRight, Flag, CheckCircle } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Flag, CheckCircle, AlertTriangle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import apiClient from '../utils/apiClient';
 
 interface Question {
   id: number;
-  question: string;
-  options: string[];
-  correctAnswer: number;
+  question_text: string;
+  difficulty: string;
+  options: Array<{
+    id: number;
+    text: string;
+    order: number;
+  }>;
+}
+
+interface QuizData {
+  quizId: number;
+  questions: Question[];
+  timeLimit: number;
+  startTime: string;
 }
 
 const QuizInterface = () => {
-  const [questions] = useState<Question[]>([
-    {
-      id: 1,
-      question: "What does CPU stand for?",
-      options: ["Central Processing Unit", "Computer Personal Unit", "Central Program Unit", "Computer Processing Unit"],
-      correctAnswer: 0
-    },
-    {
-      id: 2,
-      question: "Which of the following is an input device?",
-      options: ["Monitor", "Printer", "Keyboard", "Speaker"],
-      correctAnswer: 2
-    }
-  ]);
-  
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<{ [key: number]: number }>({});
-  const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 minutes
+  const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [quizData, setQuizData] = useState<QuizData | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<{ [key: number]: number }>({});
+  const [timeLeft, setTimeLeft] = useState(50 * 60); // 50 minutes
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+
+  // Initialize quiz
   useEffect(() => {
+    const initializeQuiz = async () => {
+      try {
+        const response = await apiClient.post('/quiz/start', {
+          grade: user?.grade
+        });
+
+        const data = (response.data as any).data;
+        setQuizData(data);
+        setTimeLeft(50 * 60); // 50 minutes
+
+        // Show warning about time limit
+        setShowWarning(true);
+        setTimeout(() => setShowWarning(false), 5000);
+
+      } catch (error: any) {
+        console.error('Failed to start quiz:', error);
+        alert(error.response?.data?.error || 'Failed to start quiz');
+        navigate('/dashboard');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeQuiz();
+  }, [user?.grade, navigate]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (!quizData || timeLeft <= 0) return;
+
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
-          handleSubmit();
+          handleSubmit(true); // Auto-submit when time expires
           return 0;
         }
         return prev - 1;
@@ -42,7 +77,7 @@ const QuizInterface = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [quizData]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -50,50 +85,122 @@ const QuizInterface = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleAnswerSelect = (answerIndex: number) => {
+  const handleAnswerSelect = (optionId: number) => {
     setAnswers(prev => ({
       ...prev,
-      [currentQuestion]: answerIndex
+      [currentQuestion]: optionId
     }));
   };
 
-  const handleSubmit = () => {
-    navigate('/test-submitted');
+  const handleSubmit = async (autoSubmit = false) => {
+    if (submitting) return;
+
+    if (!autoSubmit) {
+      const unanswered = 50 - Object.keys(answers).length;
+      if (unanswered > 0) {
+        const confirm = window.confirm(
+          `You have ${unanswered} unanswered questions. Are you sure you want to submit?`
+        );
+        if (!confirm) return;
+      }
+    }
+
+    setSubmitting(true);
+
+    try {
+      if (!quizData) throw new Error('No quiz data');
+
+      // Prepare answers in the expected format
+      const formattedAnswers = quizData.questions.map((question, index) => ({
+        questionId: question.id,
+        selectedOptionId: answers[index] || null
+      })).filter(answer => answer.selectedOptionId !== null);
+
+      await apiClient.post('/quiz/submit', {
+        quizId: quizData.quizId,
+        answers: formattedAnswers,
+        startTime: quizData.startTime
+      });
+
+      navigate('/test-submitted');
+    } catch (error: any) {
+      console.error('Failed to submit quiz:', error);
+      alert(error.response?.data?.error || 'Failed to submit quiz');
+      setSubmitting(false);
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your test...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!quizData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">Failed to load test. Please try again.</p>
+          <button onClick={() => navigate('/dashboard')} className="btn btn-primary mt-4">
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const questions = quizData.questions;
   const progress = ((currentQuestion + 1) / questions.length) * 100;
   const answeredCount = Object.keys(answers).length;
+  const isTimeRunningOut = timeLeft <= 5 * 60; // Last 5 minutes
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Time Warning */}
+      {showWarning && (
+        <div className="fixed top-4 right-4 bg-amber-100 border border-amber-400 text-amber-800 px-4 py-3 rounded-lg shadow-lg z-50">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-5 h-5" />
+            <span className="font-medium">50-minute time limit enforced!</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="container flex items-center justify-between py-4">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold text-gray-900">TechnoBoard Assessment</h1>
+            <h1 className="text-xl font-bold text-gray-900">Tech Board Selection Test</h1>
             <div className="badge badge-primary">
               Question {currentQuestion + 1} of {questions.length}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-gray-700">
+            <div className={`flex items-center space-x-2 ${isTimeRunningOut ? 'text-red-600' : 'text-gray-700'}`}>
               <Clock className="w-5 h-5" />
               <span className="font-mono font-semibold">{formatTime(timeLeft)}</span>
+              {isTimeRunningOut && <span className="text-xs">(URGENT)</span>}
             </div>
             <button
-              onClick={handleSubmit}
+              onClick={() => handleSubmit()}
+              disabled={submitting}
               className="btn btn-primary"
             >
-              Submit Test
+              {submitting ? 'Submitting...' : 'Submit Test'}
             </button>
           </div>
         </div>
-        
+
         {/* Progress Bar */}
         <div className="progress">
-          <div 
-            className="progress-bar" 
+          <div
+            className="progress-bar"
             style={{ width: `${progress}%` }}
           ></div>
         </div>
@@ -117,36 +224,42 @@ const QuizInterface = () => {
                       )}
                     </div>
                   </div>
-                  
+
                   <p className="text-gray-800 text-lg leading-relaxed">
-                    {questions[currentQuestion]?.question}
+                    {questions[currentQuestion]?.question_text}
                   </p>
+                  <div className="mt-2">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${questions[currentQuestion]?.difficulty === 'basic' ? 'bg-green-100 text-green-800' :
+                        questions[currentQuestion]?.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                      }`}>
+                      {questions[currentQuestion]?.difficulty?.toUpperCase()}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Answer Options */}
                 <div className="space-y-3 mb-8">
                   {questions[currentQuestion]?.options.map((option, index) => (
                     <button
-                      key={index}
-                      onClick={() => handleAnswerSelect(index)}
-                      className={`w-full p-4 text-left rounded-xl border-2 transition-all ${
-                        answers[currentQuestion] === index
+                      key={option.id}
+                      onClick={() => handleAnswerSelect(option.id)}
+                      className={`w-full p-4 text-left rounded-xl border-2 transition-all ${answers[currentQuestion] === option.id
                           ? 'border-blue-500 bg-blue-50 text-blue-900'
                           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                          answers[currentQuestion] === index
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${answers[currentQuestion] === option.id
                             ? 'border-blue-500 bg-blue-500'
                             : 'border-gray-300'
-                        }`}>
-                          {answers[currentQuestion] === index && (
+                          }`}>
+                          {answers[currentQuestion] === option.id && (
                             <div className="w-2 h-2 bg-white rounded-full"></div>
                           )}
                         </div>
                         <span className="font-medium">{String.fromCharCode(65 + index)}.</span>
-                        <span>{option}</span>
+                        <span>{option.text}</span>
                       </div>
                     </button>
                   ))}
@@ -162,7 +275,7 @@ const QuizInterface = () => {
                     <ChevronLeft className="w-4 h-4 mr-2" />
                     Previous
                   </button>
-                  
+
                   <button
                     onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
                     disabled={currentQuestion === questions.length - 1}
@@ -179,15 +292,15 @@ const QuizInterface = () => {
             <div className="lg:col-span-1">
               <div className="card sticky top-24">
                 <h3 className="font-semibold text-gray-900 mb-4">Test Progress</h3>
-                
+
                 <div className="mb-6">
                   <div className="flex justify-between text-sm text-gray-600 mb-2">
                     <span>Answered</span>
                     <span>{answeredCount}/{questions.length}</span>
                   </div>
                   <div className="progress">
-                    <div 
-                      className="progress-bar" 
+                    <div
+                      className="progress-bar"
                       style={{ width: `${(answeredCount / questions.length) * 100}%` }}
                     ></div>
                   </div>
@@ -200,13 +313,12 @@ const QuizInterface = () => {
                       <button
                         key={index}
                         onClick={() => setCurrentQuestion(index)}
-                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${
-                          index === currentQuestion
+                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${index === currentQuestion
                             ? 'bg-blue-500 text-white'
                             : answers[index] !== undefined
-                            ? 'bg-green-100 text-green-800 border border-green-300'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                              ? 'bg-green-100 text-green-800 border border-green-300'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
                       >
                         {index + 1}
                       </button>
@@ -214,12 +326,20 @@ const QuizInterface = () => {
                   </div>
                 </div>
 
+                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-xs text-amber-800">
+                    <strong>Important:</strong> Results are only visible to administration.
+                    You will be contacted if qualified.
+                  </p>
+                </div>
+
                 <button
-                  onClick={handleSubmit}
+                  onClick={() => handleSubmit()}
+                  disabled={submitting}
                   className="btn btn-primary w-full"
                 >
                   <Flag className="w-4 h-4 mr-2" />
-                  Submit Test
+                  {submitting ? 'Submitting...' : 'Submit Test'}
                 </button>
               </div>
             </div>

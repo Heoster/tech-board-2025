@@ -1,30 +1,44 @@
-FROM node:20-alpine
+# Use Node.js 18 LTS
+FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
-# Copy and install server dependencies
-COPY server/package*.json ./
-RUN npm install --omit=dev
+# Install system dependencies
+RUN apk add --no-cache python3 make g++ sqlite
 
-# Copy server source
-COPY server/ ./
+# Copy package files
+COPY package*.json ./
+COPY server/package*.json ./server/
+COPY client/package*.json ./client/
 
-# Create client directory and build
-WORKDIR /app/client
-COPY client/package*.json ./
-RUN npm install --legacy-peer-deps
-COPY client/ ./
-RUN npm run build
+# Install dependencies
+RUN npm install --production
+RUN cd client && npm install
+RUN cd server && npm install --production
 
-# Move build to correct location
-RUN mkdir -p /app/client && mv dist /app/client/
+# Copy source code
+COPY . .
 
-# Back to app root
-WORKDIR /app
+# Build client
+RUN cd client && npm run build:deploy
 
-# Cleanup
-RUN rm -rf /app/client/node_modules /app/client/src /app/client/public
+# Copy client build to server
+RUN cp -r client/dist server/client
 
+# Set up database
+RUN node production-setup.js
+
+# Expose port
 EXPOSE 8000
 
-CMD ["node", "index.js"]
+# Set environment
+ENV NODE_ENV=production
+ENV PORT=8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
+
+# Start server
+CMD ["npm", "run", "start:prod"]

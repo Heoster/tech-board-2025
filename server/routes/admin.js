@@ -149,6 +149,50 @@ const validateQuestion = [
     })
 ];
 
+// Check question counts per grade
+router.get('/question-counts', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+    try {
+        const db = database.getDb();
+        
+        const counts = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT grade, COUNT(*) as count
+                FROM questions 
+                GROUP BY grade 
+                ORDER BY grade
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        const result = {};
+        [6, 7, 8, 9, 11].forEach(grade => {
+            const gradeData = counts.find(c => c.grade === grade);
+            result[grade] = {
+                current: gradeData ? gradeData.count : 0,
+                required: 300,
+                status: gradeData && gradeData.count >= 300 ? 'sufficient' : 'insufficient'
+            };
+        });
+        
+        res.json({
+            success: true,
+            data: result
+        });
+        
+    } catch (error) {
+        console.error('Error fetching question counts:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'QUESTION_COUNTS_FAILED',
+                message: 'Failed to fetch question counts'
+            }
+        });
+    }
+});
+
 // Get all questions with filtering
 router.get('/questions', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
     try {

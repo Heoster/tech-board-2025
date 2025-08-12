@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build --mode production",
-    "build:deploy": "vite build --mode production --force",
+    "build:deploy": "vite build --mode production",
     "lint": "eslint .",
     "preview": "vite preview --port 4173",
     "test": "vitest",

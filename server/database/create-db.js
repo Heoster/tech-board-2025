@@ -69,9 +69,9 @@ db.serialize(() => {
         FOREIGN KEY (selected_option_id) REFERENCES options(id) ON DELETE CASCADE
     )`);
 
-    // Insert default admin (password: 'password')
+    // Insert default admin (password: 'admin123')
     db.run(`INSERT OR IGNORE INTO admins (username, password) 
-            VALUES ('admin', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi')`);
+            VALUES ('admin', '$2b$10$Wn.r5lzxyGPAQyO5MVkfHO8mgIHnLoJBLLNSkIHUjU9yPRjJs/Gma')`);
 });
 
 db.close((err) => {

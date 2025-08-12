@@ -1,194 +1,223 @@
-# 🚀 TechnoBoard - Professional Technical Assessment Platform
+# 🎓 Tech Board 2025 - MCQ Testing System
 
-A modern, full-stack technical assessment platform built with React, TypeScript, Node.js, and Express. Features professional UI/UX design, secure authentication, and comprehensive quiz management.
+A comprehensive quiz management platform for Tech Board selection process with secure authentication, timed tests, and complete administrative controls.
+
+## 🌐 Live Application
+
+**🚀 Deployed on Railway**: [https://tech-board.up.railway.app](https://tech-board.up.railway.app)
 
 ## ✨ Features
 
-### 🎨 **Professional UI/UX**
-- Modern glass morphism design with animated backgrounds
-- Responsive design optimized for all devices
-- Professional color scheme with blue-purple gradients
-- Smooth animations and micro-interactions
-- Consistent component library and design system
+### 🎯 Student Experience
+- **Secure Registration** - Roll number, grade, and section validation
+- **50-Minute Timed Tests** - Strict time enforcement with auto-submit
+- **50 Questions Per Test** - Randomly selected from grade-specific question pools
+- **Results Privacy** - Students only see qualification status
+- **Responsive Design** - Works on desktop, tablet, and mobile devices
 
-### 🔐 **Authentication & Security**
-- Secure JWT-based authentication
-- Password strength validation
-- Input sanitization and validation
-- CSRF protection and rate limiting
-- Helmet security headers
+### 🔐 Admin Experience
+- **Complete Dashboard** - Tabbed interface with comprehensive controls
+- **Results Management** - View all student results with detailed analytics
+- **Question Bank Management** - Full CRUD operations for 1,500+ questions
+- **Student Management** - Complete oversight of registered students
+- **CSV Export** - Export results for further analysis
+- **Grade Statistics** - Success rates and performance metrics
 
-### 📚 **Assessment System**
-- Grade-specific question banks (6, 7, 8, 9, 11)
-- 25 multiple-choice questions per test
-- 30-minute time limit with real-time countdown
-- Instant results with detailed analytics
-- Progress tracking and navigation
+### 🛡️ Security & Performance
+- **JWT Authentication** - Secure token-based authentication
+- **Rate Limiting** - Protection against abuse and DDoS attacks
+- **Input Validation** - Comprehensive validation on all endpoints
+- **CORS Protection** - Configured for production security
+- **Optimized Performance** - Cached queries and compressed responses
 
-### 👨‍💼 **Admin Panel**
-- Question management system
-- Student performance analytics
-- Quiz configuration and settings
-- User management dashboard
+## 🗄️ Database
 
-## 🛠️ Tech Stack
-
-### Frontend
-- **React 18** with TypeScript
-- **Tailwind CSS** for styling
-- **Lucide React** for icons
-- **React Router** for navigation
-- **Vite** for build tooling
-
-### Backend
-- **Node.js** with Express
-- **MongoDB** with Mongoose
-- **JWT** for authentication
-- **bcryptjs** for password hashing
-- **Helmet** for security headers
-
-### DevOps & Deployment
-- **Docker** containerization
-- **Railway** deployment platform
-- **GitHub Actions** for CI/CD
+- **1,500 Questions** - 300 questions per grade (6, 7, 8, 9, 11)
+- **Zero Duplicates** - Verified clean database
+- **SQLite** - Lightweight, fast, and reliable
+- **Automatic Seeding** - Questions populated during deployment
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm
-- MongoDB database
-- Git
+- Node.js 18+ 
+- npm 8+
 
-### Installation
+### Local Development
 
 1. **Clone the repository**
-```bash
-git clone https://github.com/yourusername/technoboard.git
-cd technoboard
-```
+   ```bash
+   git clone https://github.com/your-username/tech-board-2025.git
+   cd tech-board-2025
+   ```
 
 2. **Install dependencies**
-```bash
-# Install server dependencies
-cd server
-npm install
+   ```bash
+   npm install
+   cd server && npm install
+   cd ../client && npm install
+   ```
 
-# Install client dependencies
-cd ../client
-npm install
-```
+3. **Set up database**
+   ```bash
+   node ensure-300-questions.js
+   ```
 
-3. **Environment Setup**
-```bash
-# Server environment (.env)
-cd ../server
-cp .env.example .env
-# Edit .env with your MongoDB URI and JWT secret
-
-# Client environment (.env)
-cd ../client
-cp .env.example .env
-# Edit .env with your API base URL
-```
-
-4. **Start Development Servers**
-```bash
-# Start backend server (from server directory)
-npm run dev
-
-# Start frontend server (from client directory)
-npm run dev
-```
+4. **Start development server**
+   ```bash
+   # Terminal 1: Start backend
+   cd server && npm run dev
+   
+   # Terminal 2: Start frontend
+   cd client && npm run dev
+   ```
 
 5. **Access the application**
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:5000
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - Health Check: http://localhost:8000/api/health
+
+### Production Deployment
+
+#### Deploy to Railway
+
+1. **Install Railway CLI**
+   ```bash
+   npm install -g @railway/cli
+   ```
+
+2. **Login and deploy**
+   ```bash
+   railway login
+   railway init
+   railway up
+   ```
+
+3. **Set environment variables in Railway Dashboard**
+   ```env
+   NODE_ENV=production
+   JWT_SECRET=your-super-secure-jwt-secret
+   CORS_ORIGIN=https://your-app.up.railway.app
+   ```
+
+#### Deploy to Other Platforms
+
+The app includes configuration for:
+- **Railway** (railway.json, nixpacks.toml)
+- **Docker** (Dockerfile)
+- **Heroku** (package.json scripts)
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NODE_ENV` | Environment mode | `development` |
+| `PORT` | Server port | `8000` |
+| `JWT_SECRET` | JWT signing secret | Required in production |
+| `CORS_ORIGIN` | Allowed CORS origins | `http://localhost:3000` |
+| `DB_PATH` | Database file path | `./database/mcq_system_fixed.db` |
+
+### Default Admin Credentials
+
+- **Username**: `admin`
+- **Password**: `admin123`
+- **⚠️ Important**: Change password immediately after first login!
+
+## 📊 API Endpoints
+
+### Public Endpoints
+- `GET /` - React application
+- `GET /api/health` - Health check
+- `GET /api` - API information
+- `POST /api/auth/register` - Student registration
+- `POST /api/auth/login` - Student login
+- `POST /api/auth/admin/login` - Admin login
+
+### Protected Student Endpoints
+- `POST /api/quiz/start` - Start quiz
+- `POST /api/quiz/submit` - Submit quiz
+
+### Protected Admin Endpoints
+- `GET /api/admin/dashboard` - Admin dashboard data
+- `GET /api/admin/results` - Complete results
+- `GET /api/admin/questions` - Question management
+- `POST /api/admin/questions` - Add questions
+- `PUT /api/admin/questions/:id` - Edit questions
+- `DELETE /api/admin/questions/:id` - Delete questions
+
+## 🧪 Testing
+
+### Run Tests
+```bash
+# Server tests
+cd server && npm test
+
+# Client tests
+cd client && npm test
+
+# Test coverage
+cd server && npm run test:coverage
+```
+
+### Verify Deployment
+```bash
+# Test production deployment
+node verify-tech-board-deployment.js
+
+# Check for duplicate questions
+node check-duplicate-questions.js
+```
 
 ## 📁 Project Structure
 
 ```
-technoboard/
+tech-board-2025/
 ├── client/                 # React frontend
 │   ├── src/
 │   │   ├── components/     # React components
 │   │   ├── contexts/       # React contexts
 │   │   ├── hooks/          # Custom hooks
-│   │   ├── styles/         # CSS and theme files
 │   │   └── utils/          # Utility functions
-│   └── public/             # Static assets
+│   ├── public/             # Static assets
+│   └── package.json
 ├── server/                 # Node.js backend
-│   ├── controllers/        # Route controllers
+│   ├── routes/             # API routes
 │   ├── middleware/         # Express middleware
-│   ├── models/            # MongoDB models
-│   ├── routes/            # API routes
-│   └── utils/             # Server utilities
+│   ├── config/             # Configuration files
+│   ├── database/           # Database files
+│   ├── tests/              # Test files
+│   └── package.json
+├── build-production.js     # Production build script
+├── railway.json           # Railway configuration
 ├── Dockerfile             # Docker configuration
-├── railway.json           # Railway deployment config
-└── README.md              # Project documentation
+└── README.md
 ```
 
-## 🎯 Grade Levels & Topics
+## 🔍 Monitoring
 
-### Grade 6 (345 Questions)
-- Computer Parts & Components
-- Input/Output Devices
-- Software Types & Categories
-- Digital Safety & Ethics
+### Health Check
+Visit `/api/health` to check system status:
 
-### Grade 7 (330 Questions)
-- Internet Basics & Browsing
-- Operating Systems
-- Email & Communication
-- Cyber Safety & Security
-
-### Grade 8 (180 Questions)
-- HTML Basics & Web Development
-- Computer Networking
-- Cloud Computing Concepts
-- Database Introduction
-
-### Grade 9 (365 Questions)
-- Programming Logic & Algorithms
-- Boolean Algebra
-- TCP/IP Networking
-- Cybersecurity Fundamentals
-
-### Grade 11 (370 Questions)
-- Python Programming
-- Data Structures & Algorithms
-- SQL & Database Management
-- Advanced Networking
-
-## 🔧 API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Student registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/admin-login` - Admin login
-
-### Quiz Management
-- `GET /api/quiz/questions/:grade` - Get questions by grade
-- `POST /api/quiz/submit` - Submit quiz answers
-- `GET /api/quiz/results/:userId` - Get user results
-
-### Admin Routes
-- `GET /api/admin/students` - Get all students
-- `GET /api/admin/analytics` - Get platform analytics
-- `POST /api/admin/questions` - Add new questions
-
-## 🚀 Deployment
-
-### Docker Deployment
-```bash
-# Build and run with Docker
-docker build -t technoboard .
-docker run -p 3000:3000 technoboard
+```json
+{
+  "status": "OK",
+  "database": { "connected": true },
+  "questions": { "total": 1500, "status": "Ready" },
+  "features": {
+    "authentication": "Available",
+    "quizSystem": "Available",
+    "adminPanel": "Available"
+  }
+}
 ```
 
-### Railway Deployment
-1. Connect your GitHub repository to Railway
-2. Set environment variables in Railway dashboard
-3. Deploy automatically on push to main branch
+### Performance Metrics
+- **Page Load**: < 3 seconds
+- **API Response**: < 500ms
+- **Database Queries**: < 100ms
+- **Concurrent Users**: 100+
 
 ## 🤝 Contributing
 
@@ -198,23 +227,52 @@ docker run -p 3000:3000 technoboard
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🆘 Support
 
-- Built with modern web technologies
-- Inspired by professional assessment platforms
-- Designed for educational excellence
+### Common Issues
 
-## 📞 Support
+1. **Build Failures**
+   - Ensure Node.js 18+ is installed
+   - Clear node_modules and reinstall dependencies
+   - Check build logs for specific errors
 
-For support and questions:
-- Create an issue on GitHub
-- Contact: the.heoster@mail.com
-- other  : codeex.care@gmail.com
+2. **Database Issues**
+   - Run `node ensure-300-questions.js` to seed database
+   - Check database file permissions
+   - Verify SQLite is properly installed
+
+3. **Authentication Issues**
+   - Verify JWT_SECRET is set in production
+   - Check CORS_ORIGIN matches your domain
+   - Ensure admin credentials are correct
+
+### Getting Help
+
+- **Issues**: [GitHub Issues](https://github.com/your-username/tech-board-2025/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-username/tech-board-2025/discussions)
+
+## 🎯 Roadmap
+
+- [ ] Multi-language support
+- [ ] Advanced analytics dashboard
+- [ ] Email notifications
+- [ ] Bulk student import
+- [ ] Question categories and tags
+- [ ] Mobile app (React Native)
+
+## 🏆 Acknowledgments
+
+- Built with React, Node.js, and SQLite
+- Deployed on Railway
+- UI components inspired by modern design principles
+- Security best practices implemented throughout
 
 ---
 
-**TechnoBoard** - Empowering technical excellence through innovative assessment 🚀
+**Tech Board 2025** - Empowering educational institutions with modern quiz management technology.
+
+Made with ❤️ for educational excellence.

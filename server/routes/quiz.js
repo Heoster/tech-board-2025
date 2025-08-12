@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const database = require('../config/database');
 
 const router = express.Router();
@@ -15,14 +15,31 @@ router.post('/start', authenticateToken, async (req, res) => {
         if (!grade || !validGrades.includes(parseInt(grade))) {
             return res.status(400).json({ error: 'Invalid grade' });
         }
+        
         const db = database.getDb();
 
-        // Get 50 random questions for the grade
+        // Check if student already has a quiz
+        const existingQuiz = await new Promise((resolve, reject) => {
+            db.get('SELECT id, status FROM quizzes WHERE student_id = ?', [studentId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (existingQuiz) {
+            if (existingQuiz.status === 'completed') {
+                return res.status(400).json({ error: 'You have already completed the test' });
+            } else {
+                return res.status(400).json({ error: 'You already have a test in progress' });
+            }
+        }
+
+        // Get exactly 50 random questions for the grade
         const questions = await new Promise((resolve, reject) => {
             db.all(`
                 SELECT q.id, q.question_text, q.difficulty,
                        GROUP_CONCAT(
-                           json_object('id', o.id, 'text', o.option_text)
+                           json_object('id', o.id, 'text', o.option_text, 'order', o.option_order)
                        ) as options
                 FROM questions q
                 LEFT JOIN options o ON q.id = o.question_id
@@ -34,15 +51,19 @@ router.post('/start', authenticateToken, async (req, res) => {
                 if (err) reject(err);
                 else resolve(rows.map(q => ({
                     ...q,
-                    options: q.options ? JSON.parse(`[${q.options}]`) : []
+                    options: q.options ? JSON.parse(`[${q.options}]`).sort((a, b) => a.order - b.order) : []
                 })));
             });
         });
 
-        // Create quiz session
+        if (questions.length < 50) {
+            return res.status(400).json({ error: 'Insufficient questions available for this grade' });
+        }
+
+        // Create quiz session with 50-minute time limit
         const quizId = await new Promise((resolve, reject) => {
-            db.run('INSERT INTO quizzes (student_id, grade, total_questions) VALUES (?, ?, ?)',
-                [studentId, grade, 50], function (err) {
+            db.run('INSERT INTO quizzes (student_id, grade, total_questions, status) VALUES (?, ?, ?, ?)',
+                [studentId, grade, 50, 'in_progress'], function (err) {
                     if (err) reject(err);
                     else resolve(this.lastID);
                 });
@@ -52,10 +73,13 @@ router.post('/start', authenticateToken, async (req, res) => {
             success: true,
             data: {
                 quizId, 
-                questions 
+                questions,
+                timeLimit: 50 * 60 * 1000, // 50 minutes in milliseconds
+                startTime: new Date().toISOString()
             }
         });
     } catch (error) {
+        console.error('Quiz start error:', error);
         res.status(500).json({ success: false, error: 'Failed to start quiz' });
     }
 });
@@ -63,10 +87,39 @@ router.post('/start', authenticateToken, async (req, res) => {
 // Submit quiz
 router.post('/submit', authenticateToken, async (req, res) => {
     try {
-        const { quizId, answers } = req.body;
+        const { quizId, answers, startTime } = req.body;
+        const studentId = req.user.id;
 
         if (!quizId || !answers || !Array.isArray(answers)) {
             return res.status(400).json({ error: 'Invalid quiz submission data' });
+        }
+
+        // Verify quiz belongs to student
+        const quiz = await database.get(
+            'SELECT * FROM quizzes WHERE id = ? AND student_id = ?',
+            [quizId, studentId]
+        );
+
+        if (!quiz) {
+            return res.status(404).json({ error: 'Quiz not found' });
+        }
+
+        if (quiz.status === 'completed') {
+            return res.status(400).json({ error: 'Quiz already completed' });
+        }
+
+        // Check time limit (50 minutes)
+        const quizStartTime = new Date(startTime || quiz.started_at);
+        const currentTime = new Date();
+        const timeDiff = (currentTime - quizStartTime) / 1000 / 60; // in minutes
+
+        if (timeDiff > 50) {
+            return res.status(400).json({ error: 'Time limit exceeded. Quiz automatically submitted.' });
+        }
+
+        // Enforce exactly 50 questions
+        if (answers.length !== 50) {
+            return res.status(400).json({ error: 'Must answer exactly 50 questions' });
         }
 
         let score = 0;
@@ -94,14 +147,15 @@ router.post('/submit', authenticateToken, async (req, res) => {
             [score, quizId]
         );
 
-        const totalQuestions = answers.length;
-        const passed = score >= (totalQuestions * 0.6); // 60% pass rate
-
+        // Calculate pass/fail (72% = 36/50)
+        const passed = score >= 36;
+        
+        // Students only see pass/fail status - NO detailed results
         res.json({
-            score,
-            totalQuestions,
-            passed,
-            message: 'Quiz submitted successfully'
+            success: true,
+            message: 'Test submitted successfully. Results will be reviewed by administration.',
+            status: passed ? 'qualified' : 'not_qualified',
+            quizId: quizId
         });
     } catch (error) {
         console.error('Quiz submit error:', error);
@@ -109,8 +163,8 @@ router.post('/submit', authenticateToken, async (req, res) => {
     }
 });
 
-// Get quiz results
-router.get('/results/:quizId', authenticateToken, async (req, res) => {
+// Get quiz results (Admin only)
+router.get('/results/:quizId', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const { quizId } = req.params;
 
@@ -124,10 +178,7 @@ router.get('/results/:quizId', authenticateToken, async (req, res) => {
             return res.status(404).json({ error: 'Quiz not found' });
         }
 
-        // Check if user has access (student can only see their own, admin can see all)
-        if (req.user.type === 'student' && quiz.student_id !== req.user.id) {
-            return res.status(403).json({ error: 'Access denied' });
-        }
+        // Admin access is already verified by middleware
 
         // Get quiz responses
         const responses = await database.query(`

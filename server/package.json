@@ -12,7 +12,11 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "start:prod": "NODE_ENV=production node index.js",
-    "build": "echo 'No build step required for Node.js'"
+    "build": "node ../build-production.js",
+    "build:production": "node ../build-production.js",
+    "postinstall": "node ../ensure-300-questions.js",
+    "railway:build": "npm run build:production",
+    "railway:start": "npm run start:prod"
   },
   "dependencies": {
     "axios": "^1.11.0",

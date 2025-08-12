@@ -1,0 +1,19 @@
+[phases.setup]
+nixPkgs = ["nodejs-18_x", "npm-9_x", "python3", "sqlite"]
+
+[phases.install]
+cmds = [
+  "npm install",
+  "cd client && npm install",
+  "cd server && npm install"
+]
+
+[phases.build]
+cmds = ["node build-production.js"]
+
+[start]
+cmd = "node railway-start.js"
+
+[variables]
+NODE_ENV = "production"
+PORT = "8000"

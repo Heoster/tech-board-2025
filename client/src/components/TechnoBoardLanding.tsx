@@ -145,7 +145,7 @@ const TechnoBoardLanding = () => {
                   <Clock />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">60 Minutes Duration</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">50 Minutes Duration</h3>
                   <p className="text-gray-600">Comprehensive selection test with 50 carefully crafted questions to assess your technical aptitude and problem-solving skills.</p>
                 </div>
               </div>

@@ -19,7 +19,7 @@ app.use(cookieParser());
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 200,
     message: { error: 'Too many requests' }
 });
 app.use('/api/', limiter);
@@ -41,24 +41,68 @@ app.use('/api/students', require('./routes/students'));
 app.use('/api/performance', require('./routes/performance'));
 
 // Serve static files from React build
-const clientDistPath = path.join(__dirname, 'client/dist');
-app.use(express.static(clientDistPath));
+const clientDistPath = path.join(__dirname, 'client');
+app.use(express.static(clientDistPath, {
+    maxAge: process.env.NODE_ENV === 'production' ? '1d' : '0',
+    etag: true,
+    lastModified: true
+}));
 
 // Health check
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        message: 'Server is running',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development',
-        features: {
-            authentication: 'Available',
-            quizSystem: 'Available', 
-            adminPanel: 'Available',
-            performanceMonitoring: 'Available',
-            seoOptimization: 'Available'
-        }
-    });
+app.get('/api/health', async (req, res) => {
+    try {
+        // Check database connection
+        const dbHealth = await database.healthCheck();
+        
+        // Check question counts
+        const db = database.getDb();
+        const questionCounts = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT grade, COUNT(*) as count
+                FROM questions 
+                GROUP BY grade 
+                ORDER BY grade
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+
+        const totalQuestions = questionCounts.reduce((sum, row) => sum + row.count, 0);
+        const gradesReady = questionCounts.filter(row => row.count >= 300).length;
+
+        res.json({ 
+            status: 'OK', 
+            message: 'Server is running',
+            timestamp: new Date().toISOString(),
+            environment: process.env.NODE_ENV || 'development',
+            version: '1.0.0',
+            database: {
+                connected: dbHealth.healthy,
+                responseTime: dbHealth.responseTime || 0
+            },
+            questions: {
+                total: totalQuestions,
+                gradesReady: gradesReady,
+                target: 1500,
+                status: totalQuestions >= 1500 ? 'Ready' : 'Seeding'
+            },
+            features: {
+                authentication: 'Available',
+                quizSystem: 'Available', 
+                adminPanel: 'Available',
+                performanceMonitoring: 'Available',
+                seoOptimization: 'Available'
+            }
+        });
+    } catch (error) {
+        res.status(503).json({
+            status: 'ERROR',
+            message: 'Health check failed',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 // API info endpoint

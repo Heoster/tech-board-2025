@@ -1,12 +1,47 @@
 {
-  "name": "technoboard",
+  "name": "tech-board-2025-system",
   "version": "1.0.0",
-  "scripts": {
-    "start": "cd server && npm start",
-    "build": "cd client && npm install && npm run build && cd ../server && npm install --production",
-    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\""
-  },
+  "description": "Tech Board 2025 MCQ Testing System - Complete quiz management platform",
+  "main": "server/index.js",
   "engines": {
-    "node": "18.x"
-  }
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "scripts": {
+    "start": "node railway-start.js",
+    "start:prod": "node railway-start.js",
+    "dev": "cd server && npm run dev",
+    "build": "node build-production.js",
+    "build:production": "node build-production.js",
+    "postinstall": "echo 'Dependencies will be installed during build'",
+    "setup:production": "node production-setup.js",
+    "verify": "node verify-deployment.js",
+    "test": "cd server && npm test",
+    "railway:build": "node build-production.js",
+    "railway:start": "node railway-start.js"
+  },
+  "keywords": [
+    "quiz",
+    "mcq",
+    "education",
+    "tech-board",
+    "testing",
+    "react",
+    "nodejs",
+    "sqlite"
+  ],
+  "author": "Tech Board 2025 Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/tech-board-2025"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "sqlite3": "^5.1.6"
+  },
+  "workspaces": [
+    "server",
+    "client"
+  ]
 }

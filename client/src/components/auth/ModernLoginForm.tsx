@@ -111,7 +111,7 @@ const ModernLoginForm = () => {
                 </div>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-3 text-gradient">Welcome Back</h1>
-              <p className="text-gray-600 text-lg">Sign in to your TechnoBoard account</p>
+              <p className="text-gray-600 text-lg">Sign in to your Tech Board account</p>
               <div className="flex items-center justify-center mt-4 space-x-2 text-sm text-gray-500">
                 <Shield className="w-4 h-4" />
                 <span>Secure & Encrypted</span>

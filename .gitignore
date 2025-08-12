@@ -1,24 +1,9 @@
 # Dependencies
 node_modules/
-*/node_modules/
-
-# Production builds
-build/
-dist/
-*/build/
-*/dist/
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 lerna-debug.log*
 
 # Runtime data
@@ -34,14 +19,32 @@ coverage/
 # nyc test coverage
 .nyc_output
 
+# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
+.grunt
+
+# Bower dependency directory (https://bower.io/)
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+build/Release
+
 # Dependency directories
 jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
 
 # Optional eslint cache
 .eslintcache
+
+# Optional stylelint cache
+.stylelintcache
 
 # Microbundle cache
 .rpt2_cache/
@@ -58,34 +61,75 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
 
 # Next.js build output
 .next
+out
 
 # Nuxt.js build / generate output
 .nuxt
+dist
 
 # Gatsby files
 .cache/
 public
 
-# Storybook build outputs
-.out
-.storybook-out
+# Vuepress build output
+.vuepress/dist
 
-# Temporary folders
-tmp/
-temp/
+# Vite build output
+client/dist/
+server/client/
 
-# Editor directories and files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+server/database/*.db
+server/database/*.sqlite
+server/database/*.sqlite3
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
 # OS generated files
 .DS_Store
@@ -96,10 +140,30 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Uploads
-uploads/
+# Temporary files
+tmp/
+temp/
+
+# Build artifacts
+build/
+dist/
+
+# Test coverage
+coverage/
+
+# Backup files
+*.backup
+*_BACKUP.*
+
+# Railway specific
+.railway/
+
+# Production environment files (keep template, ignore actual)
+server/.env.production.local
