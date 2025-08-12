@@ -4,7 +4,7 @@ FROM node:18-alpine AS client-build
 # Build client
 WORKDIR /app/client
 COPY client/package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 COPY client/ ./
 RUN npm run build
 
@@ -15,7 +15,7 @@ WORKDIR /app
 
 # Copy server files
 COPY server/package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Copy server source
 COPY server/ ./
@@ -24,7 +24,7 @@ COPY server/ ./
 COPY --from=client-build /app/client/dist ./client/dist
 
 # Copy database
-COPY database/ ./database/
+COPY server/database/ ./database/
 
 EXPOSE 8000
 
