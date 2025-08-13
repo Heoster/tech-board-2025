@@ -62,3 +62,8 @@
 {"timestamp":"2025-08-13T09:33:33.345Z","level":"ERROR","message":"Get query failed","sql":"SELECT COUNT(*) as count FROM responses","error":"SQLITE_ERROR: no such table: responses","duration":0}
 {"timestamp":"2025-08-13T09:42:02.533Z","level":"ERROR","message":"Get query failed","sql":"SELECT id FROM students WHERE roll_number = ? AND grade = ? AND section = ?","error":"SQLITE_ERROR: no such column: roll_number","duration":1}
 {"timestamp":"2025-08-13T09:42:51.102Z","level":"ERROR","message":"Get query failed","sql":"SELECT id FROM students WHERE roll_number = ? AND grade = ? AND section = ?","error":"SQLITE_ERROR: no such column: roll_number","duration":1}
+{"timestamp":"2025-08-13T11:28:39.433Z","level":"ERROR","message":"Get query failed","sql":"SELECT * FROM students WHERE email = ?","error":"SQLITE_ERROR: no such column: email","duration":11}
+{"timestamp":"2025-08-13T11:30:48.241Z","level":"ERROR","message":"Get query failed","sql":"SELECT * FROM students WHERE email = ?","error":"SQLITE_ERROR: no such column: email","duration":7}
+{"timestamp":"2025-08-13T11:35:07.241Z","level":"ERROR","message":"Get query failed","sql":"SELECT * FROM students WHERE email = ?","error":"SQLITE_ERROR: no such column: email","duration":8}
+{"timestamp":"2025-08-13T11:49:50.691Z","level":"ERROR","message":"Get query failed","sql":"SELECT * FROM students WHERE email = ?","error":"SQLITE_ERROR: no such column: email","duration":17}
+{"timestamp":"2025-08-13T11:50:21.197Z","level":"ERROR","message":"Get query failed","sql":"SELECT * FROM students WHERE email = ?","error":"SQLITE_ERROR: no such column: email","duration":12}
