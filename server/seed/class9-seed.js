@@ -602,7 +602,7 @@ const generateMoreClass9Questions = () => {
         'Python Programming', 'Data Structures', 'Search Algorithms', 'Sorting Algorithms', 'Cloud Computing',
         'Virtualization', 'Digital Ethics', 'Online Safety', 'System Security', 'Data Management'
     ];
-    
+
     // Add the template questions first
     questionTemplates.forEach((template, index) => {
         additionalQuestions.push({
@@ -612,7 +612,7 @@ const generateMoreClass9Questions = () => {
             options: template.options
         });
     });
-    
+
     // Generate more questions to reach 300 total
     const remainingCount = 300 - class9Questions.length - questionTemplates.length;
     for (let i = 0; i < remainingCount; i++) {
@@ -629,7 +629,7 @@ const generateMoreClass9Questions = () => {
             ]
         });
     }
-    
+
     return additionalQuestions;
 };
 
@@ -642,33 +642,33 @@ function seedClass9Questions() {
             let completed = 0;
             allQuestions.forEach((q) => {
                 db.run('INSERT INTO questions (grade, difficulty, question_text) VALUES (?, ?, ?)',
-                    [q.grade, q.difficulty, q.questionText], function(err) {
-                    if (err) {
-                        console.error('Error inserting question:', err);
-                        return;
-                    }
-                    const questionId = this.lastID;
-                    let optionCount = 0;
-                    q.options.forEach((option, index) => {
-                        db.run('INSERT INTO options (question_id, option_text, is_correct, option_order) VALUES (?, ?, ?, ?)',
-                            [questionId, option.text, option.isCorrect ? 1 : 0, index + 1], (err) => {
-                            if (err) {
-                                console.error('Error inserting option:', err);
-                                return;
-                            }
-                            optionCount++;
-                            if (optionCount === q.options.length) {
-                                completed++;
-                                if (completed === allQuestions.length) {
-                                    db.close(() => {
-                                        console.log(`Seeded ${allQuestions.length} questions for Class 9`);
-                                        resolve();
-                                    });
-                                }
-                            }
+                    [q.grade, q.difficulty, q.questionText], function (err) {
+                        if (err) {
+                            console.error('Error inserting question:', err);
+                            return;
+                        }
+                        const questionId = this.lastID;
+                        let optionCount = 0;
+                        q.options.forEach((option, index) => {
+                            db.run('INSERT INTO options (question_id, option_text, is_correct, option_order) VALUES (?, ?, ?, ?)',
+                                [questionId, option.text, option.isCorrect ? 1 : 0, index + 1], (err) => {
+                                    if (err) {
+                                        console.error('Error inserting option:', err);
+                                        return;
+                                    }
+                                    optionCount++;
+                                    if (optionCount === q.options.length) {
+                                        completed++;
+                                        if (completed === allQuestions.length) {
+                                            db.close(() => {
+                                                console.log(`Seeded ${allQuestions.length} questions for Class 9`);
+                                                resolve();
+                                            });
+                                        }
+                                    }
+                                });
                         });
                     });
-                });
             });
         });
     });

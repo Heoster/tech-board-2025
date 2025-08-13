@@ -171,6 +171,7 @@ router.post('/start', authenticateToken, async (req, res) => {
 
         // Validate student ID
         if (!studentId) {
+            console.error('Quiz start failed: No student ID');
             return res.status(400).json({ 
                 success: false, 
                 error: 'Student ID not found. Please log in again.' 
@@ -181,6 +182,7 @@ router.post('/start', authenticateToken, async (req, res) => {
         const validGrades = [6, 7, 8, 9, 11];
         const gradeInt = parseInt(grade);
         if (!grade || !validGrades.includes(gradeInt)) {
+            console.error('Quiz start failed: Invalid grade', { grade, gradeInt });
             return res.status(400).json({ 
                 success: false, 
                 error: `Invalid grade: ${grade}. Valid grades are 6, 7, 8, 9, 11. Please ensure you are logged in properly.` 
@@ -191,6 +193,7 @@ router.post('/start', authenticateToken, async (req, res) => {
         
         // Verify database connection
         if (!db) {
+            console.error('Quiz start failed: Database not connected');
             return res.status(500).json({ 
                 success: false, 
                 error: 'Database connection failed' 
@@ -201,6 +204,7 @@ router.post('/start', authenticateToken, async (req, res) => {
         const existingQuiz = await database.get('SELECT id, status FROM quizzes WHERE student_id = ?', [studentId]);
 
         if (existingQuiz) {
+            console.log('Student already has quiz:', existingQuiz);
             if (existingQuiz.status === 'completed') {
                 return res.status(400).json({ 
                     success: false, 
@@ -217,40 +221,56 @@ router.post('/start', authenticateToken, async (req, res) => {
         // Get all questions for the grade and generate quiz
         console.log(`Generating question set for student ${studentId}, grade ${gradeInt}`);
         
-        const allQuestions = await getQuestionsForGrade(gradeInt);
-        
-        if (allQuestions.length < 50) {
-            return res.status(400).json({ 
+        try {
+            const allQuestions = await getQuestionsForGrade(gradeInt);
+            console.log(`Retrieved ${allQuestions.length} questions for grade ${gradeInt}`);
+            
+            if (allQuestions.length < 50) {
+                console.error(`Insufficient questions for grade ${gradeInt}: ${allQuestions.length}`);
+                return res.status(400).json({ 
+                    success: false, 
+                    error: `Insufficient questions available for grade ${gradeInt}. Found ${allQuestions.length} questions, need 50.` 
+                });
+            }
+
+            // Shuffle and select 50 questions
+            const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+            const questions = shuffled.slice(0, 50);
+
+            console.log(`Successfully generated ${questions.length} questions for student ${studentId}`);
+
+            // Create quiz session with 50-minute time limit
+            const quizResult = await database.run(
+                'INSERT INTO quizzes (student_id, grade, total_questions, status) VALUES (?, ?, ?, ?)',
+                [studentId, gradeInt, 50, 'in_progress']
+            );
+            const quizId = quizResult.lastID;
+            
+            console.log(`Quiz created with ID: ${quizId}`);
+
+            res.json({ 
+                success: true,
+                data: {
+                    quizId, 
+                    questions,
+                    timeLimit: 50 * 60 * 1000, // 50 minutes in milliseconds
+                    startTime: new Date().toISOString()
+                }
+            });
+        } catch (questionError) {
+            console.error('Question generation error:', questionError);
+            return res.status(500).json({ 
                 success: false, 
-                error: `Insufficient questions available for grade ${gradeInt}. Found ${allQuestions.length} questions, need 50.` 
+                error: 'Failed to generate quiz questions' 
             });
         }
-
-        // Shuffle and select 50 questions
-        const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
-        const questions = shuffled.slice(0, 50);
-
-        console.log(`Successfully generated ${questions.length} questions for student ${studentId}`);
-
-        // Create quiz session with 50-minute time limit
-        const quizResult = await database.run(
-            'INSERT INTO quizzes (student_id, grade, total_questions, status) VALUES (?, ?, ?, ?)',
-            [studentId, gradeInt, 50, 'in_progress']
-        );
-        const quizId = quizResult.lastID;
-
-        res.json({ 
-            success: true,
-            data: {
-                quizId, 
-                questions,
-                timeLimit: 50 * 60 * 1000, // 50 minutes in milliseconds
-                startTime: new Date().toISOString()
-            }
-        });
     } catch (error) {
         console.error('Quiz start error:', error);
-        res.status(500).json({ success: false, error: 'Failed to start quiz' });
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to start quiz',
+            details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+        });
     }
 });
 

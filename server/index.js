@@ -25,9 +25,13 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// CORS
+// CORS - Railway compatible
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+    ? [process.env.CORS_ORIGIN || 'https://tech-board.up.railway.app']
+    : ['http://localhost:3000', 'http://localhost:3001'];
+
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'https://tech-board.up.railway.app'],
+    origin: allowedOrigins,
     credentials: true
 }));
 
@@ -73,6 +77,21 @@ app.get('/api/health', async (req, res) => {
 
         const totalQuestions = questionCounts.reduce((sum, row) => sum + row.count, 0);
         const gradesReady = questionCounts.filter(row => row.count >= 300).length;
+        
+        // Check admin and student counts
+        const adminCount = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM admins', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        const studentCount = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM students', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
 
         res.json({ 
             status: 'OK', 
@@ -88,7 +107,12 @@ app.get('/api/health', async (req, res) => {
                 total: totalQuestions,
                 gradesReady: gradesReady,
                 target: 1500,
-                status: totalQuestions >= 1500 ? 'Ready' : 'Seeding'
+                status: totalQuestions >= 1500 ? 'Ready' : 'Seeding',
+                byGrade: questionCounts
+            },
+            users: {
+                admins: adminCount,
+                students: studentCount
             },
             features: {
                 authentication: 'Available',
@@ -96,6 +120,10 @@ app.get('/api/health', async (req, res) => {
                 adminPanel: 'Available',
                 performanceMonitoring: 'Available',
                 seoOptimization: 'Available'
+            },
+            loginTest: {
+                adminCredentials: 'username: admin, password: admin123',
+                testStudentCredentials: 'roll: 79, grade: 6, section: A, password: password123'
             }
         });
     } catch (error) {
@@ -255,41 +283,15 @@ async function startServer() {
         await database.connect();
         console.log('Database connected successfully');
         
-        // Fix production database schema and ensure admin
+        // Setup production database
         if (process.env.NODE_ENV === 'production') {
             try {
-                // Check and fix database schema
-                const studentsSchema = await new Promise((resolve, reject) => {
-                    db.all('PRAGMA table_info(students)', (err, rows) => {
-                        if (err) reject(err);
-                        else resolve(rows);
-                    });
-                });
-                
-                const hasRollNumber = studentsSchema.some(col => col.name === 'roll_number');
-                const hasSection = studentsSchema.some(col => col.name === 'section');
-                
-                if (!hasRollNumber) {
-                    console.log('Adding roll_number column...');
-                    await new Promise((resolve, reject) => {
-                        db.run('ALTER TABLE students ADD COLUMN roll_number INTEGER DEFAULT 1', (err) => {
-                            if (err) reject(err);
-                            else resolve();
-                        });
-                    });
-                }
-                
-                if (!hasSection) {
-                    console.log('Adding section column...');
-                    await new Promise((resolve, reject) => {
-                        db.run('ALTER TABLE students ADD COLUMN section TEXT DEFAULT "A"', (err) => {
-                            if (err) reject(err);
-                            else resolve();
-                        });
-                    });
-                }
+                const { setupProductionDatabase } = require('./scripts/production-db-setup');
+                await setupProductionDatabase();
+                console.log('✅ Production database setup completed');
                 
                 // Ensure admin exists
+                const db = database.getDb();
                 const admin = await new Promise((resolve, reject) => {
                     db.get('SELECT * FROM admins WHERE username = ?', ['admin'], (err, row) => {
                         if (err) reject(err);

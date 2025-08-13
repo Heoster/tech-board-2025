@@ -10,7 +10,10 @@
   "scripts": {
     "start": "node railway-start.js",
     "start:prod": "node railway-start.js",
-    "dev": "cd server && npm run dev",
+    "dev": "node dev-start.js",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "railway:dev": "cd server && npm run dev",
     "build": "node railway-build.js",
     "build:production": "node railway-build.js",
     "postinstall": "echo 'Dependencies will be installed during build'",
@@ -18,7 +21,13 @@
     "verify": "node verify-deployment.js",
     "test": "cd server && npm test",
     "railway:build": "node railway-build.js",
-    "railway:start": "node railway-start.js"
+    "railway:start": "node railway-start.js",
+    "deploy:production": "node deploy-production.js",
+    "setup:db": "node server/scripts/production-db-setup.js",
+    "test:login": "node test-production-login.js",
+    "seed": "cd server && node seed/run-all-seeds.js",
+    "check-duplicates": "node check-duplicate-questions.js",
+    "remove-duplicates": "node remove-duplicates.js"
   },
   "keywords": [
     "quiz",

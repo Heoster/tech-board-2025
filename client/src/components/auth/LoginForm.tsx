@@ -56,7 +56,7 @@ const LoginForm: React.FC = () => {
     try {
       // Convert form data to match server expectations
       const loginData = {
-        roll_number: parseInt(formData.rollNumber),
+        rollNumber: parseInt(formData.rollNumber),
         grade: parseInt(formData.grade),
         section: formData.section,
         password: formData.password
@@ -89,7 +89,7 @@ const LoginForm: React.FC = () => {
         id: student.id,
         role: 'student' as const,
         name: student.name,
-        rollNumber: student.roll_number,
+        rollNumber: student.rollNumber || student.roll_number,
         grade: student.grade,
         section: student.section
       };

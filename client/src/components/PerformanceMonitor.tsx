@@ -40,7 +40,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
         const timer = setTimeout(checkPerformance, 2000);
 
         // Set up periodic performance monitoring
-        let interval: number;
+        let interval: ReturnType<typeof setInterval>;
         if (autoSendMetrics) {
             interval = setInterval(() => {
                 checkPerformance();

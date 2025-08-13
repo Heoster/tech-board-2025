@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, ChevronLeft, ChevronRight, Flag, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,8 +22,15 @@ interface QuizData {
   startTime: string;
 }
 
+interface ApiResponse {
+  success: boolean;
+  error?: string;
+  data?: QuizData;
+}
+
 const QuizInterface = () => {
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   
   // Redirect if not authenticated
   useEffect(() => {
@@ -31,7 +38,6 @@ const QuizInterface = () => {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
-  const navigate = useNavigate();
 
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -56,7 +62,7 @@ const QuizInterface = () => {
         
         console.log('Starting quiz for grade:', grade);
         
-        const response = await apiClient.post('/quiz/start', {
+        const response = await apiClient.post<ApiResponse>('/quiz/start', {
           grade: grade
         });
 

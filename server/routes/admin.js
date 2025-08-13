@@ -610,7 +610,7 @@ router.get('/student-details/:quizId', authenticateToken, requireAdmin, validate
                             'is_correct', o.is_correct
                         )
                     ) as options
-                FROM responses r
+                FROM quiz_answers r
                 JOIN questions q ON r.question_id = q.id
                 LEFT JOIN options so ON r.selected_option_id = so.id
                 LEFT JOIN options co ON q.id = co.question_id AND co.is_correct = 1
@@ -704,7 +704,7 @@ router.post('/students', authenticateToken, requireAdmin, validateAdmin, [
     // Insert student
     const studentId = await new Promise((resolve, reject) => {
       db.run(
-        'INSERT INTO students (name, roll_number, grade, section, password_hash) VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO students (name, roll_number, grade, section, password) VALUES (?, ?, ?, ?, ?)',
         [name, rollNumber, grade, section, passwordHash],
         function(err) {
           if (err) reject(err);
@@ -985,7 +985,7 @@ router.put('/students/:id/password', authenticateToken, requireAdmin, validateAd
         
         // Update password
         await new Promise((resolve, reject) => {
-            db.run('UPDATE students SET password_hash = ? WHERE id = ?', [passwordHash, studentId], function(err) {
+            db.run('UPDATE students SET password = ? WHERE id = ?', [passwordHash, studentId], function(err) {
                 if (err) reject(err);
                 else resolve();
             });

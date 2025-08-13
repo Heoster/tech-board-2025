@@ -114,7 +114,7 @@ class EnhancedQuestionSeeder {
                     question: "What does CPU stand for?",
                     options: [
                         "Computer Processing Unit",
-                        "Central Processing Unit", 
+                        "Central Processing Unit",
                         "Central Program Unit",
                         "Computer Program Unit"
                     ],
@@ -511,30 +511,30 @@ class EnhancedQuestionSeeder {
     async generateQuestionsForGrade(grade, targetCount = 300) {
         const db = database.getDb();
         const subject = 'Computer Science';
-        
+
         console.log(`Generating ${targetCount} Computer Science questions for Grade ${grade}...`);
-        
+
         // Get existing question count
         const existingCount = await new Promise((resolve, reject) => {
-            db.get('SELECT COUNT(*) as count FROM questions WHERE grade = ? AND subject = ?', 
+            db.get('SELECT COUNT(*) as count FROM questions WHERE grade = ? AND subject = ?',
                 [grade, subject], (err, row) => {
-                if (err) reject(err);
-                else resolve(row.count);
-            });
+                    if (err) reject(err);
+                    else resolve(row.count);
+                });
         });
-        
+
         if (existingCount >= targetCount) {
             console.log(`Grade ${grade} already has ${existingCount} Computer Science questions. Skipping.`);
             return existingCount;
         }
-        
+
         const questionsToGenerate = targetCount - existingCount;
         const baseQuestions = this.computerScienceQuestions[grade] || [];
         const topics = this.subjectTopics[grade]['Computer Science'] || [];
-        
+
         const generatedQuestions = [];
         const usedHashes = new Set();
-        
+
         // Add base questions first
         for (const baseQ of baseQuestions) {
             const hash = this.generateQuestionHash(baseQ.question, baseQ.options);
@@ -548,15 +548,15 @@ class EnhancedQuestionSeeder {
                 usedHashes.add(hash);
             }
         }
-        
+
         // Generate additional questions to reach target
         while (generatedQuestions.length < questionsToGenerate) {
             const topic = topics[Math.floor(Math.random() * topics.length)];
             const difficulty = this.getRandomDifficulty();
-            
+
             const question = this.generateTopicSpecificQuestion(topic, difficulty, grade);
             const hash = this.generateQuestionHash(question.question, question.options);
-            
+
             if (!usedHashes.has(hash)) {
                 generatedQuestions.push({
                     ...question,
@@ -568,14 +568,14 @@ class EnhancedQuestionSeeder {
                 usedHashes.add(hash);
             }
         }
-        
+
         // Insert questions into database
         let insertedCount = 0;
         for (const question of generatedQuestions) {
             try {
                 await this.insertQuestion(question);
                 insertedCount++;
-                
+
                 if (insertedCount % 50 === 0) {
                     console.log(`Inserted ${insertedCount}/${questionsToGenerate} Computer Science questions for Grade ${grade}`);
                 }
@@ -583,27 +583,27 @@ class EnhancedQuestionSeeder {
                 console.error(`Error inserting question: ${error.message}`);
             }
         }
-        
+
         console.log(`✅ Generated ${insertedCount} Computer Science questions for Grade ${grade}`);
         return existingCount + insertedCount;
     }
-    
+
     // Generate topic-specific questions
     generateTopicSpecificQuestion(topic, difficulty, grade) {
         // Use base questions if available, otherwise generate new ones
         const baseQuestions = this.computerScienceQuestions[grade] || [];
         const topicQuestions = baseQuestions.filter(q => q.topic === topic);
-        
+
         if (topicQuestions.length > 0 && Math.random() < 0.3) {
             // 30% chance to use existing question as template
             const baseQ = topicQuestions[Math.floor(Math.random() * topicQuestions.length)];
             return this.createVariation(baseQ, topic, difficulty);
         }
-        
+
         // Generate new question based on topic
         return this.generateNewQuestion(topic, difficulty, grade);
     }
-    
+
     // Create variation of existing question
     createVariation(baseQuestion, topic, difficulty) {
         const variations = [
@@ -628,7 +628,7 @@ class EnhancedQuestionSeeder {
                 correct: 1
             }
         ];
-        
+
         const variation = variations[Math.floor(Math.random() * variations.length)];
         return {
             question: variation.question,
@@ -637,7 +637,7 @@ class EnhancedQuestionSeeder {
             difficulty: difficulty
         };
     }
-    
+
     // Generate completely new question
     generateNewQuestion(topic, difficulty, grade) {
         const questionTypes = [
@@ -672,7 +672,7 @@ class EnhancedQuestionSeeder {
                 correct: 1
             }
         ];
-        
+
         const questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
         return {
             question: questionType.question,
@@ -681,7 +681,7 @@ class EnhancedQuestionSeeder {
             difficulty: difficulty
         };
     }
-    
+
     // Get random difficulty based on distribution
     getRandomDifficulty() {
         const rand = Math.random();
@@ -689,26 +689,26 @@ class EnhancedQuestionSeeder {
         if (rand < 0.8) return 'medium';    // 30% medium
         return 'hard';                      // 20% hard
     }
-    
+
     // Insert question into database
     async insertQuestion(questionData) {
         const db = database.getDb();
-        
+
         return new Promise((resolve, reject) => {
             db.serialize(() => {
                 // Insert question
                 db.run(`INSERT INTO questions (question_text, subject, grade, difficulty, topic) 
                         VALUES (?, ?, ?, ?, ?)`,
-                    [questionData.question, questionData.subject, questionData.grade, 
-                     questionData.difficulty, questionData.topic],
-                    function(err) {
+                    [questionData.question, questionData.subject, questionData.grade,
+                    questionData.difficulty, questionData.topic],
+                    function (err) {
                         if (err) {
                             reject(err);
                             return;
                         }
-                        
+
                         const questionId = this.lastID;
-                        
+
                         // Insert options
                         const optionPromises = questionData.options.map((option, index) => {
                             return new Promise((resolveOption, rejectOption) => {
@@ -722,7 +722,7 @@ class EnhancedQuestionSeeder {
                                 );
                             });
                         });
-                        
+
                         Promise.all(optionPromises)
                             .then(() => resolve(questionId))
                             .catch(reject);
@@ -731,19 +731,55 @@ class EnhancedQuestionSeeder {
             });
         });
     }
-    
+
     // Seed all grades with Computer Science questions only
     async seedAllGrades() {
         const grades = [6, 7, 8, 9, 11];
         const results = {};
-        
+
         console.log('🌱 Starting Computer Science question seeding for all grades...');
         console.log('📚 Subject: Computer Science only');
-        
+
         for (const grade of grades) {
             try {
                 const count = await this.generateQuestionsForGrade(grade, 300);
                 results[grade] = count;
             } catch (error) {
                 console.error(`Error seeding Grade ${grade}:`, error);
-     
+                results[grade] = 0;
+            }
+        }
+
+        console.log('✅ Computer Science question seeding completed!');
+        console.log('📊 Results:', results);
+
+        const totalQuestions = Object.values(results).reduce((sum, count) => sum + count, 0);
+        console.log(`🎯 Total Computer Science questions: ${totalQuestions}`);
+
+        return results;
+    }
+
+    // Get statistics about generated questions
+    async getStatistics() {
+        const db = database.getDb();
+
+        return new Promise((resolve, reject) => {
+            db.all(`SELECT 
+                        grade, 
+                        subject,
+                        difficulty,
+                        COUNT(*) as count 
+                    FROM questions 
+                    WHERE subject = 'Computer Science'
+                    GROUP BY grade, subject, difficulty 
+                    ORDER BY grade, difficulty`,
+                [], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                }
+            );
+        });
+    }
+}
+
+module.exports = EnhancedQuestionSeeder;
