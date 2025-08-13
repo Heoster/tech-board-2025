@@ -42,12 +42,14 @@ app.use('/api/students', studentCacheMiddleware, require('./routes/students'));
 app.use('/api/performance', apiCacheMiddleware, require('./routes/performance'));
 
 // Serve static files from React build
-const clientDistPath = path.join(__dirname, 'client');
-app.use(express.static(clientDistPath, {
-    maxAge: process.env.NODE_ENV === 'production' ? '1d' : '0',
-    etag: true,
-    lastModified: true
-}));
+if (process.env.NODE_ENV === 'production') {
+    const clientDistPath = path.join(__dirname, 'public');
+    app.use(express.static(clientDistPath, {
+        maxAge: '1d',
+        etag: true,
+        lastModified: true
+    }));
+}
 
 // Health check
 app.get('/api/health', async (req, res) => {
@@ -198,14 +200,18 @@ app.get('*', (req, res) => {
     }
     
     // Serve React app
-    const indexPath = path.join(clientDistPath, 'index.html');
-    const fs = require('fs');
-    
-    // Check if React build exists
-    if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
+    if (process.env.NODE_ENV === 'production') {
+        const indexPath = path.join(__dirname, 'public', 'index.html');
+        const fs = require('fs');
+        
+        // Check if React build exists
+        if (fs.existsSync(indexPath)) {
+            res.sendFile(indexPath);
+        } else {
+            res.status(404).send('Frontend not built');
+        }
     } else {
-        // Fallback HTML if React build is not available
+        // Development mode - show API info
         res.send(`
             <html>
                 <head>
@@ -235,7 +241,7 @@ app.get('*', (req, res) => {
                             <li>✅ SEO Optimization</li>
                             <li>✅ Core Web Vitals Tracking</li>
                         </ul>
-                        <p><em>Frontend React app will be served when built and deployed.</em></p>
+                        <p><em>Development mode - Frontend should run separately on port 3000</em></p>
                     </div>
                 </body>
             </html>
