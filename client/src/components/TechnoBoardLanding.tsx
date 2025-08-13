@@ -20,7 +20,11 @@ const TechnoBoardLanding = () => {
         <div className="container flex items-center justify-between py-4">
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <img src="/logoSch.png" alt="Maples Academy" className="w-10 h-10 rounded-xl shadow-lg" onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling.style.display = 'flex';
+              }} />
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg" style={{display: 'none'}}>
                 <BookOpen />
               </div>
               <span className="text-2xl font-bold text-gray-900">Tech Board</span>
@@ -247,7 +251,11 @@ const TechnoBoardLanding = () => {
       <footer className="bg-gray-900 text-white py-12">
         <div className="container text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white">
+            <img src="/logoSch.png" alt="Maples Academy" className="w-10 h-10 rounded-xl" onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.nextElementSibling.style.display = 'flex';
+            }} />
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white" style={{display: 'none'}}>
               <BookOpen />
             </div>
             <span className="text-2xl font-bold">Tech Board</span>
