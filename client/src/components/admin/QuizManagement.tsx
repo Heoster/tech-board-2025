@@ -72,11 +72,13 @@ const QuizManagement: React.FC = () => {
       setLoading(true);
       try {
         const response = await axios.get('/admin/results');
-        const resultsData = response.data.data;
-        setResults(resultsData);
-        calculateAnalytics(resultsData);
+        const resultsData = response.data?.data || response.data || [];
+        setResults(Array.isArray(resultsData) ? resultsData : []);
+        calculateAnalytics(Array.isArray(resultsData) ? resultsData : []);
       } catch (error) {
         console.error('Failed to fetch data:', error);
+        setResults([]);
+        calculateAnalytics([]);
       } finally {
         setLoading(false);
       }
@@ -184,13 +186,14 @@ const QuizManagement: React.FC = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  const filteredResults = results.filter(result => {
-    const matchesSearch = result.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         result.roll_number.toString().includes(searchTerm);
-    const matchesGrade = filterGrade === 'all' || result.grade.toString() === filterGrade;
+  const filteredResults = (results || []).filter(result => {
+    if (!result) return false;
+    const matchesSearch = (result.student_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (result.roll_number || '').toString().includes(searchTerm);
+    const matchesGrade = filterGrade === 'all' || (result.grade || '').toString() === filterGrade;
     const matchesStatus = filterStatus === 'all' || 
-                         (filterStatus === 'qualified' && result.score >= 36) ||
-                         (filterStatus === 'not_qualified' && result.score < 36);
+                         (filterStatus === 'qualified' && (result.score || 0) >= 36) ||
+                         (filterStatus === 'not_qualified' && (result.score || 0) < 36);
     
     return matchesSearch && matchesGrade && matchesStatus;
   });

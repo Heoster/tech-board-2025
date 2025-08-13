@@ -69,9 +69,11 @@ const StudentManagement: React.FC = () => {
   const fetchStudents = async () => {
     try {
       const response = await apiClient.get('/admin/students');
-      setStudents((response.data as any)?.data || []);
+      const studentsData = response.data?.students || response.data?.data || [];
+      setStudents(Array.isArray(studentsData) ? studentsData : []);
     } catch (error) {
       console.error('Failed to fetch students:', error);
+      setStudents([]);
     } finally {
       setLoading(false);
     }
@@ -154,10 +156,11 @@ const StudentManagement: React.FC = () => {
   };
 
   const filteredStudents = (students || []).filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.roll_number.toString().includes(searchTerm);
-    const matchesGrade = filterGrade === 'all' || student.grade.toString() === filterGrade;
-    const matchesStatus = filterStatus === 'all' || student.exam_status === filterStatus;
+    if (!student) return false;
+    const matchesSearch = (student.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (student.roll_number || '').toString().includes(searchTerm);
+    const matchesGrade = filterGrade === 'all' || (student.grade || '').toString() === filterGrade;
+    const matchesStatus = filterStatus === 'all' || (student.exam_status || '') === filterStatus;
     
     return matchesSearch && matchesGrade && matchesStatus;
   });
@@ -259,7 +262,7 @@ const StudentManagement: React.FC = () => {
           
           <div className="flex items-end">
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              Showing {filteredStudents.length} of {students.length} students
+              Showing {filteredStudents?.length || 0} of {students?.length || 0} students
             </div>
           </div>
         </div>
@@ -295,7 +298,14 @@ const StudentManagement: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-dark-600">
-              {filteredStudents.map((student) => (
+              {(filteredStudents || []).length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                    {loading ? 'Loading students...' : 'No students found'}
+                  </td>
+                </tr>
+              ) : (
+                (filteredStudents || []).map((student) => (
                 <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-dark-700/50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
@@ -361,7 +371,8 @@ const StudentManagement: React.FC = () => {
                     </button>
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
