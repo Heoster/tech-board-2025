@@ -255,10 +255,64 @@ async function startServer() {
         await database.connect();
         console.log('Database connected successfully');
         
-        // Ensure admin user exists in production
+        // Fix production database schema and ensure admin
         if (process.env.NODE_ENV === 'production') {
-            const ensureAdmin = require('./scripts/ensure-admin');
-            await ensureAdmin();
+            try {
+                // Check and fix database schema
+                const studentsSchema = await new Promise((resolve, reject) => {
+                    db.all('PRAGMA table_info(students)', (err, rows) => {
+                        if (err) reject(err);
+                        else resolve(rows);
+                    });
+                });
+                
+                const hasRollNumber = studentsSchema.some(col => col.name === 'roll_number');
+                const hasSection = studentsSchema.some(col => col.name === 'section');
+                
+                if (!hasRollNumber) {
+                    console.log('Adding roll_number column...');
+                    await new Promise((resolve, reject) => {
+                        db.run('ALTER TABLE students ADD COLUMN roll_number INTEGER DEFAULT 1', (err) => {
+                            if (err) reject(err);
+                            else resolve();
+                        });
+                    });
+                }
+                
+                if (!hasSection) {
+                    console.log('Adding section column...');
+                    await new Promise((resolve, reject) => {
+                        db.run('ALTER TABLE students ADD COLUMN section TEXT DEFAULT "A"', (err) => {
+                            if (err) reject(err);
+                            else resolve();
+                        });
+                    });
+                }
+                
+                // Ensure admin exists
+                const admin = await new Promise((resolve, reject) => {
+                    db.get('SELECT * FROM admins WHERE username = ?', ['admin'], (err, row) => {
+                        if (err) reject(err);
+                        else resolve(row);
+                    });
+                });
+                
+                if (!admin) {
+                    console.log('Creating admin user...');
+                    const bcrypt = require('bcrypt');
+                    const hashedPassword = await bcrypt.hash('admin123', 10);
+                    await new Promise((resolve, reject) => {
+                        db.run('INSERT INTO admins (username, password) VALUES (?, ?)', ['admin', hashedPassword], (err) => {
+                            if (err) reject(err);
+                            else resolve();
+                        });
+                    });
+                }
+                
+                console.log('✅ Production database schema fixed');
+            } catch (error) {
+                console.log('⚠️ Schema fix failed:', error.message);
+            }
         }
         
         // Seed database if needed (Railway deployment)
