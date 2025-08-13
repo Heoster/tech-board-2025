@@ -6,7 +6,7 @@ const logger = require('../utils/logger');
 class Database {
     constructor() {
         this.db = null;
-        this.dbPath = process.env.DB_PATH || path.join(__dirname, '../database/mcq_system_fixed.db');
+        this.dbPath = process.env.NODE_ENV === 'test' ? ':memory:' : (process.env.DB_PATH || path.join(__dirname, '../database/mcq_system_fixed.db'));
         this.connectionRetries = 3;
         this.retryDelay = 1000; // 1 second
         this.queryTimeout = 30000; // 30 seconds
@@ -123,7 +123,7 @@ class Database {
         return new Promise(async (resolve, reject) => {
             try {
                 const sqlFiles = [
-                    { path: '../database/init.sql', name: 'initialization' }
+                    { path: process.env.NODE_ENV === 'test' ? '../database/test-init.sql' : '../database/init.sql', name: 'initialization' }
                 ];
 
                 logger.info('Starting database initialization');
