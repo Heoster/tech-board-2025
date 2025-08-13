@@ -113,13 +113,13 @@ server/client/
 .yarn/install-state.gz
 .pnp.*
 
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-server/database/*.db
-server/database/*.sqlite
-server/database/*.sqlite3
+# Database files (exclude production database)
+# *.db
+# *.sqlite
+# *.sqlite3
+# server/database/*.db
+# server/database/*.sqlite
+# server/database/*.sqlite3
 
 # Logs
 logs

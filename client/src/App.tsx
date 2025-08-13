@@ -1,5 +1,5 @@
-import { Routes, Route, Suspense } from 'react-router-dom'
-import { lazy } from 'react'
+import { Routes, Route } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoadingSpinner from './components/LoadingSpinner'
