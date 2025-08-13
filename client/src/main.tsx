@@ -3,16 +3,15 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
-import { registerSW } from './utils/serviceWorker'
 
-createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root')
+if (!rootElement) {
+  throw new Error('Root element not found')
+}
+
+createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true
-      }}
-    >
+    <BrowserRouter>
       <App />
     </BrowserRouter>
   </StrictMode>,
@@ -20,16 +19,15 @@ createRoot(document.getElementById('root')!).render(
 
 // Register service worker for offline caching
 if (import.meta.env.PROD) {
-  registerSW({
-    onSuccess: () => {
-      console.log('App is ready for offline use');
-    },
-    onUpdate: () => {
-      console.log('New content available, please refresh');
-      // You could show a toast notification here
-    },
-    onOfflineReady: () => {
-      console.log('App is ready to work offline');
-    }
-  });
+  try {
+    import('./utils/serviceWorker').then(({ registerSW }) => {
+      registerSW({
+        onSuccess: () => console.log('App ready for offline use'),
+        onUpdate: () => console.log('New content available'),
+        onOfflineReady: () => console.log('App ready to work offline')
+      });
+    });
+  } catch (error) {
+    console.log('Service worker registration skipped');
+  }
 }
