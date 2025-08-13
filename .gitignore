@@ -61,12 +61,14 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files
+# dotenv environment variable files (keep examples)
 .env
 .env.development.local
 .env.test.local
-.env.production.local
 .env.local
+# Keep production env for Railway
+# .env.production
+# .env.production.local
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
