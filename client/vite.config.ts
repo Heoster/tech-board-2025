@@ -15,7 +15,9 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false,
+    assetsDir: 'assets',
+    emptyOutDir: true,
+    sourcemap: process.env.NODE_ENV !== 'production',
     minify: 'terser',
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
@@ -76,5 +78,6 @@ export default defineConfig({
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
-  }
+  },
+  base: '/'
 })
