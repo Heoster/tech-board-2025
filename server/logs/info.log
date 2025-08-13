@@ -4540,3 +4540,125 @@
 {"timestamp":"2025-08-12T08:35:36.213Z","level":"INFO","message":"Database integrity verification passed","tables":6}
 {"timestamp":"2025-08-12T08:35:36.214Z","level":"INFO","message":"Database initialization completed successfully"}
 {"timestamp":"2025-08-12T08:35:36.214Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-12T15:41:06.971Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-12T15:41:06.979Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-12T15:41:06.985Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-12T15:41:06.986Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-12T15:41:06.988Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-12T15:41:06.990Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-12T15:41:06.991Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-12T15:41:06.991Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-12T15:41:21.459Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-12T15:41:21.462Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-12T15:41:21.466Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-12T15:41:21.466Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-12T15:41:21.469Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-12T15:41:21.471Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-12T15:41:21.472Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-12T15:41:21.473Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-12T15:42:37.003Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-12T15:42:37.007Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-12T15:42:37.009Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-12T15:42:37.010Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-12T15:42:37.013Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-12T15:42:37.015Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-12T15:42:37.016Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-12T15:42:37.016Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-13T09:32:18.962Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-13T09:32:18.970Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-13T09:32:18.974Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-13T09:32:18.975Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-13T09:32:18.977Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-13T09:32:18.980Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-13T09:32:18.980Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-13T09:32:18.981Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-13T09:33:33.323Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-13T09:33:33.326Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-13T09:33:33.329Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-13T09:33:33.329Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-13T09:33:33.333Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-13T09:33:33.336Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-13T09:33:33.336Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-13T09:33:33.336Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-13T09:36:46.436Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-13T09:36:46.439Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-13T09:36:46.441Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-13T09:36:46.442Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-13T09:36:46.444Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-13T09:36:46.445Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-13T09:36:46.446Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-13T09:36:46.446Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-13T09:41:41.770Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-13T09:41:41.773Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-13T09:41:41.776Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-13T09:41:41.776Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-13T09:41:41.778Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-13T09:41:41.780Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-13T09:41:41.780Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-13T09:41:41.781Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-13T09:42:17.945Z","level":"INFO","message":"Database health check passed","duration":0}
+{"timestamp":"2025-08-13T09:42:51.091Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-13T09:42:51.094Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-13T09:42:51.096Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-13T09:42:51.097Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-13T09:42:51.098Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-13T09:42:51.099Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-13T09:42:51.100Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-13T09:42:51.100Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-13T09:43:04.159Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-13T09:43:04.167Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-13T09:43:04.169Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-13T09:43:04.170Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-13T09:43:04.171Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-13T09:43:04.173Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-13T09:43:04.174Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-13T09:43:04.174Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-13T09:43:41.781Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-13T09:43:41.783Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-13T09:43:41.785Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-13T09:43:41.785Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-13T09:43:41.787Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-13T09:43:41.790Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-13T09:43:41.790Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-13T09:43:41.791Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-13T09:47:55.788Z","level":"INFO","message":"Database health check passed","duration":0}
+{"timestamp":"2025-08-13T09:52:31.485Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-13T09:52:31.491Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-13T09:52:31.493Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-13T09:52:31.494Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-13T09:52:31.495Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-13T09:52:31.498Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-13T09:52:31.499Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-13T09:52:31.499Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-13T09:53:19.365Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-13T09:53:19.372Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-13T09:53:19.373Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-13T09:53:19.374Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-13T09:53:19.375Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-13T09:53:19.377Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-13T09:53:19.378Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-13T09:53:19.379Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-13T09:54:43.266Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-13T09:54:43.272Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-13T09:54:43.274Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-13T09:54:43.275Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-13T09:54:43.277Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-13T09:54:43.279Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-13T09:54:43.279Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-13T09:54:43.280Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-13T09:56:37.807Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-13T09:56:37.812Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-13T09:56:37.814Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-13T09:56:37.815Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-13T09:56:37.817Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-13T09:56:37.819Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-13T09:56:37.821Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-13T09:56:37.821Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-13T09:59:13.692Z","level":"INFO","message":"Attempting database connection","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-13T09:59:13.696Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"d:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-13T09:59:13.699Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-13T09:59:13.699Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-13T09:59:13.701Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-13T09:59:13.703Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-13T09:59:13.704Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-13T09:59:13.704Z","level":"INFO","message":"Database initialized successfully"}

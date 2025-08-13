@@ -228,7 +228,7 @@ export const getPerformanceSEORecommendations = (coreWebVitals: {
 export const defaultSEOConfig = {
     siteName: 'TECH BOARD 2025 MCQ test',
     siteDescription: 'Comprehensive MCQ testing platform for students preparing for TECH BOARD 2025 examinations. Practice tests for grades 6-12 across multiple subjects.',
-    siteUrl: import.meta.env.VITE_SITE_URL || 'https://techboard2025.com',
+    siteUrl: import.meta.env.VITE_API_URL || 'https://techboard2025.com',
     defaultImage: '/images/og-default.jpg',
     twitterHandle: '@techboard2025',
     keywords: 'MCQ tests, TECH BOARD 2025, online examination, student assessment, practice tests, educational platform, heoster'

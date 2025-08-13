@@ -9,10 +9,9 @@ const router = express.Router();
 // Student registration
 router.post('/register', [
     body('name').trim().isLength({ min: 2 }),
-    body('roll_number').isInt({ min: 1, max: 100 }),
+    body('email').isEmail(),
     body('password').isLength({ min: 6 }),
-    body('grade').isIn([6, 7, 8, 9, 11]),
-    body('section').isIn(['A', 'B'])
+    body('grade').isIn([6, 7, 8, 9, 11])
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -25,12 +24,12 @@ router.post('/register', [
     }
     
     try {
-        const { name, roll_number, password, grade, section = 'A' } = req.body;
+        const { name, email, password, grade } = req.body;
         
         // Check if student exists
         const existingUser = await database.get(
-            'SELECT id FROM students WHERE roll_number = ? AND grade = ? AND section = ?', 
-            [roll_number, grade, section]
+            'SELECT id FROM students WHERE email = ?', 
+            [email]
         );
         
         if (existingUser) {
@@ -40,8 +39,8 @@ router.post('/register', [
         // Hash password and create user
         const hashedPassword = await bcrypt.hash(password, 10);
         const result = await database.run(
-            'INSERT INTO students (name, roll_number, grade, section, password_hash) VALUES (?, ?, ?, ?, ?)',
-            [name, roll_number, grade, section, hashedPassword]
+            'INSERT INTO students (name, email, password, grade) VALUES (?, ?, ?, ?)',
+            [name, email, hashedPassword, grade]
         );
         
         const token = jwt.sign({ id: result.lastID, type: 'student', grade }, process.env.JWT_SECRET || 'secret');
@@ -49,7 +48,7 @@ router.post('/register', [
             success: true, 
             data: { 
                 token, 
-                user: { id: result.lastID, name, roll_number, grade, section } 
+                user: { id: result.lastID, name, email, grade } 
             } 
         });
     } catch (error) {
@@ -66,36 +65,53 @@ router.post('/register', [
 router.post('/student/login', async (req, res) => {
     try {
         // Handle both rollNumber and roll_number formats
-        const roll_number = req.body.roll_number || req.body.rollNumber;
-        const { password, grade, section = 'A' } = req.body;
+        const { email, password } = req.body;
         
-        if (!roll_number || !password || !grade) {
-            return res.status(400).json({ error: 'Missing required fields' });
+        if (!email || !password) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Missing required fields' 
+            });
         }
         
         const user = await database.get(
-            'SELECT * FROM students WHERE roll_number = ? AND grade = ? AND section = ?', 
-            [roll_number, grade, section]
+            'SELECT * FROM students WHERE email = ?', 
+            [email]
         );
         
-        if (!user || !await bcrypt.compare(password, user.password_hash)) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+        if (!user || !await bcrypt.compare(password, user.password)) {
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Invalid credentials' 
+            });
         }
         
-        const token = jwt.sign({ id: user.id, type: 'student', grade: user.grade }, process.env.JWT_SECRET || 'secret');
+        const token = jwt.sign({ 
+            id: user.id, 
+            type: 'student', 
+            grade: user.grade,
+            email: user.email
+        }, process.env.JWT_SECRET || 'secret', { expiresIn: '24h' });
+        
         res.json({ 
-            token, 
-            user: { 
-                id: user.id, 
-                name: user.name, 
-                roll_number: user.roll_number, 
-                grade: user.grade, 
-                section: user.section 
-            } 
+            success: true,
+            data: {
+                token, 
+                user: { 
+                    id: user.id, 
+                    name: user.name, 
+                    email: user.email, 
+                    grade: user.grade 
+                }
+            },
+
         });
     } catch (error) {
         console.error('Student login error:', error);
-        res.status(500).json({ error: 'Login failed' });
+        res.status(500).json({ 
+            success: false, 
+            error: 'Login failed' 
+        });
     }
 });
 
@@ -105,16 +121,43 @@ router.post('/admin/login', async (req, res) => {
         const { username, password } = req.body;
         
         if (!username || !password) {
-            return res.status(400).json({ error: 'Missing credentials' });
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Missing credentials' 
+            });
         }
         
         const admin = await database.get('SELECT * FROM admins WHERE username = ?', [username]);
         
-        if (!admin || !await bcrypt.compare(password, admin.password)) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+        if (!admin) {
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Invalid credentials' 
+            });
         }
         
-        const token = jwt.sign({ id: admin.id, type: 'admin', username: admin.username }, process.env.JWT_SECRET || 'secret');
+        // Check password - handle both hashed and plain text for backward compatibility
+        let passwordValid = false;
+        try {
+            passwordValid = await bcrypt.compare(password, admin.password);
+        } catch (bcryptError) {
+            // If bcrypt fails, try plain text comparison (for development)
+            passwordValid = password === admin.password;
+        }
+        
+        if (!passwordValid) {
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Invalid credentials' 
+            });
+        }
+        
+        const token = jwt.sign({ 
+            id: admin.id, 
+            type: 'admin', 
+            username: admin.username 
+        }, process.env.JWT_SECRET || 'secret', { expiresIn: '24h' });
+        
         res.json({ 
             success: true,
             data: {
@@ -127,7 +170,59 @@ router.post('/admin/login', async (req, res) => {
         });
     } catch (error) {
         console.error('Admin login error:', error);
-        res.status(500).json({ error: 'Login failed' });
+        res.status(500).json({ 
+            success: false, 
+            error: 'Login failed' 
+        });
+    }
+});
+
+// Simple login route
+router.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        if (!email || !password) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Missing email or password' 
+            });
+        }
+        
+        const user = await database.get('SELECT * FROM students WHERE email = ?', [email]);
+        
+        if (!user || !await bcrypt.compare(password, user.password)) {
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Invalid credentials' 
+            });
+        }
+        
+        const token = jwt.sign({ 
+            id: user.id, 
+            type: 'student', 
+            grade: user.grade,
+            email: user.email
+        }, process.env.JWT_SECRET || 'secret', { expiresIn: '24h' });
+        
+        res.json({ 
+            success: true,
+            data: {
+                token, 
+                user: { 
+                    id: user.id, 
+                    name: user.name, 
+                    email: user.email, 
+                    grade: user.grade
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Login failed' 
+        });
     }
 });
 

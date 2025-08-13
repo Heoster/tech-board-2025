@@ -1,36 +1,33 @@
-const fs = require('fs');
+#!/usr/bin/env node
+
+// Production startup script for Railway
+process.env.NODE_ENV = 'production';
+process.env.PORT = process.env.PORT || 8000;
+
 const path = require('path');
+const fs = require('fs');
 
-console.log('🚀 Starting Railway application...\n');
-
-async function startRailwayApp() {
-  try {
-    // Step 1: Ensure database directory exists
-    const dbDir = path.join(__dirname, 'server/database');
-    if (!fs.existsSync(dbDir)) {
-      fs.mkdirSync(dbDir, { recursive: true });
-      console.log('📁 Created database directory');
-    }
-
-    // Step 2: Check if client build exists
-    const clientPath = path.join(__dirname, 'server/client/index.html');
-    if (fs.existsSync(clientPath)) {
-      console.log('✅ Client build found');
-    } else {
-      console.log('⚠️ Client build not found, server will serve fallback HTML');
-    }
-
-    // Step 3: Set working directory and start server
-    console.log('🚀 Starting server...');
-    process.chdir('server');
-    
-    // Import and start the server
-    require('./server/index.js');
-
-  } catch (error) {
-    console.error('❌ Railway startup failed:', error.message);
-    process.exit(1);
-  }
+// Ensure database directory exists
+const dbDir = path.join(__dirname, 'server', 'database');
+if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
 }
 
-startRailwayApp();
+// Copy database if it doesn't exist
+const dbPath = path.join(dbDir, 'mcq_system_fixed.db');
+const sourcePath = path.join(__dirname, 'database', 'mcq_system.db');
+
+if (!fs.existsSync(dbPath) && fs.existsSync(sourcePath)) {
+    fs.copyFileSync(sourcePath, dbPath);
+    console.log('Database copied to server directory');
+}
+
+// Set database path
+process.env.DB_PATH = dbPath;
+
+console.log('Starting Tech Board 2025 in production mode...');
+console.log('Database path:', process.env.DB_PATH);
+console.log('Port:', process.env.PORT);
+
+// Start the server
+require('./server/index.js');

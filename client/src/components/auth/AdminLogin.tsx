@@ -107,9 +107,15 @@ const AdminLogin: React.FC = () => {
         ...formData,
         browserInfo,
         securityLevel: 'normal'
-      }) as AdminLoginResponse
+      })
 
-      const { token, admin } = response.data.data
+      // Handle the actual server response format
+      const responseData = response.data
+      if (!responseData.success) {
+        throw new Error(responseData.error || 'Login failed')
+      }
+      
+      const { token, user: admin } = responseData.data
 
       // Store token and redirect
       login(token, { 
@@ -134,7 +140,11 @@ const AdminLogin: React.FC = () => {
           setError(`Account locked. Try again in ${Math.ceil(lockoutData.remainingSeconds / 60)} minutes.`)
         }
       } else {
-        setError(apiError.response?.data?.error?.message || 'Login failed. Please try again.')
+        const errorMessage = apiError.response?.data?.error || 
+                           apiError.response?.data?.message || 
+                           apiError.message || 
+                           'Login failed. Please try again.'
+        setError(errorMessage)
       }
     } finally {
       setLoading(false)

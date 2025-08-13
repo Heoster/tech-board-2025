@@ -18,10 +18,10 @@ interface LoginResponse {
   data: {
     data: {
       token: string;
-      student: {
+      user: {
         id: number;
         name: string;
-        rollNumber: number;
+        roll_number: number;
         grade: number;
         section: string;
       };
@@ -54,14 +54,55 @@ const LoginForm: React.FC = () => {
     setLoading(true)
 
     try {
-      const response = await apiClient.post('/auth/login', formData) as LoginResponse
-      const { token, student } = response.data.data
+      // Convert form data to match server expectations
+      const loginData = {
+        roll_number: parseInt(formData.rollNumber),
+        grade: parseInt(formData.grade),
+        section: formData.section,
+        password: formData.password
+      }
       
-      login(token, { ...student, role: 'student' })
+      const response = await apiClient.post('/auth/student/login', loginData)
+      
+      // Handle the actual server response format (both new and legacy)
+      const responseData = response.data
+      
+      // Try new format first, then legacy format
+      let token, student;
+      if (responseData.success && responseData.data) {
+        token = responseData.data.token;
+        student = responseData.data.user;
+      } else if (responseData.token && responseData.user) {
+        // Legacy format
+        token = responseData.token;
+        student = responseData.user;
+      } else {
+        throw new Error('Invalid response format');
+      }
+      
+      if (!token || !student) {
+        throw new Error('Login failed - missing token or user data');
+      }
+      
+      // Map server response fields to AuthContext expected fields
+      const userForAuth = {
+        id: student.id,
+        role: 'student' as const,
+        name: student.name,
+        rollNumber: student.roll_number,
+        grade: student.grade,
+        section: student.section
+      };
+      
+      login(token, userForAuth)
       navigate('/dashboard')
     } catch (error: unknown) {
       const apiError = error as LoginApiError;
-      setError(apiError.response?.data?.error?.message || 'Login failed')
+      const errorMessage = apiError.response?.data?.error || 
+                         apiError.response?.data?.message || 
+                         apiError.message || 
+                         'Login failed'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

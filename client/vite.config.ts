@@ -17,19 +17,60 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     minify: 'terser',
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          utils: ['axios']
-        }
+        manualChunks: (id) => {
+          // Vendor chunk for core React libraries
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'vendor-react';
+          }
+          
+          // Router chunk
+          if (id.includes('node_modules/react-router')) {
+            return 'vendor-router';
+          }
+          
+          // Utilities chunk
+          if (id.includes('node_modules/axios') || id.includes('node_modules/date-fns')) {
+            return 'vendor-utils';
+          }
+          
+          // Admin components chunk
+          if (id.includes('/admin/') || id.includes('AdminPanel') || id.includes('AdminDashboard')) {
+            return 'admin';
+          }
+          
+          // Student components chunk
+          if (id.includes('/student/') || id.includes('Dashboard') || id.includes('QuizInterface')) {
+            return 'student';
+          }
+          
+          // Auth components chunk
+          if (id.includes('/auth/') || id.includes('Login') || id.includes('Registration')) {
+            return 'auth';
+          }
+          
+          // Other vendor libraries
+          if (id.includes('node_modules')) {
+            return 'vendor-misc';
+          }
+        },
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
+          return `assets/[name]-[hash].js`;
+        },
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn']
+      },
+      mangle: {
+        safari10: true
       }
     }
   },

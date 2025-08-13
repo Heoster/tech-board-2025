@@ -1,6 +1,15 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { APISecurityManager, InputValidator } from './security';
 
+// Simple environment variable access
+const getEnvVar = (key: string, defaultValue: string = '') => {
+  try {
+    return (import.meta as any).env[key] || defaultValue;
+  } catch {
+    return defaultValue;
+  }
+};
+
 /**
  * Secure API client with built-in security features
  */
@@ -10,8 +19,9 @@ class SecureAPIClient {
   private requestQueue: Map<string, Promise<AxiosResponse<unknown>>> = new Map();
 
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || 
-                  (import.meta.env.DEV ? 'http://localhost:8000/api' : '/api');
+    const isDev = getEnvVar('DEV') === 'true' || getEnvVar('MODE') === 'development';
+    this.baseURL = getEnvVar('VITE_API_URL') || 
+                  (isDev ? 'http://localhost:8000/api' : '/api');
     
     this.client = axios.create({
       baseURL: this.baseURL,
@@ -29,8 +39,8 @@ class SecureAPIClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (config) => {
-        // Add timestamp to prevent caching issues
-        config.headers['X-Request-ID'] = Date.now().toString();
+        // Add unique request ID to prevent caching issues
+        config.headers['X-Request-ID'] = crypto.randomUUID();
         
         // Validate and sanitize request data
         if (config.data) {
@@ -76,7 +86,7 @@ class SecureAPIClient {
     
     // Handle different error types
     if (error.code === 'ECONNABORTED') {
-      console.warn('Request timeout for:', endpoint);
+      console.warn('Request timeout for endpoint');
     }
     
     if (error.response?.status === 429) {
@@ -88,14 +98,14 @@ class SecureAPIClient {
     // Auto-retry logic for certain errors
     if (APISecurityManager.shouldRetry(error, endpoint)) {
       const delay = APISecurityManager.getRetryDelay(endpoint);
-      console.info(`Retrying request to ${endpoint} in ${delay}ms`);
+      console.info(`Retrying request in ${delay}ms`);
       
       await new Promise(resolve => setTimeout(resolve, delay));
       
       try {
         return await this.client.request(error.config!);
       } catch (retryError) {
-        console.error('Retry failed for:', endpoint, retryError);
+        console.error('Retry failed for request');
       }
     }
 
@@ -110,7 +120,11 @@ class SecureAPIClient {
   private sanitizeRequestData(data: unknown): unknown {
     if (!data || typeof data !== 'object') return data;
 
-    const sanitized: Record<string, unknown> = Array.isArray(data) ? [...data] : { ...(data as Record<string, unknown>) };
+    if (Array.isArray(data)) {
+      return data.map(item => this.sanitizeRequestData(item));
+    }
+
+    const sanitized = { ...(data as Record<string, unknown>) };
 
     // Recursively sanitize object properties
     Object.keys(sanitized).forEach(key => {
@@ -119,7 +133,7 @@ class SecureAPIClient {
         
         // Validate input based on field name
         if (!InputValidator.isValidInput(sanitized[key] as string)) {
-          console.warn(`Potentially dangerous input detected in field: ${key}`);
+          console.warn('Potentially dangerous input detected');
           sanitized[key] = ''; // Clear dangerous input
         }
       } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
@@ -202,33 +216,33 @@ class SecureAPIClient {
 
     const authData = data as Record<string, unknown>;
 
-    // Validate login data
+    // Validate login data with type checking
     if (authData.rollNumber !== undefined) {
-      if (!InputValidator.validateRollNumber(authData.rollNumber as string)) {
+      if (typeof authData.rollNumber !== 'string' || !InputValidator.validateRollNumber(authData.rollNumber)) {
         throw new Error('Invalid roll number format');
       }
     }
 
     if (authData.grade !== undefined) {
-      if (!InputValidator.validateGrade(authData.grade as number)) {
+      if (typeof authData.grade !== 'number' || !InputValidator.validateGrade(authData.grade)) {
         throw new Error('Invalid grade');
       }
     }
 
     if (authData.section !== undefined) {
-      if (!InputValidator.validateSection(authData.section as string)) {
+      if (typeof authData.section !== 'string' || !InputValidator.validateSection(authData.section)) {
         throw new Error('Invalid section');
       }
     }
 
     if (authData.password !== undefined) {
-      if (!InputValidator.validatePassword(authData.password as string)) {
+      if (typeof authData.password !== 'string' || !InputValidator.validatePassword(authData.password)) {
         throw new Error('Password does not meet requirements');
       }
     }
 
     if (authData.name !== undefined) {
-      if (!InputValidator.validateName(authData.name as string)) {
+      if (typeof authData.name !== 'string' || !InputValidator.validateName(authData.name)) {
         throw new Error('Invalid name format');
       }
     }
@@ -255,46 +269,34 @@ class SecureAPIClient {
   setAuthToken(token: string | null): void {
     if (token) {
       this.client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      console.log('Auth token set in apiClient:', token.substring(0, 20) + '...');
+      const isDev = getEnvVar('DEV') === 'true' || getEnvVar('MODE') === 'development';
+      if (isDev) {
+        console.log('Auth token set in apiClient');
+      }
     } else {
       delete this.client.defaults.headers.common['Authorization'];
-      console.log('Auth token removed from apiClient');
+      const isDev = getEnvVar('DEV') === 'true' || getEnvVar('MODE') === 'development';
+      if (isDev) {
+        console.log('Auth token removed from apiClient');
+      }
     }
   }
 
   // Get current auth token status
-  getAuthStatus(): { hasToken: boolean; tokenPreview?: string } {
+  getAuthStatus(): { hasToken: boolean } {
     const authHeader = this.client.defaults.headers.common['Authorization'];
-    if (authHeader && typeof authHeader === 'string') {
-      return {
-        hasToken: true,
-        tokenPreview: authHeader.substring(0, 20) + '...'
-      };
-    }
-    return { hasToken: false };
+    return {
+      hasToken: !!(authHeader && typeof authHeader === 'string')
+    };
   }
 
-  // Get base URL
-  getBaseURL(): string {
-    return this.baseURL;
-  }
-
-  // Clear all pending requests
+  // Cancel all pending requests
   cancelAllRequests(): void {
     this.requestQueue.clear();
   }
 }
 
-// Create singleton instance
+// Create and export singleton instance
 const apiClient = new SecureAPIClient();
-
-// Export commonly used methods
-export const get = apiClient.get.bind(apiClient);
-export const post = apiClient.post.bind(apiClient);
-export const put = apiClient.put.bind(apiClient);
-export const del = apiClient.delete.bind(apiClient);
-export const setAuthToken = apiClient.setAuthToken.bind(apiClient);
-export const getAuthStatus = apiClient.getAuthStatus.bind(apiClient);
-export const healthCheck = apiClient.healthCheck.bind(apiClient);
 
 export default apiClient;

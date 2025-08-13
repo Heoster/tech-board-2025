@@ -2,10 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const database = require('./config/database');
+const compressionMiddleware = require('./middleware/compression');
+const { questionCacheMiddleware, studentCacheMiddleware, apiCacheMiddleware, invalidateCache, getCacheStats } = require('./middleware/cache');
 require('dotenv').config();
 
 const app = express();
@@ -13,7 +14,7 @@ const PORT = process.env.PORT || 8000;
 
 // Security middleware
 app.use(helmet());
-app.use(compression());
+app.use(compressionMiddleware);
 app.use(cookieParser());
 
 // Rate limiting
@@ -36,9 +37,9 @@ app.use(express.urlencoded({ extended: true }));
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/quiz', require('./routes/quiz'));
-app.use('/api/students', require('./routes/students'));
-app.use('/api/performance', require('./routes/performance'));
+app.use('/api/quiz', questionCacheMiddleware, require('./routes/quiz'));
+app.use('/api/students', studentCacheMiddleware, require('./routes/students'));
+app.use('/api/performance', apiCacheMiddleware, require('./routes/performance'));
 
 // Serve static files from React build
 const clientDistPath = path.join(__dirname, 'client');
@@ -105,6 +106,53 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
+// Cache management endpoints
+app.get('/api/cache/stats', (req, res) => {
+    const stats = getCacheStats();
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        cache: stats,
+        totalKeys: Object.values(stats).reduce((sum, cache) => sum + cache.keys, 0),
+        averageHitRate: Object.values(stats).reduce((sum, cache) => sum + cache.hitRate, 0) / Object.keys(stats).length
+    });
+});
+
+app.post('/api/cache/invalidate', (req, res) => {
+    const { type, pattern } = req.body;
+    
+    try {
+        switch (type) {
+            case 'questions':
+                invalidateCache.questions(pattern);
+                break;
+            case 'students':
+                invalidateCache.student(pattern);
+                break;
+            case 'api':
+                invalidateCache.api(pattern);
+                break;
+            case 'all':
+                invalidateCache.all();
+                break;
+            default:
+                return res.status(400).json({ error: 'Invalid cache type' });
+        }
+        
+        res.json({
+            status: 'OK',
+            message: `Cache invalidated for type: ${type}`,
+            pattern: pattern || 'all',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: 'Cache invalidation failed',
+            details: error.message
+        });
+    }
+});
+
 // API info endpoint
 app.get('/api', (req, res) => {
     res.json({
@@ -117,7 +165,8 @@ app.get('/api', (req, res) => {
             admin: '/api/admin/*',
             quiz: '/api/quiz/*',
             students: '/api/students/*',
-            performance: '/api/performance/*'
+            performance: '/api/performance/*',
+            cache: '/api/cache/*'
         },
         features: [
             'Student Authentication',
@@ -125,7 +174,9 @@ app.get('/api', (req, res) => {
             'Quiz Management', 
             'Performance Monitoring',
             'SEO Optimization',
-            'Core Web Vitals Tracking'
+            'Core Web Vitals Tracking',
+            'Response Compression',
+            'API Response Caching'
         ]
     });
 });
@@ -198,6 +249,12 @@ async function startServer() {
         await database.connect();
         console.log('Database connected successfully');
         
+        // Ensure admin user exists in production
+        if (process.env.NODE_ENV === 'production') {
+            const ensureAdmin = require('./scripts/ensure-admin');
+            await ensureAdmin();
+        }
+        
         // Seed database if needed (Railway deployment)
         if (process.env.NODE_ENV === 'production') {
             try {
@@ -219,8 +276,9 @@ async function startServer() {
             }
         }
         
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+            console.log('Admin credentials: username=admin, password=admin123');
         });
     } catch (error) {
         console.error('Failed to start server:', error);

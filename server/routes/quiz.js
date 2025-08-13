@@ -1,73 +1,243 @@
 const express = require('express');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const database = require('../config/database');
+const { performanceMonitor } = require('../middleware/performance');
+// const { questionGenerator } = require('../utils/question-generator'); // Disabled for now
 
 const router = express.Router();
+
+// In-memory cache for quiz questions by grade
+const questionCache = new Map();
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+// Cache management utilities
+const getCacheKey = (grade) => `questions_grade_${grade}`;
+const isCacheValid = (cacheEntry) => {
+    return cacheEntry && (Date.now() - cacheEntry.timestamp) < CACHE_TTL;
+};
+
+// Optimized question fetching with selective fields and caching
+const getQuestionsForGrade = async (grade) => {
+    const cacheKey = getCacheKey(grade);
+    const cached = questionCache.get(cacheKey);
+    
+    if (isCacheValid(cached)) {
+        console.log(`Cache hit for grade ${grade} questions`);
+        return cached.data;
+    }
+    
+    const startTime = performance.now();
+    const db = database.getDb();
+    
+    // Optimized query with selective fields, proper indexing, and minimal data transfer
+    const questions = await new Promise((resolve, reject) => {
+        // First get questions with minimal fields
+        db.all(`
+            SELECT id, question_text, difficulty
+            FROM questions 
+            WHERE grade = ?
+            ORDER BY id
+        `, [grade], (err, questionRows) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            
+            if (questionRows.length === 0) {
+                resolve([]);
+                return;
+            }
+            
+            // Batch fetch options for all questions
+            const questionIds = questionRows.map(q => q.id);
+            const placeholders = questionIds.map(() => '?').join(',');
+            
+            db.all(`
+                SELECT question_id, id, option_text, option_order, is_correct
+                FROM options 
+                WHERE question_id IN (${placeholders})
+                ORDER BY question_id, option_order
+            `, questionIds, (err, optionRows) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                
+                // Group options by question_id for efficient lookup
+                const optionsByQuestion = {};
+                optionRows.forEach(option => {
+                    if (!optionsByQuestion[option.question_id]) {
+                        optionsByQuestion[option.question_id] = [];
+                    }
+                    optionsByQuestion[option.question_id].push({
+                        id: option.id,
+                        text: option.option_text,
+                        order: option.option_order,
+                        // Don't include is_correct in client response for security
+                    });
+                });
+                
+                // Combine questions with their options
+                const result = questionRows.map(question => ({
+                    id: question.id,
+                    question_text: question.question_text,
+                    difficulty: question.difficulty,
+                    options: optionsByQuestion[question.id] || []
+                }));
+                
+                resolve(result);
+            });
+        });
+    });
+    
+    const queryTime = performance.now() - startTime;
+    performanceMonitor.trackQuery(`getQuestionsForGrade(${grade})`, queryTime);
+    
+    // Cache the results
+    questionCache.set(cacheKey, {
+        data: questions,
+        timestamp: Date.now()
+    });
+    
+    console.log(`Cached ${questions.length} questions for grade ${grade} (${queryTime.toFixed(2)}ms)`);
+    return questions;
+};
+
+// Batch operation for quiz answers
+const batchInsertAnswers = async (quizId, answers) => {
+    const db = database.getDb();
+    const startTime = performance.now();
+    
+    return new Promise((resolve, reject) => {
+        db.serialize(() => {
+            db.run('BEGIN TRANSACTION');
+            
+            const stmt = db.prepare(`
+                INSERT INTO quiz_answers (quiz_id, question_id, selected_option_id, is_correct) 
+                VALUES (?, ?, ?, ?)
+            `);
+            
+            let completed = 0;
+            let totalScore = 0;
+            
+            answers.forEach((answer, index) => {
+                // Get correct answer info
+                db.get('SELECT is_correct FROM options WHERE id = ?', [answer.selectedOptionId], (err, option) => {
+                    if (err) {
+                        db.run('ROLLBACK');
+                        return reject(err);
+                    }
+                    
+                    const isCorrect = option?.is_correct || 0;
+                    if (isCorrect) totalScore++;
+                    
+                    stmt.run([quizId, answer.questionId, answer.selectedOptionId, isCorrect], (err) => {
+                        if (err) {
+                            db.run('ROLLBACK');
+                            return reject(err);
+                        }
+                        
+                        completed++;
+                        if (completed === answers.length) {
+                            stmt.finalize();
+                            db.run('COMMIT', (err) => {
+                                if (err) {
+                                    return reject(err);
+                                }
+                                
+                                const queryTime = performance.now() - startTime;
+                                performanceMonitor.trackQuery(`batchInsertAnswers(${answers.length})`, queryTime);
+                                
+                                resolve(totalScore);
+                            });
+                        }
+                    });
+                });
+            });
+        });
+    });
+};
 
 // Start quiz
 router.post('/start', authenticateToken, async (req, res) => {
     try {
-        const { grade } = req.body;
+        // Debug logging
+        console.log('Quiz start request - User:', req.user);
+        console.log('Quiz start request - Body:', req.body);
+        
+        // Get grade from user token (set during login) or request body as fallback
+        const grade = req.user.grade || req.body.grade;
         const studentId = req.user.id;
+
+        // Validate student ID
+        if (!studentId) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Student ID not found. Please log in again.' 
+            });
+        }
 
         // Validate grade
         const validGrades = [6, 7, 8, 9, 11];
-        if (!grade || !validGrades.includes(parseInt(grade))) {
-            return res.status(400).json({ error: 'Invalid grade' });
+        const gradeInt = parseInt(grade);
+        if (!grade || !validGrades.includes(gradeInt)) {
+            return res.status(400).json({ 
+                success: false, 
+                error: `Invalid grade: ${grade}. Valid grades are 6, 7, 8, 9, 11. Please ensure you are logged in properly.` 
+            });
         }
         
         const db = database.getDb();
+        
+        // Verify database connection
+        if (!db) {
+            return res.status(500).json({ 
+                success: false, 
+                error: 'Database connection failed' 
+            });
+        }
 
         // Check if student already has a quiz
-        const existingQuiz = await new Promise((resolve, reject) => {
-            db.get('SELECT id, status FROM quizzes WHERE student_id = ?', [studentId], (err, row) => {
-                if (err) reject(err);
-                else resolve(row);
-            });
-        });
+        const existingQuiz = await database.get('SELECT id, status FROM quizzes WHERE student_id = ?', [studentId]);
 
         if (existingQuiz) {
             if (existingQuiz.status === 'completed') {
-                return res.status(400).json({ error: 'You have already completed the test' });
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'You have already completed the test' 
+                });
             } else {
-                return res.status(400).json({ error: 'You already have a test in progress' });
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'You already have a test in progress' 
+                });
             }
         }
 
-        // Get exactly 50 random questions for the grade
-        const questions = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT q.id, q.question_text, q.difficulty,
-                       GROUP_CONCAT(
-                           json_object('id', o.id, 'text', o.option_text, 'order', o.option_order)
-                       ) as options
-                FROM questions q
-                LEFT JOIN options o ON q.id = o.question_id
-                WHERE q.grade = ?
-                GROUP BY q.id
-                ORDER BY RANDOM()
-                LIMIT 50
-            `, [grade], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows.map(q => ({
-                    ...q,
-                    options: q.options ? JSON.parse(`[${q.options}]`).sort((a, b) => a.order - b.order) : []
-                })));
+        // Get all questions for the grade and generate quiz
+        console.log(`Generating question set for student ${studentId}, grade ${gradeInt}`);
+        
+        const allQuestions = await getQuestionsForGrade(gradeInt);
+        
+        if (allQuestions.length < 50) {
+            return res.status(400).json({ 
+                success: false, 
+                error: `Insufficient questions available for grade ${gradeInt}. Found ${allQuestions.length} questions, need 50.` 
             });
-        });
-
-        if (questions.length < 50) {
-            return res.status(400).json({ error: 'Insufficient questions available for this grade' });
         }
 
+        // Shuffle and select 50 questions
+        const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+        const questions = shuffled.slice(0, 50);
+
+        console.log(`Successfully generated ${questions.length} questions for student ${studentId}`);
+
         // Create quiz session with 50-minute time limit
-        const quizId = await new Promise((resolve, reject) => {
-            db.run('INSERT INTO quizzes (student_id, grade, total_questions, status) VALUES (?, ?, ?, ?)',
-                [studentId, grade, 50, 'in_progress'], function (err) {
-                    if (err) reject(err);
-                    else resolve(this.lastID);
-                });
-        });
+        const quizResult = await database.run(
+            'INSERT INTO quizzes (student_id, grade, total_questions, status) VALUES (?, ?, ?, ?)',
+            [studentId, gradeInt, 50, 'in_progress']
+        );
+        const quizId = quizResult.lastID;
 
         res.json({ 
             success: true,
@@ -122,24 +292,8 @@ router.post('/submit', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: 'Must answer exactly 50 questions' });
         }
 
-        let score = 0;
-
-        // Process each answer
-        for (const answer of answers) {
-            const option = await database.get(
-                'SELECT is_correct FROM options WHERE id = ?',
-                [answer.selectedOptionId]
-            );
-
-            const isCorrect = option?.is_correct || 0;
-            if (isCorrect) score++;
-
-            // Save answer
-            await database.run(
-                'INSERT INTO quiz_answers (quiz_id, question_id, selected_option_id, is_correct) VALUES (?, ?, ?, ?)',
-                [quizId, answer.questionId, answer.selectedOptionId, isCorrect]
-            );
-        }
+        // Use batch operation for better performance
+        const score = await batchInsertAnswers(quizId, answers);
 
         // Update quiz with final score
         await database.run(

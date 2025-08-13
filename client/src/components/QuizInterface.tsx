@@ -23,7 +23,14 @@ interface QuizData {
 }
 
 const QuizInterface = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
   const navigate = useNavigate();
 
   const [quizData, setQuizData] = useState<QuizData | null>(null);
@@ -38,11 +45,32 @@ const QuizInterface = () => {
   useEffect(() => {
     const initializeQuiz = async () => {
       try {
+        console.log('Initializing quiz with user:', user);
+        
+        // Get grade from user context or fallback
+        const grade = user?.grade;
+        if (!grade) {
+          console.error('No grade found in user context:', user);
+          throw new Error('Grade information not available. Please log in again.');
+        }
+        
+        console.log('Starting quiz for grade:', grade);
+        
         const response = await apiClient.post('/quiz/start', {
-          grade: user?.grade
+          grade: grade
         });
 
-        const data = (response.data as any).data;
+        console.log('Quiz start response:', response.data);
+        
+        if (!response.data.success) {
+          throw new Error(response.data.error || 'Quiz start failed');
+        }
+
+        const data = response.data.data;
+        if (!data || !data.questions || data.questions.length === 0) {
+          throw new Error('No quiz questions received');
+        }
+        
         setQuizData(data);
         setTimeLeft(50 * 60); // 50 minutes
 
@@ -52,15 +80,33 @@ const QuizInterface = () => {
 
       } catch (error: any) {
         console.error('Failed to start quiz:', error);
-        alert(error.response?.data?.error || 'Failed to start quiz');
+        console.error('Error details:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message
+        });
+        
+        const errorMessage = error.response?.data?.error || 
+                           error.response?.data?.message || 
+                           error.message || 
+                           'Failed to start quiz';
+        
+        alert(`Quiz Error: ${errorMessage}`);
         navigate('/dashboard');
       } finally {
         setLoading(false);
       }
     };
 
-    initializeQuiz();
-  }, [user?.grade, navigate]);
+    // Only initialize if user is available
+    if (user) {
+      initializeQuiz();
+    } else {
+      console.log('Waiting for user data...');
+      setLoading(false);
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   // Timer countdown
   useEffect(() => {
@@ -136,6 +182,20 @@ const QuizInterface = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading your test...</p>
+          {user && <p className="text-sm text-gray-500 mt-2">Grade: {user.grade}</p>}
+        </div>
+      </div>
+    );
+  }
+  
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">Please log in to access the test.</p>
+          <button onClick={() => navigate('/login')} className="btn btn-primary mt-4">
+            Go to Login
+          </button>
         </div>
       </div>
     );
@@ -146,9 +206,15 @@ const QuizInterface = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600">Failed to load test. Please try again.</p>
-          <button onClick={() => navigate('/dashboard')} className="btn btn-primary mt-4">
-            Back to Dashboard
-          </button>
+          <p className="text-sm text-gray-600 mt-2">User: {user?.name} (Grade {user?.grade})</p>
+          <div className="mt-4 space-x-4">
+            <button onClick={() => window.location.reload()} className="btn btn-secondary">
+              Retry
+            </button>
+            <button onClick={() => navigate('/dashboard')} className="btn btn-primary">
+              Back to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
