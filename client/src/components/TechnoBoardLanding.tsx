@@ -42,8 +42,8 @@ const TechnoBoardLanding = () => {
       {/* Hero Section */}
       <section className="section bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
         {/* Background Logo */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-5">
-          <img src="/logoSch.png" alt="" className="w-96 h-96 object-contain" />
+        <div className="absolute inset-0 flex items-center justify-center opacity-10">
+          <img src="/logoSch.png" alt="" className="w-[600px] h-[600px] object-contain" />
         </div>
         <div className="container text-center relative z-10">
           <div className="max-w-4xl mx-auto">
