@@ -1,8 +1,10 @@
 [phases.build]
-cmds = ["npm ci --prefix server --only=production"]
+cmds = ["cd server && npm install --production"]
 
 [phases.start]
 cmd = "cd server && npm start"
 
 [variables]
 NODE_ENV = "production"
+JWT_SECRET = "tech-board-2025-secure-jwt-secret-key-production"
+PORT = "8080"
