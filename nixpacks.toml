@@ -3,7 +3,8 @@ cmds = [
   "npm install --prefix server --production",
   "npm install --prefix client",
   "npm run build --prefix client",
-  "cp -r client/dist/* server/public/"
+  "mkdir -p server/public",
+  "cp -r client/dist/* server/public/ || echo 'No dist files to copy'"
 ]
 
 [phases.start]
