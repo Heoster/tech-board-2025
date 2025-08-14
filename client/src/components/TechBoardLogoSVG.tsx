@@ -16,9 +16,9 @@ const TechBoardLogoSVG: React.FC<TechBoardLogoSVGProps> = ({
   width = 120,
   height = 60,
   colors = {
-    primary: '#E67914',
-    secondary: '#F4C005',
-    accent: '#3A3633'
+    primary: '#4a7c59',
+    secondary: '#ffffff',
+    accent: '#1e3a5f'
   }
 }) => {
   return (
@@ -26,65 +26,67 @@ const TechBoardLogoSVG: React.FC<TechBoardLogoSVGProps> = ({
       className={className}
       width={width}
       height={height}
-      viewBox="0 0 512 280"
+      viewBox="0 0 400 200"
       xmlns="http://www.w3.org/2000/svg"
       style={{ maxWidth: '100%', height: 'auto' }}
     >
-      {/* Main circular background */}
-      <circle
-        cx="256"
-        cy="140"
-        r="120"
-        fill={colors.primary}
-        opacity="0.9"
-      />
-
-      {/* Secondary circle */}
-      <circle
-        cx="256"
-        cy="140"
-        r="90"
-        fill={colors.secondary}
-        opacity="0.8"
-      />
+      {/* Graduation Cap */}
+      <g transform="translate(200, 80)">
+        {/* Main cap hexagon */}
+        <path 
+          d="M-60,-30 L-30,-50 L30,-50 L60,-30 L60,30 L30,50 L-30,50 L-60,30 Z" 
+          fill={colors.primary}
+        />
+        
+        {/* Tassel */}
+        <g transform="translate(63, -25)">
+          <rect x="0" y="0" width="6" height="45" rx="3" fill={colors.secondary}/>
+          <ellipse cx="3" cy="48" rx="9" ry="6" fill={colors.secondary}/>
+        </g>
+        
+        {/* Circuit board pattern inside cap */}
+        <g fill="none" stroke={colors.secondary} strokeWidth="4" strokeLinecap="round">
+          {/* Horizontal lines */}
+          <line x1="-37" y1="-15" x2="-7" y2="-15"/>
+          <line x1="7" y1="-15" x2="37" y2="-15"/>
+          <line x1="-37" y1="0" x2="-7" y2="0"/>
+          <line x1="7" y1="0" x2="37" y2="0"/>
+          <line x1="-22" y1="15" x2="22" y2="15"/>
+          
+          {/* Vertical connections */}
+          <line x1="-22" y1="-15" x2="-22" y2="0"/>
+          <line x1="22" y1="-15" x2="22" y2="0"/>
+          <line x1="0" y1="0" x2="0" y2="15"/>
+        </g>
+        
+        {/* Circuit nodes */}
+        <g fill={colors.secondary}>
+          <circle cx="-37" cy="-15" r="4"/>
+          <circle cx="-7" cy="-15" r="4"/>
+          <circle cx="7" cy="-15" r="4"/>
+          <circle cx="37" cy="-15" r="4"/>
+          <circle cx="-37" cy="0" r="4"/>
+          <circle cx="-7" cy="0" r="4"/>
+          <circle cx="7" cy="0" r="4"/>
+          <circle cx="37" cy="0" r="4"/>
+          <circle cx="-22" cy="15" r="4"/>
+          <circle cx="0" cy="15" r="4"/>
+          <circle cx="22" cy="15" r="4"/>
+        </g>
+      </g>
 
       {/* Tech Board Text */}
       <text
-        x="256"
-        y="130"
+        x="200"
+        y="160"
         textAnchor="middle"
-        fontSize="24"
+        fontSize="32"
         fontWeight="bold"
         fill={colors.accent}
         fontFamily="Arial, sans-serif"
       >
-        TECH
+        Tech Board
       </text>
-
-      <text
-        x="256"
-        y="155"
-        textAnchor="middle"
-        fontSize="20"
-        fontWeight="bold"
-        fill={colors.accent}
-        fontFamily="Arial, sans-serif"
-      >
-        BOARD
-      </text>
-
-      {/* Decorative elements */}
-      <circle cx="200" cy="100" r="8" fill={colors.accent} opacity="0.6" />
-      <circle cx="312" cy="100" r="8" fill={colors.accent} opacity="0.6" />
-      <circle cx="200" cy="180" r="8" fill={colors.accent} opacity="0.6" />
-      <circle cx="312" cy="180" r="8" fill={colors.accent} opacity="0.6" />
-
-      {/* Central star/gear element */}
-      <polygon
-        points="256,120 260,130 270,130 262,138 266,148 256,142 246,148 250,138 242,130 252,130"
-        fill={colors.accent}
-        opacity="0.8"
-      />
     </svg>
   );
 };

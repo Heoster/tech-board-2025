@@ -9,6 +9,12 @@ const compressionMiddleware = compression({
     // Compression level (1-9, 6 is default balance of speed/compression)
     level: 6,
     
+    // Memory level (1-9, higher = more memory, better compression)
+    memLevel: 8,
+    
+    // Window bits for deflate (8-15, higher = better compression)
+    windowBits: 15,
+    
     // Filter function to determine what to compress
     filter: (req, res) => {
         // Don't compress if client doesn't support it
@@ -32,6 +38,15 @@ const compressionMiddleware = compression({
         
         // Compress text-based content
         return compression.filter(req, res);
+    },
+    
+    // Custom compression strategies for different content types
+    strategy: (req, res) => {
+        const contentType = res.getHeader('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return zlib.constants.Z_DEFAULT_STRATEGY;
+        }
+        return zlib.constants.Z_DEFAULT_STRATEGY;
     }
 });
 

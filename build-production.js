@@ -41,26 +41,41 @@ try {
   // Step 5: Copy client build to server
   console.log('📁 Copying client build to server...');
   const clientDistPath = path.join(__dirname, 'client/dist');
-  const serverClientPath = path.join(__dirname, 'server/client');
+  const serverPublicPath = path.join(__dirname, 'server/public');
 
   if (fs.existsSync(clientDistPath)) {
-    fs.cpSync(clientDistPath, serverClientPath, { recursive: true });
+    // Remove old public directory
+    if (fs.existsSync(serverPublicPath)) {
+      fs.rmSync(serverPublicPath, { recursive: true, force: true });
+    }
+    
+    // Copy new build
+    fs.cpSync(clientDistPath, serverPublicPath, { recursive: true });
     console.log('✅ Client build copied successfully');
+    
+    // Verify critical files
+    const criticalFiles = ['index.html', 'manifest.json', 'sw.js'];
+    for (const file of criticalFiles) {
+      const filePath = path.join(serverPublicPath, file);
+      if (!fs.existsSync(filePath)) {
+        console.warn(`⚠️ Warning: ${file} not found in build`);
+      }
+    }
   } else {
     throw new Error('Client build not found at: ' + clientDistPath);
   }
 
-  // Step 6: Initialize database and seed questions
+  // Step 6: Initialize database
   console.log('🗄️ Setting up database...');
   try {
-    execSync('node ensure-300-questions.js', { stdio: 'inherit' });
+    execSync('node reset-database.js', { stdio: 'inherit' });
   } catch (error) {
-    console.log('⚠️ Database seeding failed, will be handled at runtime');
+    console.log('⚠️ Database initialization failed, will be handled at runtime');
   }
 
   // Step 7: Verify build
   console.log('🔍 Verifying build...');
-  const indexPath = path.join(serverClientPath, 'index.html');
+  const indexPath = path.join(serverPublicPath, 'index.html');
   if (fs.existsSync(indexPath)) {
     console.log('✅ Build verification successful');
 
@@ -69,7 +84,7 @@ try {
     console.log(`📊 index.html size: ${(stats.size / 1024).toFixed(2)} KB`);
 
     // List built files
-    const files = fs.readdirSync(serverClientPath);
+    const files = fs.readdirSync(serverPublicPath);
     console.log(`�  Built files: ${files.length} files`);
   } else {
     throw new Error('Build verification failed - index.html not found');

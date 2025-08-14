@@ -22,6 +22,7 @@ const Star = () => <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 
 const CheckCircle = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const Clock = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const Trophy = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>;
+const Globe = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>;
 
 const TechnoBoardLanding: React.FC = () => {
   return (
@@ -31,7 +32,7 @@ const TechnoBoardLanding: React.FC = () => {
         <div className="container flex items-center justify-between py-4">
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-3">
-              <img src="/logoSch.png" alt="Maples Academy" className="w-10 h-10 rounded-xl shadow-lg" onError={(e) => {
+              <img src="/logoSch.svg" alt="Tech Board" className="w-10 h-10 rounded-xl shadow-lg" onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = 'none';
                 const sibling = e.currentTarget.nextElementSibling as HTMLElement;
                 if (sibling && sibling instanceof HTMLElement) sibling.style.display = 'flex';
@@ -43,7 +44,14 @@ const TechnoBoardLanding: React.FC = () => {
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <span>powered by</span>
-              <img src="/logoSch.png" alt="Maples Academy" className="h-8 w-auto" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+              <img src="/maples-academy-logo.svg" alt="Maples Academy" className="h-6 w-auto" onError={(e) => { 
+                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }} />
+              <div className="w-6 h-6 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-lg flex items-center justify-center" style={{ display: 'none' }}>
+                <span className="text-white text-xs font-bold">M</span>
+              </div>
               <span className="font-semibold text-orange-600">Maples Academy</span>
             </div>
           </div>
@@ -202,6 +210,16 @@ const TechnoBoardLanding: React.FC = () => {
                   <p className="text-gray-600">Questions designed for your academic level by Maples Academy experts.</p>
                 </div>
               </div>
+
+              <div className="flex items-start space-x-4 p-6 bg-white rounded-xl shadow-lg">
+                <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center text-white">
+                  <Globe />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Global Olympiad Training</h3>
+                  <p className="text-gray-600">We provide you unlimited opportunities and training for Olympiads globally, preparing you for international competitions.</p>
+                </div>
+              </div>
             </div>
 
             <div className="bg-white rounded-2xl p-8 shadow-xl">
@@ -238,7 +256,7 @@ const TechnoBoardLanding: React.FC = () => {
       <footer className="bg-gray-900 text-white py-12">
         <div className="container text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <img src="/logoSch.png" alt="Maples Academy" className="w-10 h-10 rounded-lg" onError={(e) => {
+            <img src="/logoSch.svg" alt="Tech Board" className="w-10 h-10 rounded-lg" onError={(e) => {
               (e.currentTarget as HTMLImageElement).style.display = 'none';
               const sibling = e.currentTarget.nextElementSibling as HTMLElement;
               if (sibling && sibling instanceof HTMLElement) sibling.style.display = 'flex';
@@ -253,8 +271,11 @@ const TechnoBoardLanding: React.FC = () => {
             Empowering technical excellence through innovative assessment and fostering the next generation of tech leaders
           </p>
 
-          <div className="flex items-center justify-center space-x-2 mb-6">
+          <div className="flex items-center justify-center space-x-3 mb-6">
             <span className="text-gray-400">Powered by</span>
+            <img src="/maples-academy-logo.svg" alt="Maples Academy" className="h-8 w-auto opacity-80" onError={(e) => { 
+              (e.currentTarget as HTMLImageElement).style.display = 'none';
+            }} />
             <span className="font-semibold text-orange-400">Maples Academy</span>
           </div>
 

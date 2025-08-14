@@ -1,5 +1,6 @@
 const { spawn } = require('child_process');
 const axios = require('axios');
+require('dotenv').config();
 
 const BASE_URL = 'http://localhost:8000/api';
 
@@ -83,8 +84,8 @@ async function testAPIEndpoints() {
         
         // Test admin login
         const adminLogin = await axios.post(`${BASE_URL}/auth/admin/login`, {
-            username: 'admin',
-            password: 'password'
+            username: process.env.ADMIN_USERNAME || 'admin',
+            password: process.env.ADMIN_PASSWORD || 'admin123'
         });
         console.log('Admin login: SUCCESS');
         
@@ -94,7 +95,7 @@ async function testAPIEndpoints() {
         const studentReg = await axios.post(`${BASE_URL}/auth/register`, {
             name: 'Test Student',
             roll_number: Math.floor(Math.random() * 1000) + 1,
-            password: 'password123',
+            password: process.env.TEST_STUDENT_PASSWORD || 'test123',
             grade: 6
         });
         console.log('Student registration: SUCCESS');

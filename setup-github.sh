@@ -32,7 +32,7 @@ git commit -m "feat: initial commit - Tech Board 2025 MCQ Testing System
 - 50-minute timed tests with auto-submit
 - Results privacy and comprehensive analytics
 - Railway deployment configuration
-- Production-ready with health monitoring"
+- Production-ready with health monitoring" || echo "ℹ️ No changes to commit"
 
 # Prompt for GitHub username
 echo ""
@@ -44,8 +44,13 @@ if [ -z "$github_username" ]; then
     exit 1
 fi
 
-# Add remote origin
-git remote add origin https://github.com/$github_username/tech-board-2025.git
+# Add remote origin (check if already exists)
+if git remote get-url origin &> /dev/null; then
+    echo "ℹ️ Remote origin already exists"
+    git remote set-url origin https://github.com/$github_username/tech-board-2025.git
+else
+    git remote add origin https://github.com/$github_username/tech-board-2025.git
+fi
 
 # Set main branch
 git branch -M main

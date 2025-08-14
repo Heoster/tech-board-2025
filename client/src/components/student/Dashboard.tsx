@@ -107,15 +107,15 @@ const Dashboard = () => {
             Only qualified candidates will be notified for Tech Board membership.
           </p>
 
-          <Link
-            to="/test"
+          <button
+            onClick={() => navigate('/test')}
             className="btn btn-primary btn-lg inline-flex items-center"
           >
             <div className="mr-2">
               <Play />
             </div>
             Begin Test
-          </Link>
+          </button>
         </div>
 
         {/* Instructions */}

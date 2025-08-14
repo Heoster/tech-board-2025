@@ -120,10 +120,15 @@ async function testClientBuild() {
         throw new Error('Client package.json not found');
     }
     
-    // Try to build client
-    const buildProcess = spawn('npm', ['run', 'build'], { 
+    // Try to build client using cmd on Windows
+    const isWindows = process.platform === 'win32';
+    const command = isWindows ? 'cmd' : 'npm';
+    const args = isWindows ? ['/c', 'npm', 'run', 'build'] : ['run', 'build'];
+    
+    const buildProcess = spawn(command, args, { 
         cwd: clientPath,
-        stdio: 'pipe'
+        stdio: 'pipe',
+        shell: isWindows
     });
     
     return new Promise((resolve, reject) => {
@@ -135,6 +140,10 @@ async function testClientBuild() {
             }
         });
         
+        buildProcess.on('error', (err) => {
+            reject(new Error(`Build process error: ${err.message}`));
+        });
+        
         setTimeout(() => {
             buildProcess.kill();
             reject(new Error('Client build timeout'));
@@ -144,6 +153,36 @@ async function testClientBuild() {
 
 async function runAllTests() {
     console.log('🚀 Running All App Tests Before Deployment\n');
+    
+    // First, ensure database has 300 questions per grade
+    console.log('🔧 Ensuring database has 300 questions per grade...');
+    try {
+        const { spawn } = require('child_process');
+        const isWindows = process.platform === 'win32';
+        const command = isWindows ? 'cmd' : 'node';
+        const args = isWindows ? ['/c', 'node', 'ensure-300-questions.js'] : ['ensure-300-questions.js'];
+        
+        await new Promise((resolve, reject) => {
+            const seedProcess = spawn(command, args, { 
+                cwd: __dirname,
+                stdio: 'inherit',
+                shell: isWindows
+            });
+            
+            seedProcess.on('close', (code) => {
+                if (code === 0) resolve();
+                else reject(new Error(`Database seeding failed with code ${code}`));
+            });
+            
+            seedProcess.on('error', (err) => {
+                reject(new Error(`Seeding process error: ${err.message}`));
+            });
+        });
+        
+        console.log('✅ Database seeding completed\n');
+    } catch (error) {
+        console.log('❌ Database seeding failed:', error.message);
+    }
     
     const tests = [
         ['Database Structure Test', testDatabase],
@@ -161,9 +200,14 @@ async function runAllTests() {
     
     // Start server for API tests
     console.log('\n🔧 Starting server for API tests...');
-    const server = spawn('node', ['server/index.js'], { 
+    const isWindows = process.platform === 'win32';
+    const command = isWindows ? 'cmd' : 'node';
+    const args = isWindows ? ['/c', 'node', 'server/index.js'] : ['server/index.js'];
+    
+    const server = spawn(command, args, { 
         stdio: 'pipe',
-        cwd: __dirname 
+        cwd: __dirname,
+        shell: isWindows
     });
     
     let serverReady = false;

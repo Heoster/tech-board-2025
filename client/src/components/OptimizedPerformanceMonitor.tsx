@@ -106,7 +106,7 @@ const OptimizedPerformanceMonitor: React.FC<PerformanceMonitorProps> = memo(({
 
     return [
       {
-        icon: <Clock className="w-5 h-5 text-blue-600" />,
+        icon: React.createElement(Clock, { className: "w-5 h-5 text-blue-600" }),
         title: 'Response Time',
         value: metrics.responseTime,
         unit: 'ms',
@@ -114,7 +114,7 @@ const OptimizedPerformanceMonitor: React.FC<PerformanceMonitorProps> = memo(({
         trend: metrics.responseTime < 100 ? 'down' : metrics.responseTime > 500 ? 'up' : 'stable'
       },
       {
-        icon: <Zap className="w-5 h-5 text-green-600" />,
+        icon: React.createElement(Zap, { className: "w-5 h-5 text-green-600" }),
         title: 'Cache Hit Rate',
         value: Math.round(metrics.cacheHitRate * 100),
         unit: '%',
@@ -122,7 +122,7 @@ const OptimizedPerformanceMonitor: React.FC<PerformanceMonitorProps> = memo(({
         trend: metrics.cacheHitRate > 0.8 ? 'up' : metrics.cacheHitRate < 0.5 ? 'down' : 'stable'
       },
       {
-        icon: <Activity className="w-5 h-5 text-purple-600" />,
+        icon: React.createElement(Activity, { className: "w-5 h-5 text-purple-600" }),
         title: 'Memory Usage',
         value: Math.round(metrics.memoryUsage),
         unit: 'MB',
@@ -130,7 +130,7 @@ const OptimizedPerformanceMonitor: React.FC<PerformanceMonitorProps> = memo(({
         trend: metrics.memoryUsage < 100 ? 'down' : metrics.memoryUsage > 200 ? 'up' : 'stable'
       },
       {
-        icon: <Database className="w-5 h-5 text-orange-600" />,
+        icon: React.createElement(Database, { className: "w-5 h-5 text-orange-600" }),
         title: 'DB Connections',
         value: metrics.activeConnections,
         color: 'orange',

@@ -1,7 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbPath = path.join(__dirname, 'server/database/mcq_system_fixed.db');
+const dbPath = path.join(__dirname, 'server/database/mcq_system.db');
 
 // Sample questions for each grade to reach 300 questions
 const sampleQuestions = {

@@ -224,13 +224,19 @@ async function networkFirst(request) {
 async function staleWhileRevalidate(request) {
     const url = new URL(request.url);
     
+    // Type check for hostname
+    if (typeof url.hostname !== 'string' || typeof self.location.hostname !== 'string') {
+        console.warn('Invalid hostname type detected');
+        return fetch(request);
+    }
+    
     // Skip external resources that might be blocked by CSP
     if (url.hostname !== self.location.hostname && 
         (url.hostname.includes('googleapis.com') || url.hostname.includes('gstatic.com'))) {
         try {
             return await fetch(request);
         } catch (error) {
-            console.log('External resource blocked by CSP:', request.url);
+            console.log('External resource blocked by CSP:', typeof request.url === 'string' ? request.url : 'invalid-url');
             return new Response('', { status: 204 });
         }
     }

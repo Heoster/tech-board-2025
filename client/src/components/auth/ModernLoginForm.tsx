@@ -4,13 +4,16 @@ import { useAuth } from '../../contexts/AuthContext';
 import { authService } from '../../services/authService';
 
 interface LoginResponse {
-  token: string;
-  user: {
-    id: number;
-    name: string;
-    roll_number: number;
-    grade: number;
-    section: string;
+  success: boolean;
+  data: {
+    token: string;
+    user: {
+      id: number;
+      name: string;
+      roll_number: number;
+      grade: number;
+      section: string;
+    };
   };
 }
 // Custom SVG icon components
@@ -49,23 +52,27 @@ const ModernLoginForm = () => {
 
     try {
       const response = await authService.login({
-        roll_number: parseInt(formData.roll_number),
+        rollNumber: parseInt(formData.roll_number),
         password: formData.password,
         grade: parseInt(formData.grade),
         section: formData.section
       }) as LoginResponse;
 
-      login(response.token, {
-        id: response.user.id,
-        role: 'student' as const,
-        name: response.user.name,
-        rollNumber: response.user.roll_number,
-        grade: response.user.grade,
-        section: response.user.section
-      });
-      navigate('/dashboard');
+      if (response.success && response.data) {
+        login(response.data.token, {
+          id: response.data.user.id,
+          role: 'student' as const,
+          name: response.data.user.name,
+          rollNumber: response.data.user.roll_number,
+          grade: response.data.user.grade,
+          section: response.data.user.section
+        });
+        navigate('/dashboard');
+      } else {
+        setError('Login failed. Invalid response from server.');
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.error || err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }

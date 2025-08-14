@@ -102,7 +102,7 @@ const StudentManagement: React.FC = () => {
     } catch (error: unknown) {
       console.error('Failed to add student:', error);
       const apiError = error as StudentApiError;
-      alert(apiError.response?.data?.error?.message || 'Failed to add student');
+      alert(apiError.response?.data?.error?.message || apiError.message || 'Failed to add student');
     }
   };
 
@@ -136,7 +136,7 @@ const StudentManagement: React.FC = () => {
     } catch (error: unknown) {
       console.error('Failed to update student:', error);
       const apiError = error as StudentApiError;
-      alert(apiError.response?.data?.error?.message || 'Failed to update student');
+      alert(apiError.response?.data?.error?.message || apiError.message || 'Failed to update student');
     }
   };
 

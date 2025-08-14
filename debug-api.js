@@ -1,6 +1,7 @@
 const axios = require('axios');
+require('dotenv').config();
 
-const API_BASE = 'https://tech-board.up.railway.app/api';
+const API_BASE = process.env.API_BASE || 'https://tech-board.up.railway.app/api';
 
 async function testAPI() {
     console.log('🔍 Testing Tech Board API...\n');
@@ -18,8 +19,8 @@ async function testAPI() {
         console.log('2. Testing admin login...');
         try {
             const adminLogin = await axios.post(`${API_BASE}/auth/admin/login`, {
-                username: 'admin',
-                password: 'admin123'
+                username: process.env.ADMIN_USERNAME || 'admin',
+                password: process.env.ADMIN_PASSWORD || 'admin123'
             });
             console.log('✅ Admin login successful');
             const adminToken = adminLogin.data.data?.token;
@@ -34,7 +35,7 @@ async function testAPI() {
                     roll_number: 99,
                     grade: 6,
                     section: 'A',
-                    password: 'test123'
+                    password: process.env.TEST_STUDENT_PASSWORD || 'test123'
                 });
                 console.log('✅ Student registration successful');
             } catch (regError) {
@@ -51,7 +52,7 @@ async function testAPI() {
                     roll_number: 99,
                     grade: 6,
                     section: 'A',
-                    password: 'test123'
+                    password: process.env.TEST_STUDENT_PASSWORD || 'test123'
                 });
                 console.log('✅ Student login successful');
                 console.log('   Full response:', JSON.stringify(studentLogin.data, null, 2));

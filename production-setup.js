@@ -31,7 +31,7 @@ async function setupProductionDatabase() {
 
         if (tableCount === 0) {
             console.log('🔧 Initializing database schema...');
-            
+
             // Read and execute init.sql
             const initSqlPath = path.join(__dirname, 'server/database/init.sql');
             if (fs.existsSync(initSqlPath)) {
@@ -60,7 +60,7 @@ async function setupProductionDatabase() {
         });
 
         const totalQuestions = questionCounts.reduce((sum, row) => sum + row.count, 0);
-        
+
         console.log('📊 Current question counts:');
         questionCounts.forEach(row => {
             const status = row.count >= 300 ? '✅' : '❌';
@@ -87,7 +87,7 @@ async function setupProductionDatabase() {
             console.log('👤 Creating default admin user...');
             const bcrypt = require('bcrypt');
             const adminPassword = await bcrypt.hash('admin123', 10);
-            
+
             await new Promise((resolve, reject) => {
                 db.run(
                     'INSERT INTO admins (username, password) VALUES (?, ?)',

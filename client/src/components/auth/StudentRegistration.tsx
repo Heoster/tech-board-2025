@@ -18,20 +18,6 @@ interface AuthResponse {
   };
 }
 
-interface AuthResponse {
-  success: boolean;
-  data: {
-    token: string;
-    user: {
-      id: number;
-      name: string;
-      roll_number: number;
-      grade: number;
-      section: string;
-    };
-  };
-}
-
 // Custom SVG icon components with proper typing
 interface IconProps {
   className?: string;
@@ -85,7 +71,7 @@ const StudentRegistration = () => {
     try {
       const response = await authService.register({
         name: formData.name,
-        roll_number: parseInt(formData.roll_number),
+        rollNumber: parseInt(formData.roll_number),
         password: formData.password,
         grade: parseInt(formData.grade),
         section: formData.section

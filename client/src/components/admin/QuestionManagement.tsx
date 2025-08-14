@@ -72,7 +72,7 @@ const QuestionManagement: React.FC = () => {
             if (filterDifficulty !== 'all') params.append('difficulty', filterDifficulty);
 
             const response = await apiClient.get(`/admin/questions?${params}`);
-            const responseData = (response.data as any).data;
+            const responseData = response.data as any;
             setQuestions(Array.isArray(responseData?.questions) ? responseData.questions : []);
             setTotalPages(responseData?.pagination?.pages || 1);
         } catch (error) {
@@ -104,7 +104,7 @@ const QuestionManagement: React.FC = () => {
         } catch (error: unknown) {
             console.error('Failed to add question:', error);
             const apiError = error as QuestionApiError;
-            alert(apiError.response?.data?.error?.message || 'Failed to add question');
+            alert(apiError.response?.data?.error?.message || apiError.message || 'Failed to add question');
         }
     };
 
@@ -130,7 +130,7 @@ const QuestionManagement: React.FC = () => {
         } catch (error: unknown) {
             console.error('Failed to update question:', error);
             const apiError = error as QuestionApiError;
-            alert(apiError.response?.data?.error?.message || 'Failed to update question');
+            alert(apiError.response?.data?.error?.message || apiError.message || 'Failed to update question');
         }
     };
 

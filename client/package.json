@@ -7,13 +7,17 @@
     "dev": "vite",
     "build": "vite build --mode production",
     "build:deploy": "vite build --mode production",
+    "build:analyze": "vite build --mode production && npx vite-bundle-analyzer dist/stats.html",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "preview": "vite preview --port 4173",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "build:dev": "vite build --mode development"
+    "build:dev": "vite build --mode development",
+    "clean": "rm -rf dist node_modules/.vite",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "axios": "^1.6.2",

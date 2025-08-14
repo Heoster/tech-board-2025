@@ -2,14 +2,14 @@ import apiClient from '../utils/apiClient';
 
 interface RegisterData {
   name: string;
-  roll_number: number;
+  rollNumber: number;
   password: string;
   grade: number;
   section: string;
 }
 
 interface LoginData {
-  roll_number: number;
+  rollNumber: number;
   password: string;
   grade: number;
   section: string;
@@ -17,12 +17,23 @@ interface LoginData {
 
 export const authService = {
   async register(data: RegisterData) {
-    const response = await apiClient.post('/auth/register', data);
+    const response = await apiClient.post('/auth/register', {
+      name: data.name,
+      roll_number: data.rollNumber,
+      password: data.password,
+      grade: data.grade,
+      section: data.section
+    });
     return response.data;
   },
 
   async login(data: LoginData) {
-    const response = await apiClient.post('/auth/student/login', data);
+    const response = await apiClient.post('/auth/student/login', {
+      roll_number: data.rollNumber,
+      password: data.password,
+      grade: data.grade,
+      section: data.section
+    });
     return response.data;
   },
 

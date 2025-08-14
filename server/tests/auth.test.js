@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../index');
 const database = require('../config/database');
+require('dotenv').config({ path: '.env.test' });
 
 describe('Authentication Routes', () => {
     beforeAll(async () => {
@@ -16,8 +17,8 @@ describe('Authentication Routes', () => {
             const response = await request(app)
                 .post('/api/auth/admin/login')
                 .send({
-                    username: 'admin',
-                    password: 'admin123'
+                    username: process.env.TEST_ADMIN_USERNAME,
+                    password: process.env.TEST_ADMIN_PASSWORD
                 });
 
             expect(response.status).toBe(200);
@@ -52,7 +53,7 @@ describe('Authentication Routes', () => {
         beforeEach(async () => {
             // Create a test student
             const bcrypt = require('bcrypt');
-            const passwordHash = await bcrypt.hash('admin123', 10);
+            const passwordHash = await bcrypt.hash(process.env.TEST_STUDENT_PASSWORD, 10);
             await database.run(
                 'INSERT OR REPLACE INTO students (name, roll_number, grade, section, password_hash) VALUES (?, ?, ?, ?, ?)',
                 ['Test Student', 79, 6, 'A', passwordHash]
@@ -66,7 +67,7 @@ describe('Authentication Routes', () => {
                     rollNumber: 79,
                     grade: 6,
                     section: 'A',
-                    password: 'admin123'
+                    password: process.env.TEST_STUDENT_PASSWORD
                 });
 
             expect(response.status).toBe(200);
@@ -96,7 +97,7 @@ describe('Authentication Routes', () => {
                     rollNumber: 99,
                     grade: 6,
                     section: 'A',
-                    password: 'admin123'
+                    password: process.env.TEST_STUDENT_PASSWORD
                 });
 
             expect(response.status).toBe(401);

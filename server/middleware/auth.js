@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { sanitizeForLog } = require('../utils/sanitizer');
 
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -10,6 +11,7 @@ const authenticateToken = (req, res, next) => {
     
     jwt.verify(token, process.env.JWT_SECRET || 'secret', (err, user) => {
         if (err) {
+            console.log('Token verification failed:', sanitizeForLog(err.message));
             return res.status(403).json({ error: 'Invalid or expired token' });
         }
         req.user = user;
@@ -19,14 +21,25 @@ const authenticateToken = (req, res, next) => {
 
 const requireAdmin = (req, res, next) => {
     if (!req.user || req.user.type !== 'admin') {
+        console.log('Admin access denied for user:', sanitizeForLog(req.user?.id || 'unknown'));
         return res.status(403).json({ error: 'Admin access required' });
     }
     next();
 };
 
-const validateAdmin = (req, res, next) => {
-    // Additional admin validation if needed
+const requireStudent = (req, res, next) => {
+    if (!req.user || req.user.type !== 'student') {
+        console.log('Student access denied for user:', sanitizeForLog(req.user?.id || 'unknown'));
+        return res.status(403).json({ error: 'Student access required' });
+    }
     next();
 };
 
-module.exports = { authenticateToken, requireAdmin, validateAdmin };
+const validateAdmin = (req, res, next) => {
+    if (!req.user || !req.user.id || req.user.type !== 'admin') {
+        return res.status(403).json({ error: 'Invalid admin credentials' });
+    }
+    next();
+};
+
+module.exports = { authenticateToken, requireAdmin, requireStudent, validateAdmin };

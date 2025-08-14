@@ -7,58 +7,58 @@ const database = require('../config/database');
 const router = express.Router();
 
 // Student registration
-router.post('/register', [
-    body('name').trim().isLength({ min: 2 }),
-    body('rollNumber').isInt({ min: 1, max: 999 }),
-    body('password').isLength({ min: 6 }),
-    body('grade').isIn([6, 7, 8, 9, 11]),
-    body('section').isLength({ min: 1, max: 1 })
-], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        console.log('Validation errors:', errors.array());
-        return res.status(400).json({ 
-            success: false, 
-            error: 'Invalid input',
-            details: errors.array()
-        });
+router.post('/register', async (req, res) => {
+    const { name, roll_number, password, grade, section } = req.body;
+    
+    // Manual validation
+    if (!name || name.trim().length < 2) {
+        return res.status(400).json({ success: false, message: 'Name is required and must be at least 2 characters' });
+    }
+    if (!roll_number) {
+        return res.status(400).json({ success: false, message: 'Roll number is required' });
+    }
+    if (!password || password.length < 6) {
+        return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    }
+    if (![6, 7, 8, 9, 11].includes(parseInt(grade))) {
+        return res.status(400).json({ success: false, message: 'Grade must be 6, 7, 8, 9, or 11' });
+    }
+    if (!section || section.length !== 1) {
+        return res.status(400).json({ success: false, message: 'Section must be a single character' });
     }
     
     try {
-        const { name, rollNumber, password, grade, section } = req.body;
         
         // Check if student exists
         const existingUser = await database.get(
             'SELECT id FROM students WHERE roll_number = ? AND grade = ? AND section = ?', 
-            [rollNumber, grade, section]
+            [roll_number, grade, section]
         );
         
         if (existingUser) {
-            return res.status(400).json({ success: false, error: 'Student already registered' });
+            return res.status(400).json({ success: false, message: 'Student already registered' });
         }
         
         // Hash password and create user
         const hashedPassword = await bcrypt.hash(password, 10);
         const result = await database.run(
             'INSERT INTO students (name, roll_number, password, grade, section) VALUES (?, ?, ?, ?, ?)',
-            [name, rollNumber, hashedPassword, grade, section]
+            [name, roll_number, hashedPassword, grade, section]
         );
         
         const token = jwt.sign({ 
             id: result.lastID, 
             type: 'student', 
             grade,
-            rollNumber,
+            rollNumber: roll_number,
             section,
             name
         }, process.env.JWT_SECRET || 'secret', { expiresIn: '24h' });
         
         res.json({ 
             success: true, 
-            data: { 
-                token, 
-                user: { id: result.lastID, name, rollNumber, grade, section } 
-            } 
+            token,
+            user: { id: result.lastID, name, rollNumber: roll_number, grade, section }
         });
     } catch (error) {
         console.error('Registration error:', error);
@@ -80,7 +80,7 @@ router.post('/student/login', async (req, res) => {
         if (!studentRollNumber || !password || !grade || !section) {
             return res.status(400).json({ 
                 success: false, 
-                error: 'Missing required fields: rollNumber, password, grade, and section are required' 
+                error: 'Missing required fields: rollNumber/roll_number, password, grade, and section are required' 
             });
         }
         
@@ -189,10 +189,11 @@ router.post('/admin/login', async (req, res) => {
         res.json({ 
             success: true,
             data: {
-                token, 
+                token,
                 user: { 
                     id: admin.id, 
-                    username: admin.username 
+                    username: admin.username,
+                    type: 'admin'
                 }
             }
         });
@@ -208,24 +209,25 @@ router.post('/admin/login', async (req, res) => {
 // Simple login route (using roll number)
 router.post('/login', async (req, res) => {
     try {
-        const { rollNumber, password, grade, section } = req.body;
+        const { roll_number, rollNumber, password, grade, section } = req.body;
+        const studentRollNumber = roll_number || rollNumber;
         
-        if (!rollNumber || !password || !grade || !section) {
+        if (!studentRollNumber || !password || !grade || !section) {
             return res.status(400).json({ 
                 success: false, 
-                error: 'Missing required fields: rollNumber, password, grade, and section are required' 
+                message: 'Missing required fields: roll_number/rollNumber, password, grade, and section are required' 
             });
         }
         
         const user = await database.get(
             'SELECT * FROM students WHERE roll_number = ? AND grade = ? AND section = ?', 
-            [rollNumber, grade, section]
+            [studentRollNumber, grade, section]
         );
         
         if (!user || !await bcrypt.compare(password, user.password)) {
             return res.status(401).json({ 
                 success: false, 
-                error: 'Invalid credentials' 
+                message: 'Invalid credentials' 
             });
         }
         

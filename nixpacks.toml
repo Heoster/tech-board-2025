@@ -1,15 +1,8 @@
-[phases.setup]
-nixPkgs = ["nodejs_20", "python3", "sqlite"]
-
-[phases.install]
-cmds = ["npm install"]
-
 [phases.build]
-cmds = ["node railway-build.js"]
+cmds = ["npm ci --prefix server --only=production"]
 
-[start]
-cmd = "node railway-start.js"
+[phases.start]
+cmd = "cd server && npm start"
 
 [variables]
 NODE_ENV = "production"
-PORT = "8000"

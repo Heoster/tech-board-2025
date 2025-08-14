@@ -6,21 +6,27 @@ const apiCache = new NodeCache({
     checkperiod: 60, // Check for expired keys every 60 seconds
     useClones: false, // Don't clone objects for better performance
     deleteOnExpire: true,
-    maxKeys: 1000 // Limit cache size
+    maxKeys: 1000, // Limit cache size
+    errorOnMissing: false,
+    forceString: false
 });
 
 const questionCache = new NodeCache({
     stdTTL: 3600, // 1 hour for questions (they don't change often)
     checkperiod: 300,
     useClones: false,
-    maxKeys: 500
+    maxKeys: 500,
+    errorOnMissing: false,
+    forceString: false
 });
 
 const studentCache = new NodeCache({
     stdTTL: 600, // 10 minutes for student data
     checkperiod: 120,
     useClones: false,
-    maxKeys: 2000
+    maxKeys: 2000,
+    errorOnMissing: false,
+    forceString: false
 });
 
 // Cache middleware factory

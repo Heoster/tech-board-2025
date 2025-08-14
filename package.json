@@ -9,7 +9,8 @@
   },
   "scripts": {
     "start": "node railway-start.js",
-    "start:prod": "node railway-start.js",
+    "start:prod": "node server/process-manager.js",
+    "start:cluster": "node server/process-manager.js",
     "dev": "node dev-start.js",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
@@ -25,10 +26,14 @@
     "deploy:production": "node deploy-production.js",
     "setup:db": "node server/scripts/production-db-setup.js",
     "test:login": "node test-production-login.js",
-    "seed": "cd server && node seed/run-all-seeds.js",
+    "reset-db": "node reset-database.js",
     "check-duplicates": "node check-duplicate-questions.js",
     "remove-duplicates": "node remove-duplicates.js",
-    "test:admin": "node test-admin-functionality.js"
+    "test:admin": "node test-admin-functionality.js",
+    "monitor": "node server/monitoring.js",
+    "pm2:start": "pm2 start server/index.js --name tech-board",
+    "pm2:stop": "pm2 stop tech-board",
+    "pm2:restart": "pm2 restart tech-board"
   },
   "keywords": [
     "quiz",
