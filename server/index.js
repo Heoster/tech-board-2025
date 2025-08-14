@@ -292,62 +292,7 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Serve React app for all non-API routes (SPA routing)
-app.get('*', (req, res) => {
-    // Don't serve React app for API routes
-    if (req.path.startsWith('/api/')) {
-        return res.status(404).json({ error: 'Route not found' });
-    }
-    
-    // Serve React app
-    if (process.env.NODE_ENV === 'production') {
-        const indexPath = path.join(__dirname, 'public', 'index.html');
-        const fs = require('fs');
-        
-        // Check if React build exists
-        if (fs.existsSync(indexPath)) {
-            res.sendFile(indexPath);
-        } else {
-            res.status(404).send('Frontend not built');
-        }
-    } else {
-        // Development mode - show API info
-        res.send(`
-            <html>
-                <head>
-                    <title>TECH BOARD 2025 MCQ System</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 40px; }
-                        .container { max-width: 600px; margin: 0 auto; }
-                        .status { background: #f0f8ff; padding: 20px; border-radius: 8px; }
-                        .api-link { color: #0066cc; text-decoration: none; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <h1>🎓 TECH BOARD 2025 MCQ Testing System</h1>
-                        <div class="status">
-                            <h2>✅ Server is Running</h2>
-                            <p>The backend API is operational and ready to serve requests.</p>
-                            <p><strong>API Health Check:</strong> <a href="/api/health" class="api-link">/api/health</a></p>
-                            <p><strong>Performance Metrics:</strong> <a href="/api/performance/health" class="api-link">/api/performance/health</a></p>
-                        </div>
-                        <h3>📊 Features Available:</h3>
-                        <ul>
-                            <li>✅ Student Authentication</li>
-                            <li>✅ Admin Panel</li>
-                            <li>✅ Quiz Management</li>
-                            <li>✅ Performance Monitoring</li>
-                            <li>✅ SEO Optimization</li>
-                            <li>✅ Core Web Vitals Tracking</li>
-                        </ul>
-                        <p><em>Development mode - Frontend should run separately on port 3000</em></p>
-                    </div>
-                </body>
-            </html>
-        `);
-    }
-});
+
 
 // Global error handlers for production stability
 process.on('uncaughtException', (error) => {
