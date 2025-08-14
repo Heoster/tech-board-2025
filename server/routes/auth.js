@@ -1,7 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
 const database = require('../config/database');
 
 const router = express.Router();
@@ -76,6 +75,9 @@ router.post('/student/login', async (req, res) => {
         // Handle both rollNumber and roll_number formats
         const { rollNumber, roll_number, grade, section, password } = req.body;
         const studentRollNumber = rollNumber || roll_number;
+        
+        // Debug logging
+        console.log('Login request body:', { rollNumber, roll_number, grade, section, hasPassword: !!password });
         
         if (!studentRollNumber || !password || !grade || !section) {
             return res.status(400).json({ 
@@ -211,6 +213,9 @@ router.post('/login', async (req, res) => {
     try {
         const { roll_number, rollNumber, password, grade, section } = req.body;
         const studentRollNumber = roll_number || rollNumber;
+        
+        // Debug logging
+        console.log('Simple login request:', { roll_number, rollNumber, grade, section, hasPassword: !!password });
         
         if (!studentRollNumber || !password || !grade || !section) {
             return res.status(400).json({ 
