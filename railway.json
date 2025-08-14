@@ -4,10 +4,8 @@
     "runtime": "V2",
     "numReplicas": 1,
     "startCommand": "node server/index.js",
-    "healthcheckPath": "/api/health",
     "sleepApplication": false,
     "restartPolicyType": "ON_FAILURE",
-    "healthcheckTimeout": 300,
     "restartPolicyMaxRetries": 10
   }
 }
