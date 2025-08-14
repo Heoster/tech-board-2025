@@ -1,8 +1,8 @@
 [phases.build]
-cmds = ["cd server && npm install --production"]
+cmds = ["npm install --prefix server --production"]
 
 [phases.start]
-cmd = "cd server && npm start"
+cmd = "node server/index.js"
 
 [variables]
 NODE_ENV = "production"
