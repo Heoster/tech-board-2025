@@ -16,14 +16,15 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Database files
-*.db
-*.db-shm
-*.db-wal
+# Database files (exclude production database)
+# *.db
+# *.db-shm
+# *.db-wal
 *.sqlite
 *.sqlite3
-/server/database/*.db*
 /server/database/backups/
+# Keep production database for deployment
+!/server/database/mcq_system_fixed.db
 
 # Logs
 logs/
