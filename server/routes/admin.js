@@ -539,48 +539,62 @@ router.delete('/questions/:id', authenticateToken, requireAdmin, validateAdmin, 
 });
 
 // Get results
-router.get('/results', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+router.get('/results', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const db = database.getDb();
+        
+        if (!db) {
+            return res.status(500).json({
+                success: false,
+                error: 'Database connection not available'
+            });
+        }
         
         // Get all completed quiz results with student information
         const results = await new Promise((resolve, reject) => {
             db.all(`
                 SELECT 
                     q.id,
-                    s.name as student_name,
-                    s.roll_number,
-                    s.grade,
-                    s.section,
-                    q.score,
-                    q.total_questions,
+                    COALESCE(s.name, 'Unknown Student') as student_name,
+                    COALESCE(s.roll_number, 0) as roll_number,
+                    COALESCE(s.grade, 0) as grade,
+                    COALESCE(s.section, 'N/A') as section,
+                    COALESCE(q.score, 0) as score,
+                    COALESCE(q.total_questions, 0) as total_questions,
                     q.started_at,
                     q.completed_at,
-                    q.status,
-                    ROUND((CAST(q.score AS FLOAT) / q.total_questions) * 100, 1) as percentage
+                    COALESCE(q.status, 'unknown') as status,
+                    CASE 
+                        WHEN q.total_questions > 0 THEN ROUND((CAST(q.score AS FLOAT) / q.total_questions) * 100, 1)
+                        ELSE 0
+                    END as percentage
                 FROM quizzes q
-                JOIN students s ON q.student_id = s.id
+                LEFT JOIN students s ON q.student_id = s.id
                 WHERE q.status = 'completed'
                 ORDER BY q.completed_at DESC
+                LIMIT 100
             `, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
+                if (err) {
+                    console.error('Database query error:', err);
+                    reject(err);
+                } else {
+                    resolve(rows || []);
+                }
             });
         });
         
         res.json({
             success: true,
-            data: results
+            results: results,
+            count: results.length
         });
         
     } catch (error) {
         console.error('Error fetching admin results:', error);
         res.status(500).json({
             success: false,
-            error: {
-                code: 'RESULTS_FETCH_FAILED',
-                message: 'Failed to fetch results'
-            }
+            error: 'Failed to fetch results',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
@@ -1264,6 +1278,120 @@ router.post('/optimize-database', authenticateToken, requireAdmin, validateAdmin
             error: {
                 code: 'OPTIMIZATION_FAILED',
                 message: 'Failed to optimize database'
+            }
+        });
+    }
+});
+
+// Get results summary with statistics
+router.get('/results-summary', authenticateToken, requireAdmin, validateAdmin, async (req, res) => {
+    try {
+        const db = database.getDb();
+        
+        // Get overall statistics
+        const overallStats = await new Promise((resolve, reject) => {
+            db.get(`
+                SELECT 
+                    COUNT(*) as total_students,
+                    COUNT(CASE WHEN q.status = 'completed' THEN 1 END) as completed_tests,
+                    COUNT(CASE WHEN q.score >= 36 THEN 1 END) as passed_students,
+                    ROUND(AVG(CASE WHEN q.status = 'completed' THEN q.score END), 1) as avg_score,
+                    ROUND(AVG(CASE WHEN q.status = 'completed' THEN (CAST(q.score AS FLOAT) / q.total_questions) * 100 END), 1) as avg_percentage
+                FROM students s
+                LEFT JOIN quizzes q ON s.id = q.student_id
+            `, (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+        
+        // Get grade-wise statistics
+        const gradeStats = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT 
+                    s.grade,
+                    COUNT(s.id) as total_students,
+                    COUNT(CASE WHEN q.status = 'completed' THEN 1 END) as completed_tests,
+                    COUNT(CASE WHEN q.score >= 36 THEN 1 END) as passed_students,
+                    ROUND(AVG(CASE WHEN q.status = 'completed' THEN q.score END), 1) as avg_score,
+                    ROUND(AVG(CASE WHEN q.status = 'completed' THEN (CAST(q.score AS FLOAT) / q.total_questions) * 100 END), 1) as avg_percentage,
+                    ROUND((COUNT(CASE WHEN q.score >= 36 THEN 1 END) * 100.0 / NULLIF(COUNT(CASE WHEN q.status = 'completed' THEN 1 END), 0)), 1) as pass_rate
+                FROM students s
+                LEFT JOIN quizzes q ON s.id = q.student_id
+                GROUP BY s.grade
+                ORDER BY s.grade
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        // Get section-wise statistics
+        const sectionStats = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT 
+                    s.grade,
+                    s.section,
+                    COUNT(s.id) as total_students,
+                    COUNT(CASE WHEN q.status = 'completed' THEN 1 END) as completed_tests,
+                    COUNT(CASE WHEN q.score >= 36 THEN 1 END) as passed_students,
+                    ROUND(AVG(CASE WHEN q.status = 'completed' THEN q.score END), 1) as avg_score,
+                    ROUND((COUNT(CASE WHEN q.score >= 36 THEN 1 END) * 100.0 / NULLIF(COUNT(CASE WHEN q.status = 'completed' THEN 1 END), 0)), 1) as pass_rate
+                FROM students s
+                LEFT JOIN quizzes q ON s.id = q.student_id
+                GROUP BY s.grade, s.section
+                ORDER BY s.grade, s.section
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        // Get top performers
+        const topPerformers = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT 
+                    s.name,
+                    s.roll_number,
+                    s.grade,
+                    s.section,
+                    q.score,
+                    q.total_questions,
+                    ROUND((CAST(q.score AS FLOAT) / q.total_questions) * 100, 1) as percentage,
+                    q.completed_at
+                FROM students s
+                JOIN quizzes q ON s.id = q.student_id
+                WHERE q.status = 'completed'
+                ORDER BY q.score DESC, q.completed_at ASC
+                LIMIT 10
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                overall: {
+                    ...overallStats,
+                    pass_rate: overallStats.completed_tests > 0 
+                        ? Math.round((overallStats.passed_students / overallStats.completed_tests) * 100 * 10) / 10
+                        : 0
+                },
+                byGrade: gradeStats,
+                bySection: sectionStats,
+                topPerformers
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error fetching results summary:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'RESULTS_SUMMARY_FAILED',
+                message: 'Failed to fetch results summary'
             }
         });
     }

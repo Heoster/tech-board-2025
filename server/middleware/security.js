@@ -122,9 +122,20 @@ const securityMiddleware = {
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
     
-    // Content Security Policy for API
+    // Content Security Policy - more permissive for frontend assets
     if (req.path.startsWith('/api/')) {
       res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+    } else {
+      // Allow Google Fonts and other necessary resources for frontend
+      res.setHeader('Content-Security-Policy', 
+        "default-src 'self'; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+        "font-src 'self' https://fonts.gstatic.com; " +
+        "connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; " +
+        "img-src 'self' data: https:; " +
+        "script-src 'self' 'unsafe-inline'; " +
+        "frame-ancestors 'none'"
+      );
     }
 
     next();

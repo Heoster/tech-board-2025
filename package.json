@@ -27,7 +27,8 @@
     "test:login": "node test-production-login.js",
     "seed": "cd server && node seed/run-all-seeds.js",
     "check-duplicates": "node check-duplicate-questions.js",
-    "remove-duplicates": "node remove-duplicates.js"
+    "remove-duplicates": "node remove-duplicates.js",
+    "test:admin": "node test-admin-functionality.js"
   },
   "keywords": [
     "quiz",

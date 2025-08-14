@@ -51,7 +51,17 @@ if (process.env.NODE_ENV === 'production') {
     app.use(express.static(clientDistPath, {
         maxAge: '1d',
         etag: true,
-        lastModified: true
+        lastModified: true,
+        setHeaders: (res, path) => {
+            // Set correct MIME types
+            if (path.endsWith('.css')) {
+                res.setHeader('Content-Type', 'text/css');
+            } else if (path.endsWith('.js')) {
+                res.setHeader('Content-Type', 'application/javascript');
+            } else if (path.endsWith('.json')) {
+                res.setHeader('Content-Type', 'application/json');
+            }
+        }
     }));
 }
 

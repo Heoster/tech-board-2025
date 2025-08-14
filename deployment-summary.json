@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-08-14T12:03:38.752Z",
+  "database": {
+    "path": "D:\\codeex\\server\\database\\mcq_system_fixed.db",
+    "exists": true,
+    "questionsCount": 250,
+    "gradesSupported": [
+      6,
+      7,
+      8,
+      9,
+      11
+    ],
+    "duplicatesRemoved": true,
+    "integrityVerified": true
+  },
+  "build": {
+    "clientBuilt": true,
+    "serverReady": true
+  },
+  "deployment": {
+    "ready": true,
+    "platform": "Railway",
+    "expectedUrl": "https://tech-board.up.railway.app"
+  }
+}

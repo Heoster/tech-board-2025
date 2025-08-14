@@ -51,7 +51,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
         const passwordHash = await bcrypt.hash(password, 10);
         
         const result = await database.run(
-            'INSERT INTO students (name, roll_number, grade, section, password_hash) VALUES (?, ?, ?, ?, ?)',
+            'INSERT INTO students (name, roll_number, grade, section, password) VALUES (?, ?, ?, ?, ?)',
             [name, roll_number, grade, section, passwordHash]
         );
         

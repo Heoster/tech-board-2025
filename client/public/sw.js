@@ -222,11 +222,24 @@ async function networkFirst(request) {
 
 // Stale While Revalidate strategy
 async function staleWhileRevalidate(request) {
+    const url = new URL(request.url);
+    
+    // Skip external resources that might be blocked by CSP
+    if (url.hostname !== self.location.hostname && 
+        (url.hostname.includes('googleapis.com') || url.hostname.includes('gstatic.com'))) {
+        try {
+            return await fetch(request);
+        } catch (error) {
+            console.log('External resource blocked by CSP:', request.url);
+            return new Response('', { status: 204 });
+        }
+    }
+    
     const cachedResponse = await caches.match(request);
     
     // Always try to fetch from network in background
     const networkResponsePromise = fetch(request).then(async (networkResponse) => {
-        if (networkResponse.ok) {
+        if (networkResponse.ok && url.hostname === self.location.hostname) {
             const cache = await caches.open(getAppropriateCache(request.url));
             cache.put(request, networkResponse.clone());
         }

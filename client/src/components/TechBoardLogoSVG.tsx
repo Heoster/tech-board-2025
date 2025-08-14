@@ -38,7 +38,7 @@ const TechBoardLogoSVG: React.FC<TechBoardLogoSVGProps> = ({
         fill={colors.primary}
         opacity="0.9"
       />
-      
+
       {/* Secondary circle */}
       <circle
         cx="256"
@@ -47,7 +47,7 @@ const TechBoardLogoSVG: React.FC<TechBoardLogoSVGProps> = ({
         fill={colors.secondary}
         opacity="0.8"
       />
-      
+
       {/* Tech Board Text */}
       <text
         x="256"
@@ -60,7 +60,7 @@ const TechBoardLogoSVG: React.FC<TechBoardLogoSVGProps> = ({
       >
         TECH
       </text>
-      
+
       <text
         x="256"
         y="155"
@@ -72,13 +72,13 @@ const TechBoardLogoSVG: React.FC<TechBoardLogoSVGProps> = ({
       >
         BOARD
       </text>
-      
+
       {/* Decorative elements */}
       <circle cx="200" cy="100" r="8" fill={colors.accent} opacity="0.6" />
       <circle cx="312" cy="100" r="8" fill={colors.accent} opacity="0.6" />
       <circle cx="200" cy="180" r="8" fill={colors.accent} opacity="0.6" />
       <circle cx="312" cy="180" r="8" fill={colors.accent} opacity="0.6" />
-      
+
       {/* Central star/gear element */}
       <polygon
         points="256,120 260,130 270,130 262,138 266,148 256,142 246,148 250,138 242,130 252,130"

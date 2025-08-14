@@ -20,8 +20,7 @@ class SecureAPIClient {
 
   constructor() {
     const isDev = getEnvVar('DEV') === 'true' || getEnvVar('MODE') === 'development';
-    this.baseURL = getEnvVar('VITE_API_URL') || 
-                  (isDev ? 'http://localhost:8000/api' : '/api');
+    this.baseURL = getEnvVar('VITE_API_URL') || (isDev ? 'http://localhost:8000' : '/api');
     
     this.client = axios.create({
       baseURL: this.baseURL,
@@ -283,10 +282,11 @@ class SecureAPIClient {
   }
 
   // Get current auth token status
-  getAuthStatus(): { hasToken: boolean } {
-    const authHeader = this.client.defaults.headers.common['Authorization'];
+  getAuthStatus(): { hasToken: boolean; token?: string } {
+    const token = this.client.defaults.headers.common['Authorization'];
     return {
-      hasToken: !!(authHeader && typeof authHeader === 'string')
+      hasToken: !!token,
+      token: token ? String(token).replace('Bearer ', '') : undefined
     };
   }
 
@@ -299,4 +299,5 @@ class SecureAPIClient {
 // Create and export singleton instance
 const apiClient = new SecureAPIClient();
 
+export { SecureAPIClient };
 export default apiClient;

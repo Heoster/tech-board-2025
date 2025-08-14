@@ -1,7 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbPath = path.join(__dirname, 'server', 'database', 'mcq_system.db');
+const dbPath = path.join(__dirname, '../database/mcq_system.db');
 const db = new sqlite3.Database(dbPath);
 
 const grade6Questions = [
@@ -354,9 +354,9 @@ const grade6Questions = [
     },
     {
         grade: 6, difficulty: 'advanced',
-        question: 'What should you do if you receive a suspicious email?',
-        options: ['Open all attachments', 'Reply immediately', 'Delete it without opening', 'Forward to friends'],
-        correct: 2
+        question: 'What is the safest way to protect your computer from viruses?',
+        options: ['Download everything you see', 'Use antivirus software and be careful', 'Never use the internet', 'Share your password with friends'],
+        correct: 1
     },
     {
         grade: 6, difficulty: 'advanced',

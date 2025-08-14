@@ -17,17 +17,6 @@ createRoot(rootElement).render(
   </StrictMode>,
 )
 
-// Register service worker for offline caching
-if (import.meta.env.PROD) {
-  try {
-    import('./utils/serviceWorker').then(({ registerSW }) => {
-      registerSW({
-        onSuccess: () => console.log('App ready for offline use'),
-        onUpdate: () => console.log('New content available'),
-        onOfflineReady: () => console.log('App ready to work offline')
-      });
-    });
-  } catch (error) {
-    console.log('Service worker registration skipped');
-  }
-}
+// Service worker disabled temporarily to fix CSP issues
+// TODO: Re-enable after fixing CSP configuration
+console.log('Service worker disabled for CSP compliance');

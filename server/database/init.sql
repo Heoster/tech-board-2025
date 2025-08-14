@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS students (
     roll_number INTEGER NOT NULL,
     grade INTEGER NOT NULL,
     section TEXT NOT NULL DEFAULT 'A',
-    password_hash TEXT NOT NULL,
+    password TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(roll_number, grade, section)
 );

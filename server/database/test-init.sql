@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS students (
     roll_number INTEGER NOT NULL,
     grade INTEGER NOT NULL,
     section TEXT NOT NULL DEFAULT 'A',
-    password_hash TEXT NOT NULL,
+    password TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(roll_number, grade, section)
 );
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS admins (
 -- Insert test data
 INSERT OR IGNORE INTO admins (username, password) VALUES ('admin', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
-INSERT OR IGNORE INTO students (name, roll_number, grade, section, password_hash) 
+INSERT OR IGNORE INTO students (name, roll_number, grade, section, password) 
 VALUES ('Test Student', 79, 6, 'A', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
 INSERT OR IGNORE INTO questions (id, grade, difficulty, question_text) 

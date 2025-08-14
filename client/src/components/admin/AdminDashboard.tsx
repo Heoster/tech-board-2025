@@ -223,7 +223,7 @@ const AdminDashboard: React.FC = () => {
         <div className="flex space-x-1 bg-white/50 dark:bg-dark-800/50 rounded-xl p-1 backdrop-blur-sm">
           {[
             { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-            { id: 'results', label: 'Complete Results', icon: '📋' },
+            { id: 'results', label: 'Results Summary', icon: '📊' },
             { id: 'questions', label: 'Question Bank', icon: '❓' },
             { id: 'students', label: 'Student Management', icon: '👥' }
           ].map((tab) => (
