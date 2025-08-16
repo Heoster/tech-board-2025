@@ -113,7 +113,12 @@ async function startProduction() {
         console.log('🎯 Starting Express server...\n');
         
         // Start the main application
-        require('./index.js');
+        const serverModule = require('./index.js');
+        if (serverModule && typeof serverModule.startServer === 'function') {
+            await serverModule.startServer();
+        } else {
+            console.log('⚠️ startServer() not found; ensure server auto-starts in index.js');
+        }
         
     } catch (error) {
         console.error('❌ Production startup failed:', error);

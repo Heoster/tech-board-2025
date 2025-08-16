@@ -18392,3 +18392,59 @@
 {"timestamp":"2025-08-16T10:50:31.896Z","level":"INFO","message":"Database initialized successfully"}
 {"timestamp":"2025-08-16T10:50:31.897Z","level":"INFO","message":"Closing database connection"}
 {"timestamp":"2025-08-16T10:50:31.899Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T11:06:22.353Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T11:06:22.355Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-16T11:06:22.357Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T11:06:22.357Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T11:06:22.360Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-16T11:06:22.361Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T11:06:22.361Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T11:06:22.362Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T11:06:22.363Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T11:06:22.364Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-16T11:06:22.365Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T11:06:22.365Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T11:06:22.365Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-16T11:06:22.366Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T11:06:22.366Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T11:06:22.367Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T11:07:04.045Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T11:07:04.048Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T11:07:05.337Z","level":"INFO","message":"Attempting database connection","dbPath":"./database/mcq_system_fixed.db","exists":false,"retries":3}
+{"timestamp":"2025-08-16T11:07:05.339Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"./database/mcq_system_fixed.db"}
+{"timestamp":"2025-08-16T11:07:05.343Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T11:07:05.343Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T11:07:05.347Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-16T11:07:05.348Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T11:07:05.348Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T11:07:05.348Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T11:07:05.350Z","level":"INFO","message":"Attempting database connection","dbPath":"./database/mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T11:07:05.351Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"./database/mcq_system_fixed.db"}
+{"timestamp":"2025-08-16T11:07:05.352Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T11:07:05.352Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T11:07:05.353Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-16T11:07:05.354Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T11:07:05.354Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T11:07:05.354Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T11:08:05.352Z","level":"INFO","message":"Database health check passed","duration":1}
+{"timestamp":"2025-08-16T11:23:51.080Z","level":"INFO","message":"Attempting database connection","dbPath":"./database/mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T11:23:51.083Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"./database/mcq_system_fixed.db"}
+{"timestamp":"2025-08-16T11:23:51.087Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T11:23:51.088Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T11:23:51.089Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-16T11:23:51.090Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T11:23:51.090Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T11:23:51.091Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T11:23:51.093Z","level":"INFO","message":"Attempting database connection","dbPath":"./database/mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T11:23:51.093Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"./database/mcq_system_fixed.db"}
+{"timestamp":"2025-08-16T11:23:51.094Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T11:23:51.094Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T11:23:51.095Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-16T11:23:51.096Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T11:23:51.096Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T11:23:51.096Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T11:24:51.088Z","level":"INFO","message":"Database health check passed","duration":0}
+{"timestamp":"2025-08-16T11:25:51.089Z","level":"INFO","message":"Database health check passed","duration":1}
+{"timestamp":"2025-08-16T11:26:51.101Z","level":"INFO","message":"Database health check passed","duration":1}
+{"timestamp":"2025-08-16T11:27:51.101Z","level":"INFO","message":"Database health check passed","duration":1}
+{"timestamp":"2025-08-16T11:28:51.113Z","level":"INFO","message":"Database health check passed","duration":1}
