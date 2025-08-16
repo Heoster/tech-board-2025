@@ -3,6 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { authService } from '../../services/authService';
 
+// Type-safe Link wrapper
+const SafeLink: React.FC<{ to: string; className?: string; children: React.ReactNode }> = ({ to, className, children }) => {
+  const LinkComponent = Link as any;
+  return (
+    <LinkComponent to={to} className={className}>
+      {children}
+    </LinkComponent>
+  );
+};
+
 interface LoginResponse {
   success: boolean;
   data: {
@@ -10,7 +20,7 @@ interface LoginResponse {
     user: {
       id: number;
       name: string;
-      roll_number: number;
+      rollNumber: number;
       grade: number;
       section: string;
     };
@@ -63,7 +73,7 @@ const ModernLoginForm = () => {
           id: response.data.user.id,
           role: 'student' as const,
           name: response.data.user.name,
-          rollNumber: response.data.user.roll_number,
+          rollNumber: response.data.user.rollNumber,
           grade: response.data.user.grade,
           section: response.data.user.section
         });
@@ -97,13 +107,13 @@ const ModernLoginForm = () => {
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           {/* Back to Home */}
-          <Link
+          <SafeLink
             to="/"
             className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-8 transition-all duration-300 hover:translate-x-1"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
-          </Link>
+          </SafeLink>
 
           {/* Login Card */}
           <div className="backdrop-blur-glass border border-white/20 rounded-3xl shadow-2xl p-8 hover:shadow-3xl transition-all duration-500">
@@ -273,23 +283,23 @@ const ModernLoginForm = () => {
             </div>
 
             {/* Register Link */}
-            <Link
+            <SafeLink
               to="/register"
               className="w-full py-4 bg-white/70 border-2 border-gray-200 text-gray-700 font-semibold text-lg rounded-2xl shadow-lg hover:shadow-xl hover:bg-white/90 hover:border-blue-300 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-gray-300/50 flex items-center justify-center"
             >
               Create New Account
-            </Link>
+            </SafeLink>
           </div>
 
           {/* Admin Login Link */}
           <div className="text-center mt-8">
-            <Link
+            <SafeLink
               to="/admin/login"
               className="inline-flex items-center px-6 py-3 bg-white/30 backdrop-blur-sm border border-white/40 text-gray-700 font-medium rounded-xl hover:bg-white/50 transition-all duration-300 hover:scale-105"
             >
               <Shield className="w-4 h-4 mr-2" />
               Admin Portal →
-            </Link>
+            </SafeLink>
           </div>
         </div>
       </div>

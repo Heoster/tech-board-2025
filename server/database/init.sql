@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS questions (
     difficulty TEXT NOT NULL CHECK (difficulty IN ('basic', 'medium', 'advanced')),
     question_text TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(grade, question_text, difficulty)
 );
 
 CREATE TABLE IF NOT EXISTS options (

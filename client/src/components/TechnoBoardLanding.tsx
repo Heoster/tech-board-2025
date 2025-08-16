@@ -44,7 +44,7 @@ const TechnoBoardLanding: React.FC = () => {
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <span>powered by</span>
-              <img src="/maples-academy-logo.svg" alt="Maples Academy" className="h-6 w-auto" onError={(e) => { 
+              <img src="/logoSch.png" alt="Maples Academy" className="h-6 w-auto" onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = 'none';
                 const fallback = e.currentTarget.nextElementSibling as HTMLElement;
                 if (fallback) fallback.style.display = 'flex';
@@ -110,7 +110,7 @@ const TechnoBoardLanding: React.FC = () => {
             <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
               <div className="text-center">
                 <div className="text-3xl font-bold text-gray-900 mb-1">1500+</div>
-                <div className="text-sm text-gray-600">Students Tested</div>
+                <div className="text-sm text-gray-600">Questions</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-gray-900 mb-1">72%</div>
@@ -165,6 +165,16 @@ const TechnoBoardLanding: React.FC = () => {
                 Access exclusive workshops, coding sessions, and technical training programs designed by Maples Academy.
               </p>
             </div>
+
+            <div className="card hover-lift group">
+              <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform text-white">
+                <Globe />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Global Olympiad Training</h3>
+              <p className="text-gray-600">
+                We provide you unlimited opportunities and training for Olympiads globally, preparing you for international competitions.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -208,16 +218,6 @@ const TechnoBoardLanding: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Grade-Specific Content</h3>
                   <p className="text-gray-600">Questions designed for your academic level by Maples Academy experts.</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4 p-6 bg-white rounded-xl shadow-lg">
-                <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center text-white">
-                  <Globe />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Global Olympiad Training</h3>
-                  <p className="text-gray-600">We provide you unlimited opportunities and training for Olympiads globally, preparing you for international competitions.</p>
                 </div>
               </div>
             </div>
@@ -273,7 +273,7 @@ const TechnoBoardLanding: React.FC = () => {
 
           <div className="flex items-center justify-center space-x-3 mb-6">
             <span className="text-gray-400">Powered by</span>
-            <img src="/maples-academy-logo.svg" alt="Maples Academy" className="h-8 w-auto opacity-80" onError={(e) => { 
+            <img src="/logoSch.png" alt="Maples Academy" className="h-8 w-auto opacity-80" onError={(e) => {
               (e.currentTarget as HTMLImageElement).style.display = 'none';
             }} />
             <span className="font-semibold text-orange-400">Maples Academy</span>

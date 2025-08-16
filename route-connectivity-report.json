@@ -1,0 +1,207 @@
+{
+  "timestamp": "2025-08-16T06:25:34.635Z",
+  "baseUrl": "http://localhost:8003",
+  "summary": {
+    "total": 23,
+    "passed": 0,
+    "failed": 23,
+    "warnings": 0,
+    "successRate": "0.0"
+  },
+  "authentication": {
+    "studentToken": "failed",
+    "adminToken": "failed"
+  },
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "description": "Health check endpoint",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 30
+    },
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "description": "API health check",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 3
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/register",
+      "description": "Student registration",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 3
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/student/login",
+      "description": "Student login",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 2
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/admin/login",
+      "description": "Admin login",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 2
+    },
+    {
+      "method": "POST",
+      "path": "/api/quiz/start",
+      "description": "Start quiz",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 4
+    },
+    {
+      "method": "GET",
+      "path": "/api/quiz/questions",
+      "description": "Get quiz questions",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 4
+    },
+    {
+      "method": "POST",
+      "path": "/api/quiz/submit",
+      "description": "Submit quiz answer",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 3
+    },
+    {
+      "method": "POST",
+      "path": "/api/quiz/finish",
+      "description": "Finish quiz",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 5
+    },
+    {
+      "method": "GET",
+      "path": "/api/quiz/results",
+      "description": "Get quiz results",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 5
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/dashboard",
+      "description": "Admin dashboard",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 2
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/students",
+      "description": "Get students list",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 2
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/questions",
+      "description": "Get questions list",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 2
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/system-stats",
+      "description": "System statistics",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 1
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/results",
+      "description": "Quiz results",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 2
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/backup-database",
+      "description": "Database backup",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 2
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "description": "Landing page",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 2
+    },
+    {
+      "method": "GET",
+      "path": "/login",
+      "description": "Login page",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 2
+    },
+    {
+      "method": "GET",
+      "path": "/register",
+      "description": "Registration page",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 1
+    },
+    {
+      "method": "GET",
+      "path": "/admin/login",
+      "description": "Admin login page",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 1
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard",
+      "description": "Student dashboard",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 2
+    },
+    {
+      "method": "GET",
+      "path": "/test",
+      "description": "Quiz interface",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 2
+    },
+    {
+      "method": "GET",
+      "path": "/admin/dashboard",
+      "description": "Admin dashboard page",
+      "status": "FAIL",
+      "message": "Server not running",
+      "responseTime": 2
+    }
+  ],
+  "categories": {
+    "public": 5,
+    "student": 5,
+    "admin": 6,
+    "frontend": 7
+  }
+}

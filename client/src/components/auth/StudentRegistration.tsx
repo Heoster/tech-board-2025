@@ -6,15 +6,13 @@ import { authService } from '../../services/authService';
 // Type definition for auth response
 interface AuthResponse {
   success: boolean;
-  data: {
-    token: string;
-    user: {
-      id: number;
-      name: string;
-      roll_number: number;
-      grade: number;
-      section: string;
-    };
+  token: string;
+  user: {
+    id: number;
+    name: string;
+    rollNumber: number;
+    grade: number;
+    section: string;
   };
 }
 
@@ -78,13 +76,13 @@ const StudentRegistration = () => {
       }) as AuthResponse;
 
       if (response.success) {
-        login(response.data.token, {
-          id: response.data.user.id,
+        login(response.token, {
+          id: response.user.id,
           role: 'student' as const,
-          name: response.data.user.name,
-          rollNumber: response.data.user.roll_number,
-          grade: response.data.user.grade,
-          section: response.data.user.section
+          name: response.user.name,
+          rollNumber: response.user.rollNumber,
+          grade: response.user.grade,
+          section: response.user.section
         });
       }
       navigate('/dashboard');

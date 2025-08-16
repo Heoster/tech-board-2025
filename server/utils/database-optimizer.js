@@ -19,9 +19,9 @@ class DatabaseOptimizer {
         const indexes = [
             // Questions table indexes
             'CREATE INDEX IF NOT EXISTS idx_questions_grade ON questions(grade)',
-            'CREATE INDEX IF NOT EXISTS idx_questions_subject ON questions(subject)',
+
             'CREATE INDEX IF NOT EXISTS idx_questions_difficulty ON questions(difficulty)',
-            'CREATE INDEX IF NOT EXISTS idx_questions_grade_subject ON questions(grade, subject)',
+
             
             // Options table indexes
             'CREATE INDEX IF NOT EXISTS idx_options_question_id ON options(question_id)',
@@ -31,7 +31,7 @@ class DatabaseOptimizer {
             'CREATE INDEX IF NOT EXISTS idx_quizzes_student_id ON quizzes(student_id)',
             'CREATE INDEX IF NOT EXISTS idx_quizzes_status ON quizzes(status)',
             'CREATE INDEX IF NOT EXISTS idx_quizzes_grade ON quizzes(grade)',
-            'CREATE INDEX IF NOT EXISTS idx_quizzes_created_at ON quizzes(created_at)',
+            'CREATE INDEX IF NOT EXISTS idx_quizzes_started_at ON quizzes(started_at)',
             
             // Quiz answers table indexes
             'CREATE INDEX IF NOT EXISTS idx_quiz_answers_quiz_id ON quiz_answers(quiz_id)',
@@ -40,8 +40,8 @@ class DatabaseOptimizer {
             
             // Students table indexes
             'CREATE INDEX IF NOT EXISTS idx_students_grade ON students(grade)',
-            'CREATE INDEX IF NOT EXISTS idx_students_email ON students(email)',
-            'CREATE INDEX IF NOT EXISTS idx_students_created_at ON students(created_at)',
+
+            'CREATE INDEX IF NOT EXISTS idx_students_roll_grade ON students(roll_number, grade)',
             
             // Composite indexes for complex queries
             'CREATE INDEX IF NOT EXISTS idx_quiz_answers_quiz_correct ON quiz_answers(quiz_id, is_correct)',
@@ -131,97 +131,108 @@ class DatabaseOptimizer {
         }
 
         const startTime = performance.now();
-        const db = database.getDb();
         
-        // Build dynamic query with proper parameterization
-        let whereConditions = [];
-        let queryParams = [];
-        
-        if (grade) {
-            whereConditions.push('q.grade = ?');
-            queryParams.push(grade);
-        }
-        
-        if (subject) {
-            whereConditions.push('q.subject = ?');
-            queryParams.push(subject);
-        }
-        
-        if (difficulty) {
-            whereConditions.push('q.difficulty = ?');
-            queryParams.push(difficulty);
-        }
-        
-        const whereClause = whereConditions.length > 0 ? 
-            `WHERE ${whereConditions.join(' AND ')}` : '';
-        
-        const orderClause = randomize ? 'ORDER BY RANDOM()' : 'ORDER BY q.id';
-        const limitClause = `LIMIT ${limit} OFFSET ${offset}`;
-        
-        const questionQuery = `
-            SELECT q.id, q.question_text, q.subject, q.difficulty, q.grade
-            FROM questions q
-            ${whereClause}
-            ${orderClause}
-            ${limitClause}
-        `;
-        
-        const questions = await new Promise((resolve, reject) => {
-            db.all(questionQuery, queryParams, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
-        
-        let result = questions;
-        
-        if (includeOptions && questions.length > 0) {
-            // Batch fetch options for better performance
-            const questionIds = questions.map(q => q.id);
-            const placeholders = questionIds.map(() => '?').join(',');
+        try {
+            const db = database.getDb();
             
-            const options = await new Promise((resolve, reject) => {
-                db.all(`
-                    SELECT question_id, id, option_text, option_order
-                    FROM options 
-                    WHERE question_id IN (${placeholders})
-                    ORDER BY question_id, option_order
-                `, questionIds, (err, rows) => {
+            if (!db) {
+                console.warn('Database not available for getQuestionsOptimized');
+                return [];
+            }
+            
+            // Build dynamic query with proper parameterization
+            let whereConditions = [];
+            let queryParams = [];
+            
+            if (grade) {
+                whereConditions.push('q.grade = ?');
+                queryParams.push(grade);
+            }
+            
+            if (subject) {
+                whereConditions.push('q.subject = ?');
+                queryParams.push(subject);
+            }
+            
+            if (difficulty) {
+                whereConditions.push('q.difficulty = ?');
+                queryParams.push(difficulty);
+            }
+            
+            const whereClause = whereConditions.length > 0 ? 
+                `WHERE ${whereConditions.join(' AND ')}` : '';
+            
+            const orderClause = randomize ? 'ORDER BY RANDOM()' : 'ORDER BY q.id';
+            const limitClause = `LIMIT ${limit} OFFSET ${offset}`;
+            
+            const questionQuery = `
+                SELECT q.id, q.question_text, q.difficulty, q.grade
+                FROM questions q
+                ${whereClause}
+                ${orderClause}
+                ${limitClause}
+            `;
+            
+            const questions = await new Promise((resolve, reject) => {
+                db.all(questionQuery, queryParams, (err, rows) => {
                     if (err) reject(err);
-                    else resolve(rows);
+                    else resolve(rows || []);
                 });
             });
             
-            // Group options by question
-            const optionsByQuestion = {};
-            options.forEach(option => {
-                if (!optionsByQuestion[option.question_id]) {
-                    optionsByQuestion[option.question_id] = [];
-                }
-                optionsByQuestion[option.question_id].push({
-                    id: option.id,
-                    text: option.option_text,
-                    order: option.option_order
+            let result = questions;
+            
+            if (includeOptions && questions.length > 0) {
+                // Batch fetch options for better performance
+                const questionIds = questions.map(q => q.id);
+                const placeholders = questionIds.map(() => '?').join(',');
+                
+                const options = await new Promise((resolve, reject) => {
+                    db.all(`
+                        SELECT question_id, id, option_text, option_order
+                        FROM options 
+                        WHERE question_id IN (${placeholders})
+                        ORDER BY question_id, option_order
+                    `, questionIds, (err, rows) => {
+                        if (err) reject(err);
+                        else resolve(rows || []);
+                    });
                 });
+                
+                // Group options by question
+                const optionsByQuestion = {};
+                options.forEach(option => {
+                    if (!optionsByQuestion[option.question_id]) {
+                        optionsByQuestion[option.question_id] = [];
+                    }
+                    optionsByQuestion[option.question_id].push({
+                        id: option.id,
+                        text: option.option_text,
+                        order: option.option_order
+                    });
+                });
+                
+                // Attach options to questions
+                result = questions.map(question => ({
+                    ...question,
+                    options: optionsByQuestion[question.id] || []
+                }));
+            }
+            
+            const queryTime = performance.now() - startTime;
+            this.trackQueryPerformance('getQuestionsOptimized', queryTime);
+            
+            // Cache results
+            this.queryCache.set(cacheKey, {
+                data: result,
+                timestamp: Date.now()
             });
             
-            // Attach options to questions
-            result = questions.map(question => ({
-                ...question,
-                options: optionsByQuestion[question.id] || []
-            }));
+            return result;
+        } catch (error) {
+            console.error('Error in getQuestionsOptimized:', error);
+            return [];
         }
-        
-        const queryTime = performance.now() - startTime;
-        this.trackQueryPerformance('getQuestionsOptimized', queryTime);
-        
-        // Cache results
-        this.queryCache.set(cacheKey, {
-            data: result,
-            timestamp: Date.now()
-        });
-        
-        return result;
     }
 
     // Optimized student progress tracking
@@ -239,21 +250,20 @@ class DatabaseOptimizer {
              FROM quizzes WHERE student_id = ?`,
             
             // Recent quiz performance
-            `SELECT grade, score, created_at, status
+            `SELECT grade, score, started_at, status
              FROM quizzes 
              WHERE student_id = ? 
-             ORDER BY created_at DESC 
+             ORDER BY started_at DESC 
              LIMIT 10`,
             
-            // Subject-wise performance
+            // Grade-wise performance
             `SELECT 
-                q.subject,
+                quiz.grade,
                 COUNT(*) as attempts,
                 AVG(quiz.score) as avg_score
              FROM quizzes quiz
-             JOIN questions q ON q.grade = quiz.grade
              WHERE quiz.student_id = ? AND quiz.status = 'completed'
-             GROUP BY q.subject`
+             GROUP BY quiz.grade`
         ];
         
         const results = await this.executeBatchQuery(queries, [
@@ -268,7 +278,7 @@ class DatabaseOptimizer {
         return {
             summary: results[0][0] || {},
             recentQuizzes: results[1] || [],
-            subjectPerformance: results[2] || []
+            gradePerformance: results[2] || []
         };
     }
 

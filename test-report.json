@@ -1,0 +1,87 @@
+{
+  "timestamp": "2025-08-15T13:22:05.849Z",
+  "baseUrl": "http://localhost:8000",
+  "summary": {
+    "total": 15,
+    "passed": 0,
+    "failed": 15,
+    "successRate": 0
+  },
+  "details": [
+    {
+      "name": "Health Check",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "API Info",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Student Registration",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Student Login",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Admin Login",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Quiz Start",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Quiz Submit",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Admin Dashboard",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Admin Results",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Question Management",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Static File Serving",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Rate Limiting",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Error Handling",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Database Performance",
+      "status": "FAIL",
+      "error": ""
+    },
+    {
+      "name": "Memory Usage",
+      "status": "FAIL",
+      "error": ""
+    }
+  ]
+}

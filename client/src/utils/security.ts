@@ -7,7 +7,7 @@ class SecureStorage {
   private static readonly PREFIX = 'techboard_';
   private static readonly TOKEN_KEY = 'auth_token';
   private static readonly USER_KEY = 'user_data';
-  
+
   // Simple XOR encryption for basic token obfuscation (not cryptographically secure)
   private static encrypt(text: string): string {
     if (!text) return '';
@@ -40,7 +40,7 @@ class SecureStorage {
       this.removeToken();
       return;
     }
-    
+
     try {
       const encrypted = this.encrypt(token);
       localStorage.setItem(this.PREFIX + this.TOKEN_KEY, encrypted);
@@ -56,7 +56,7 @@ class SecureStorage {
     try {
       const encrypted = localStorage.getItem(this.PREFIX + this.TOKEN_KEY);
       const expiration = localStorage.getItem(this.PREFIX + this.TOKEN_KEY + '_exp');
-      
+
       if (!encrypted || !expiration) {
         return null;
       }
@@ -68,7 +68,7 @@ class SecureStorage {
       }
 
       const token = this.decrypt(encrypted);
-      
+
       // Validate token format (basic JWT check)
       if (!token || !token.includes('.')) {
         this.removeToken();
@@ -133,14 +133,14 @@ class SecureStorage {
     if (!userData || typeof userData !== 'object' || Array.isArray(userData)) {
       return {};
     }
-    
+
     // Remove sensitive fields and sanitize strings
     const sanitized = { ...(userData as Record<string, unknown>) };
-    
+
     // Remove any password fields
     delete sanitized.password;
     delete sanitized.password_hash;
-    
+
     // Sanitize string fields
     Object.keys(sanitized).forEach(key => {
       if (typeof sanitized[key] === 'string') {
@@ -153,7 +153,7 @@ class SecureStorage {
 
   private static sanitizeString(str: string): string {
     if (typeof str !== 'string') return str;
-    
+
     // Remove potential XSS payloads
     return str
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
@@ -171,7 +171,7 @@ export class InputValidator {
   static readonly patterns = {
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     name: /^[a-zA-Z\s'-]{2,100}$/,
-    rollNumber: /^[1-9][0-9]?$|^[1-7][0-9]$|^80$/,  // 1-80
+    rollNumber: /^([1-9]|[1-9][0-9]|100)$/,  // 1-100
     password: /^.{6,}$/,
     grade: /^(6|7|8|9|11)$/,
     section: /^[AB]$/
@@ -179,7 +179,7 @@ export class InputValidator {
 
   static sanitizeInput(input: string): string {
     if (typeof input !== 'string') return '';
-    
+
     return input
       .trim()
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
@@ -216,7 +216,7 @@ export class InputValidator {
   static isValidInput(input: unknown): boolean {
     if (input === null || input === undefined) return false;
     if (typeof input === 'string' && input.trim() === '') return false;
-    
+
     // Check for common XSS patterns
     const str = input.toString();
     const dangerousPatterns = [
@@ -273,23 +273,23 @@ export class APISecurityManager {
     if (!endpoint || typeof endpoint !== 'string') {
       return false;
     }
-    
+
     const sanitizedEndpoint = this.sanitizeEndpoint(endpoint);
     if (!sanitizedEndpoint) {
       return false;
     }
-    
+
     const attempts = this.retryAttempts.get(sanitizedEndpoint) || 0;
-    
+
     if (attempts >= this.MAX_RETRY_ATTEMPTS) {
       this.retryAttempts.delete(sanitizedEndpoint);
       return false;
     }
 
     // Retry on network errors or 5xx server errors
-    const isRetryable = !error.response || 
-                       error.response.status >= 500 || 
-                       error.code === 'NETWORK_ERROR';
+    const isRetryable = !error.response ||
+      error.response.status >= 500 ||
+      error.code === 'NETWORK_ERROR';
 
     if (isRetryable) {
       this.retryAttempts.set(sanitizedEndpoint, attempts + 1);
@@ -304,12 +304,12 @@ export class APISecurityManager {
     if (!endpoint || typeof endpoint !== 'string') {
       return this.RETRY_DELAY;
     }
-    
+
     const sanitizedEndpoint = this.sanitizeEndpoint(endpoint);
     if (!sanitizedEndpoint) {
       return this.RETRY_DELAY;
     }
-    
+
     const attempts = this.retryAttempts.get(sanitizedEndpoint) || 0;
     return this.RETRY_DELAY * Math.pow(2, attempts); // Exponential backoff
   }
@@ -319,32 +319,32 @@ export class APISecurityManager {
     if (!endpoint || typeof endpoint !== 'string') {
       return;
     }
-    
+
     const sanitizedEndpoint = this.sanitizeEndpoint(endpoint);
     if (!sanitizedEndpoint) {
       return;
     }
-    
+
     this.retryAttempts.delete(sanitizedEndpoint);
   }
 
   private static sanitizeEndpoint(endpoint: string): string | null {
     // Strict validation for API endpoints
     const sanitized = InputValidator.sanitizeInput(endpoint);
-    
-    // Only allow valid API endpoint patterns
-    const validEndpointPattern = /^\/[a-zA-Z0-9/_-]*$/;
+
+    // Only allow valid API endpoint patterns (including query parameters)
+    const validEndpointPattern = /^\/[a-zA-Z0-9/_-]+(\?[a-zA-Z0-9=&_-]*)?$/;
     if (!validEndpointPattern.test(sanitized)) {
       console.warn('Invalid endpoint pattern detected:', endpoint);
       return null;
     }
-    
+
     // Limit endpoint length
     if (sanitized.length > 200) {
       console.warn('Endpoint too long:', endpoint);
       return null;
     }
-    
+
     return sanitized;
   }
 
@@ -357,7 +357,7 @@ export class APISecurityManager {
       if (error.response?.status >= 500) {
         return 'Server is temporarily unavailable. Please try again later.';
       }
-      
+
       if (error.response?.status === 429) {
         return 'Too many requests. Please wait before trying again.';
       }
@@ -368,10 +368,10 @@ export class APISecurityManager {
     }
 
     // Return sanitized error message
-    const message = error.response?.data?.error?.message || 
-                   error.response?.data?.message || 
-                   error.message || 
-                   'An error occurred';
+    const message = error.response?.data?.error?.message ||
+      error.response?.data?.message ||
+      error.message ||
+      'An error occurred';
 
     return InputValidator.sanitizeInput(message);
   }
@@ -395,7 +395,7 @@ export class SecurityChecker {
     return !!metaCSP;
   }
 
-  static validateEnvironment(): {valid: boolean; warnings: string[]} {
+  static validateEnvironment(): { valid: boolean; warnings: string[] } {
     const warnings: string[] = [];
 
     if (!this.isSecureContext() && this.isProductionEnvironment()) {
@@ -422,7 +422,7 @@ export class SecurityChecker {
   static removeDebugCode(): void {
     if (this.isProductionEnvironment()) {
       // Disable console in production
-      const noop = () => {};
+      const noop = () => { };
       console.log = noop;
       console.info = noop;
       console.debug = noop;

@@ -4,8 +4,8 @@ const rateLimit = require('express-rate-limit');
 const securityMiddleware = {
   // Strict rate limiting for authentication endpoints
   authLimiter: rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: process.env.NODE_ENV === 'production' ? 20 : 100, // 20 attempts in production, 100 in dev
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: process.env.NODE_ENV === 'production' ? 50 : 100, // 50 attempts in production, 100 in dev
     message: {
       success: false,
       error: {
@@ -23,8 +23,8 @@ const securityMiddleware = {
 
   // Very strict admin rate limiting
   adminLimiter: rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: process.env.NODE_ENV === 'production' ? 10 : 50, // 10 attempts in production
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: process.env.NODE_ENV === 'production' ? 25 : 50, // 25 attempts in production
     message: {
       success: false,
       error: {
@@ -42,8 +42,8 @@ const securityMiddleware = {
 
   // General API rate limiting
   generalLimiter: rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: process.env.NODE_ENV === 'production' ? 1000 : 10000, // 1000 requests per 15 min in production
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: process.env.NODE_ENV === 'production' ? 500 : 10000, // 500 requests per 10 min in production
     message: {
       success: false,
       error: {
@@ -58,8 +58,8 @@ const securityMiddleware = {
 
   // Quiz submission rate limiting
   quizLimiter: rateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: process.env.NODE_ENV === 'production' ? 400 : 1000, // 400 quiz requests per minute in production
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: process.env.NODE_ENV === 'production' ? 500 : 1000, // 500 quiz requests per 10 minutes in production
     message: {
       success: false,
       error: {

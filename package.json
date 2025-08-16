@@ -8,32 +8,45 @@
     "npm": ">=10.0.0"
   },
   "scripts": {
-    "start": "node railway-start.js",
-    "start:prod": "node server/process-manager.js",
-    "start:cluster": "node server/process-manager.js",
+    "start": "node start-production.js",
+    "start:dev": "node dev-start.js",
+    "start:cluster": "node start-production.js",
     "dev": "node dev-start.js",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
-    "railway:dev": "cd server && npm run dev",
-    "build": "node railway-build.js",
-    "build:production": "node railway-build.js",
-    "postinstall": "echo 'Dependencies will be installed during build'",
-    "setup:production": "node production-setup.js",
-    "verify": "node verify-deployment.js",
-    "test": "cd server && npm test",
-    "railway:build": "node railway-build.js",
-    "railway:start": "node railway-start.js",
-    "deploy:production": "node deploy-production.js",
-    "setup:db": "node server/scripts/production-db-setup.js",
-    "test:login": "node test-production-login.js",
-    "reset-db": "node reset-database.js",
-    "check-duplicates": "node check-duplicate-questions.js",
-    "remove-duplicates": "node remove-duplicates.js",
-    "test:admin": "node test-admin-functionality.js",
-    "monitor": "node server/monitoring.js",
-    "pm2:start": "pm2 start server/index.js --name tech-board",
-    "pm2:stop": "pm2 stop tech-board",
-    "pm2:restart": "pm2 restart tech-board"
+    "build": "node production-ready-setup.js",
+    "build:production": "node production-ready-setup.js",
+    "setup:production": "node production-ready-setup.js",
+    "deploy:railway": "node deploy-railway-complete.js",
+    "verify:railway": "node verify-railway-deployment.js",
+    "test": "npm run test:setup && npm run test:server",
+    "test:server": "cd server && npm test",
+    "test:setup": "node seed-test-questions.js",
+    "verify:production": "node -e \"const sqlite3=require('sqlite3').verbose();const db=new sqlite3.Database('server/database/mcq_system_fixed.db');console.log('Checking production database...');db.all('SELECT grade,COUNT(*) cnt FROM questions GROUP BY grade ORDER BY grade',(e,r)=>{if(e){console.error('Error:',e.message);process.exit(1);}console.log('Question counts per grade:');r.forEach(row=>console.log('Grade '+row.grade+': '+row.cnt+' questions'));const q='SELECT grade,difficulty,question_text,COUNT(*) c FROM questions GROUP BY grade,difficulty,question_text HAVING c>1 ORDER BY c DESC';db.all(q,(e2,r2)=>{if(e2){console.error('Error checking duplicates:',e2.message);process.exit(1);}if(r2.length>0){console.log('EXACT DUPLICATES FOUND:',r2.length,'groups');r2.forEach(d=>console.log('Grade '+d.grade+' '+d.difficulty+': '+d.c+' copies of \"'+d.question_text.substring(0,50)+'...\"'));}else{console.log('No exact duplicates found.');}db.close();console.log('Database verification complete.');});});\"",
+    "test:complete": "node test-complete-functionality.js",
+    "railway:build": "node production-ready-setup.js",
+    "railway:start": "node server/index.js",
+    "railway:deploy": "railway up",
+    "monitor": "node monitor.js",
+    "logs": "tail -f logs/*.log",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:stop": "pm2 stop tech-board-2025",
+    "pm2:restart": "pm2 restart tech-board-2025",
+    "pm2:logs": "pm2 logs tech-board-2025",
+    "docker:build": "docker build -t tech-board-2025 .",
+    "docker:run": "docker run -p 8000:8000 tech-board-2025",
+    "docker:compose": "docker-compose up -d",
+    "health": "curl -f http://localhost:8000/api/health || exit 1",
+    "db:fix": "node fix-database.js",
+    "db:test": "node test-database.js",
+    "db:setup": "npm run db:fix && npm run db:test",
+    "db:seed": "node seed-complete-1500.js",
+    "db:seed-all": "node seed-all-files.js",
+    "db:generate-1500": "node generate-unique-1500.js",
+    "db:seed-test": "npm run db:seed && npm run db:test",
+    "server:start": "node start-server.js",
+    "clean": "rm -rf node_modules client/node_modules server/node_modules client/dist server/public logs/*.log",
+    "reset": "npm run clean && npm install && npm run build"
   },
   "keywords": [
     "quiz",
@@ -53,10 +66,14 @@
   },
   "dependencies": {
     "axios": "^1.11.0",
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^5.1.6",
+    "bcrypt": "^5.1.1"
   },
   "workspaces": [
     "server",
     "client"
-  ]
+  ],
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
 }

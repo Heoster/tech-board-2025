@@ -1,0 +1,152 @@
+const request = require('supertest');
+const app = require('../index');
+const database = require('../config/database');
+const jwt = require('jsonwebtoken');
+
+describe('Students Routes', () => {
+    let adminToken;
+
+    beforeAll(async () => {
+        // Create admin token
+        adminToken = jwt.sign(
+            { id: 1, type: 'admin', username: 'admin' },
+            process.env.JWT_SECRET || 'test-secret',
+            { expiresIn: '1h' }
+        );
+    });
+
+    describe('POST /api/students', () => {
+        test('should create a new student', async () => {
+            const uniqueRoll = 1000 + Math.floor(Math.random() * 1000);
+            const studentData = {
+                name: 'John Doe',
+                rollNumber: uniqueRoll,
+                grade: 6,
+                section: 'A',
+                password: 'student123'
+            };
+
+            const response = await request(app)
+                .post('/api/students')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send(studentData);
+
+            expect(response.status).toBe(201);
+            expect(response.body).toHaveProperty('studentId');
+            expect(response.body).toHaveProperty('message');
+            
+            // Clean up
+            if (response.body.studentId) {
+                await database.run('DELETE FROM students WHERE id = ?', [response.body.studentId]);
+            }
+        });
+
+        test('should reject duplicate student creation', async () => {
+            const uniqueRoll = 1100 + Math.floor(Math.random() * 1000);
+            
+            // Create first student
+            const firstStudent = {
+                name: 'First Student',
+                rollNumber: uniqueRoll,
+                grade: 6,
+                section: 'A',
+                password: 'student123'
+            };
+
+            const firstResponse = await request(app)
+                .post('/api/students')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send(firstStudent);
+
+            // Try to create duplicate
+            const duplicateStudent = {
+                name: 'Jane Doe',
+                rollNumber: uniqueRoll, // Same roll number
+                grade: 6,
+                section: 'A',
+                password: 'student123'
+            };
+
+            const response = await request(app)
+                .post('/api/students')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send(duplicateStudent);
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty('error');
+            
+            // Clean up
+            if (firstResponse.body.studentId) {
+                await database.run('DELETE FROM students WHERE id = ?', [firstResponse.body.studentId]);
+            }
+        });
+
+        test('should reject student creation without admin auth', async () => {
+            const uniqueRoll = 1200 + Math.floor(Math.random() * 1000);
+            const studentData = {
+                name: 'Unauthorized Student',
+                rollNumber: uniqueRoll,
+                grade: 6,
+                section: 'A',
+                password: 'student123'
+            };
+
+            const response = await request(app)
+                .post('/api/students')
+                .send(studentData);
+
+            expect(response.status).toBe(401);
+        });
+    });
+
+    describe('GET /api/students/:id', () => {
+        let studentId;
+
+        beforeEach(async () => {
+            // Create a test student with unique roll number
+            const uniqueRoll = 2000 + Math.floor(Math.random() * 1000);
+            const result = await database.run(
+                'INSERT INTO students (name, roll_number, grade, section, password) VALUES (?, ?, ?, ?, ?)',
+                ['Test Student', uniqueRoll, 7, 'B', 'password123']
+            );
+            studentId = result.lastID;
+        });
+
+        afterEach(async () => {
+            // Clean up test student
+            if (studentId) {
+                try {
+                    await database.run('DELETE FROM students WHERE id = ?', [studentId]);
+                } catch (error) {
+                    // Ignore cleanup errors
+                }
+            }
+        });
+
+        test('should get student details for admin', async () => {
+            const response = await request(app)
+                .get(`/api/students/${studentId}`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('student');
+            expect(response.body.student.id).toBe(studentId);
+            expect(response.body.student.name).toBe('Test Student');
+        });
+
+        test('should return 404 for non-existent student', async () => {
+            const response = await request(app)
+                .get('/api/students/99999')
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(response.status).toBe(404);
+        });
+
+        test('should reject access without admin auth', async () => {
+            const response = await request(app)
+                .get(`/api/students/${studentId}`);
+
+            expect(response.status).toBe(401);
+        });
+    });
+});

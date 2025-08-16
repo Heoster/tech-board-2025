@@ -40,14 +40,8 @@ const compressionMiddleware = compression({
         return compression.filter(req, res);
     },
     
-    // Custom compression strategies for different content types
-    strategy: (req, res) => {
-        const contentType = res.getHeader('content-type');
-        if (contentType && contentType.includes('application/json')) {
-            return zlib.constants.Z_DEFAULT_STRATEGY;
-        }
-        return zlib.constants.Z_DEFAULT_STRATEGY;
-    }
+    // Use default compression strategy
+    strategy: zlib.constants.Z_DEFAULT_STRATEGY
 });
 
 module.exports = compressionMiddleware;

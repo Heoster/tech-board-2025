@@ -267,4 +267,87 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Token verification endpoint
+router.post('/verify', async (req, res) => {
+    try {
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        
+        if (!token) {
+            return res.status(401).json({ success: false, error: 'No token provided' });
+        }
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        
+        // Get fresh user data
+        let user;
+        if (decoded.type === 'admin') {
+            user = await database.get('SELECT id, username FROM admins WHERE id = ?', [decoded.id]);
+        } else {
+            user = await database.get('SELECT id, name, roll_number, grade, section FROM students WHERE id = ?', [decoded.id]);
+        }
+        
+        if (!user) {
+            return res.status(401).json({ success: false, error: 'User not found' });
+        }
+        
+        res.json({ 
+            success: true, 
+            user: { ...user, type: decoded.type },
+            valid: true
+        });
+    } catch (error) {
+        res.status(401).json({ success: false, error: 'Invalid token' });
+    }
+});
+
+// Token verification endpoint
+router.post('/verify', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ 
+            success: false, 
+            error: 'No token provided' 
+        });
+    }
+    
+    const token = authHeader.substring(7);
+    
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        
+        // Verify user still exists
+        let user = null;
+        if (decoded.type === 'student') {
+            user = await database.get('SELECT id, name, roll_number, grade, section FROM students WHERE id = ?', [decoded.id]);
+        } else if (decoded.type === 'admin') {
+            user = await database.get('SELECT id, username FROM admins WHERE id = ?', [decoded.id]);
+        }
+        
+        if (!user) {
+            return res.status(401).json({ 
+                success: false, 
+                error: 'User not found' 
+            });
+        }
+        
+        res.json({ 
+            success: true,
+            data: {
+                user: {
+                    ...user,
+                    type: decoded.type
+                },
+                valid: true
+            }
+        });
+        
+    } catch (error) {
+        res.status(401).json({ 
+            success: false, 
+            error: 'Invalid token' 
+        });
+    }
+});
+
 module.exports = router;

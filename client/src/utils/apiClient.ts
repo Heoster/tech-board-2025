@@ -21,7 +21,7 @@ class SecureAPIClient {
   constructor() {
     const isDev = getEnvVar('DEV') === 'true' || getEnvVar('MODE') === 'development' || window.location.hostname === 'localhost';
     this.baseURL = getEnvVar('VITE_API_URL') || (isDev ? 'http://localhost:8000/api' : '/api');
-    
+
     this.client = axios.create({
       baseURL: this.baseURL,
       timeout: 30000,
@@ -40,22 +40,22 @@ class SecureAPIClient {
       (config) => {
         // Add unique request ID to prevent caching issues
         config.headers['X-Request-ID'] = crypto.randomUUID();
-        
+
         // Debug logging for auth requests
         if (config.url?.includes('auth/')) {
           console.log('Request config data before sanitization:', config.data);
         }
-        
+
         // Validate and sanitize request data (skip for auth to debug)
         if (config.data && !config.url?.includes('auth/')) {
           config.data = this.sanitizeRequestData(config.data);
         }
-        
+
         // Debug logging for auth requests after sanitization
         if (config.url?.includes('auth/')) {
           console.log('Request config data after sanitization:', config.data);
         }
-        
+
         // Add CSRF protection for state-changing requests
         if (['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase() || '')) {
           config.headers['X-Requested-With'] = 'XMLHttpRequest';
@@ -76,7 +76,7 @@ class SecureAPIClient {
         if (response.config.url) {
           APISecurityManager.clearRetryAttempts(response.config.url);
         }
-        
+
         // Sanitize response data
         if (response.data) {
           response.data = APISecurityManager.sanitizeApiResponse(response.data);
@@ -92,12 +92,12 @@ class SecureAPIClient {
 
   private async handleResponseError(error: AxiosError): Promise<never> {
     const endpoint = error.config?.url || '';
-    
+
     // Handle different error types
     if (error.code === 'ECONNABORTED') {
       console.warn('Request timeout for endpoint');
     }
-    
+
     if (error.response?.status === 429) {
       // Rate limiting - wait before retrying
       const retryAfter = error.response.headers['retry-after'] || '60';
@@ -108,9 +108,9 @@ class SecureAPIClient {
     if (APISecurityManager.shouldRetry(error, endpoint)) {
       const delay = APISecurityManager.getRetryDelay(endpoint);
       console.info(`Retrying request in ${delay}ms`);
-      
+
       await new Promise(resolve => setTimeout(resolve, delay));
-      
+
       try {
         return await this.client.request(error.config!);
       } catch (retryError) {
@@ -140,7 +140,7 @@ class SecureAPIClient {
       if (typeof sanitized[key] === 'string') {
         const originalValue = sanitized[key] as string;
         sanitized[key] = InputValidator.sanitizeInput(originalValue);
-        
+
         // Only clear actually dangerous content, not valid data
         if (originalValue.includes('<script') || originalValue.includes('javascript:') || originalValue.includes('<iframe')) {
           console.warn(`Dangerous input detected for field ${key}:`, originalValue);
@@ -156,7 +156,7 @@ class SecureAPIClient {
 
   // Prevent duplicate requests
   private async makeUniqueRequest<T>(
-    key: string, 
+    key: string,
     requestFn: () => Promise<AxiosResponse<T>>
   ): Promise<AxiosResponse<T>> {
     if (this.requestQueue.has(key)) {
@@ -175,7 +175,7 @@ class SecureAPIClient {
   async get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     try {
       const requestKey = `GET:${url}:${JSON.stringify(config?.params || {})}`;
-      return await this.makeUniqueRequest(requestKey, () => 
+      return await this.makeUniqueRequest(requestKey, () =>
         this.client.get<T>(url, config)
       );
     } catch (error) {
@@ -261,7 +261,7 @@ class SecureAPIClient {
   }
 
   // Health check endpoint
-  async healthCheck(): Promise<{healthy: boolean; responseTime: number}> {
+  async healthCheck(): Promise<{ healthy: boolean; responseTime: number }> {
     const start = Date.now();
     try {
       await this.get('/health');

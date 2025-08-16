@@ -361,6 +361,19 @@ router.post('/questions', authenticateToken, requireAdmin, validateAdmin, valida
         
     } catch (error) {
         console.error('Error creating question:', error);
+        
+        // Handle duplicate question error
+        if (error.code === 'SQLITE_CONSTRAINT' && error.message.includes('UNIQUE constraint failed')) {
+            return res.status(409).json({
+                success: false,
+                error: {
+                    code: 'DUPLICATE_QUESTION',
+                    message: 'A question with the same text already exists for this grade and difficulty level',
+                    details: 'Questions must be unique within each grade and difficulty combination'
+                }
+            });
+        }
+        
         res.status(500).json({
             success: false,
             error: {
@@ -477,6 +490,19 @@ router.put('/questions/:id', authenticateToken, requireAdmin, validateAdmin, val
         
     } catch (error) {
         console.error('Error updating question:', error);
+        
+        // Handle duplicate question error
+        if (error.code === 'SQLITE_CONSTRAINT' && error.message.includes('UNIQUE constraint failed')) {
+            return res.status(409).json({
+                success: false,
+                error: {
+                    code: 'DUPLICATE_QUESTION',
+                    message: 'A question with the same text already exists for this grade and difficulty level',
+                    details: 'Questions must be unique within each grade and difficulty combination'
+                }
+            });
+        }
+        
         res.status(500).json({
             success: false,
             error: {

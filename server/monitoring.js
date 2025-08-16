@@ -23,9 +23,14 @@ class ServerMonitor {
         
         this.alerts = new Set();
         this.logFile = path.join(__dirname, 'logs', 'monitoring.log');
+        this.intervals = []; // Track intervals for cleanup
         
         this.ensureLogDirectory();
-        this.startMonitoring();
+        
+        // Only start monitoring in production
+        if (process.env.NODE_ENV === 'production' && !process.env.DISABLE_MONITORING) {
+            this.startMonitoring();
+        }
     }
 
     ensureLogDirectory() {
@@ -37,16 +42,24 @@ class ServerMonitor {
 
     startMonitoring() {
         // Monitor every 30 seconds
-        setInterval(() => {
+        const monitorInterval = setInterval(() => {
             this.collectMetrics();
             this.checkThresholds();
             this.logMetrics();
         }, 30000);
+        this.intervals.push(monitorInterval);
 
         // Cleanup old metrics every hour
-        setInterval(() => {
+        const cleanupInterval = setInterval(() => {
             this.cleanupMetrics();
         }, 3600000);
+        this.intervals.push(cleanupInterval);
+    }
+
+    cleanup() {
+        // Clear all intervals
+        this.intervals.forEach(interval => clearInterval(interval));
+        this.intervals = [];
     }
 
     collectMetrics() {

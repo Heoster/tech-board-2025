@@ -23,7 +23,7 @@ const allQuestions = {
 };
 
 async function seedAllGrades() {
-  const dbPath = path.join(__dirname, '../database/mcq_system.db');
+  const dbPath = path.join(__dirname, '../database.sqlite');
   const db = new sqlite3.Database(dbPath);
 
   return new Promise((resolve, reject) => {

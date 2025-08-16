@@ -6,7 +6,7 @@ const logger = require('../utils/logger');
 class Database {
     constructor() {
         this.db = null;
-        this.dbPath = process.env.NODE_ENV === 'test' ? ':memory:' : (process.env.DB_PATH || path.join(__dirname, '../database/mcq_system_fixed.db'));
+        this.dbPath = process.env.NODE_ENV === 'test' ? path.join(__dirname, '../database/test.db') : (process.env.DB_PATH || path.join(__dirname, '../database/mcq_system_fixed.db'));
         this.connectionRetries = 3;
         this.retryDelay = 1000; // 1 second
         this.queryTimeout = 30000; // 30 seconds
@@ -122,9 +122,24 @@ class Database {
     async initializeDatabase() {
         return new Promise(async (resolve, reject) => {
             try {
-                const sqlFiles = [
-                    { path: process.env.NODE_ENV === 'test' ? '../database/test-init.sql' : '../database/init.sql', name: 'initialization' }
-                ];
+                // Determine which SQL file(s) to run. In test, prefer test-init.sql, but
+                // fall back to init.sql if the test file is not present to ensure tables exist.
+                const sqlFiles = [];
+                const testInitRelative = '../database/test-init.sql';
+                const defaultInitRelative = '../database/init.sql';
+                const testInitPath = path.join(__dirname, testInitRelative);
+                const defaultInitPath = path.join(__dirname, defaultInitRelative);
+
+                if (process.env.NODE_ENV === 'test') {
+                    if (fs.existsSync(testInitPath)) {
+                        sqlFiles.push({ path: testInitRelative, name: 'initialization (test)' });
+                    } else {
+                        // Fallback to default init when test init is unavailable
+                        sqlFiles.push({ path: defaultInitRelative, name: 'initialization (default fallback for tests)' });
+                    }
+                } else {
+                    sqlFiles.push({ path: defaultInitRelative, name: 'initialization' });
+                }
 
                 logger.info('Starting database initialization');
 
@@ -374,6 +389,16 @@ class Database {
                 reject(error);
             }
         });
+    }
+
+    // Get connection count for monitoring
+    getConnectionCount() {
+        return this.db ? 1 : 0;
+    }
+
+    // Check if database is connected
+    isConnected() {
+        return this.db !== null && this.isInitialized;
     }
 }
 

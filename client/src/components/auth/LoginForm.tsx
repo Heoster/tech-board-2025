@@ -1,32 +1,27 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
-import apiClient from '../../utils/apiClient'
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import apiClient from '../../utils/apiClient';
+import type { AuthResponse } from '../../types/auth';
+
+// Type-safe Link wrapper
+const SafeLink: React.FC<{ to: string; className?: string; children: React.ReactNode }> = ({ to, className, children }) => {
+  const LinkComponent = Link as any;
+  return (
+    <LinkComponent to={to} className={className}>
+      {children}
+    </LinkComponent>
+  );
+};
 
 interface LoginApiError {
   response?: {
     data?: {
-      error?: {
-        message?: string
-      }
+      error?: string;
+      message?: string;
     }
   }
   message?: string
-}
-
-interface LoginResponse {
-  data: {
-    data: {
-      token: string;
-      user: {
-        id: number;
-        name: string;
-        roll_number: number;
-        grade: number;
-        section: string;
-      };
-    };
-  };
 }
 
 const LoginForm: React.FC = () => {
@@ -64,37 +59,26 @@ const LoginForm: React.FC = () => {
       
       const response = await apiClient.post('/auth/student/login', loginData)
       
-      // Handle the actual server response format (both new and legacy)
-      const responseData = response.data
+      // Handle the actual server response format
+      const responseData = response.data as AuthResponse
       
-      // Try new format first, then legacy format
-      let token, student;
       if (responseData.success && responseData.data) {
-        token = responseData.data.token;
-        student = responseData.data.user;
-      } else if (responseData.token && responseData.user) {
-        // Legacy format
-        token = responseData.token;
-        student = responseData.user;
+        const { token, user } = responseData.data;
+        
+        // Map server response fields to AuthContext expected fields
+        const userForAuth = {
+          id: user.id,
+          role: 'student' as const,
+          name: user.name,
+          rollNumber: user.rollNumber,
+          grade: user.grade,
+          section: user.section
+        };
+        
+        login(token, userForAuth);
       } else {
-        throw new Error('Invalid response format');
+        throw new Error(responseData.error || responseData.message || 'Login failed');
       }
-      
-      if (!token || !student) {
-        throw new Error('Login failed - missing token or user data');
-      }
-      
-      // Map server response fields to AuthContext expected fields
-      const userForAuth = {
-        id: student.id,
-        role: 'student' as const,
-        name: student.name,
-        rollNumber: student.rollNumber || student.roll_number,
-        grade: student.grade,
-        section: student.section
-      };
-      
-      login(token, userForAuth)
       navigate('/dashboard')
     } catch (error: unknown) {
       const apiError = error as LoginApiError;
@@ -117,9 +101,9 @@ const LoginForm: React.FC = () => {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
+            <SafeLink to="/register" className="font-medium text-blue-600 hover:text-blue-500">
               register for a new account
-            </Link>
+            </SafeLink>
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -192,9 +176,9 @@ const LoginForm: React.FC = () => {
           </div>
 
           <div className="text-center">
-            <Link to="/admin/login" className="text-sm text-gray-600 hover:text-gray-900">
+            <SafeLink to="/admin/login" className="text-sm text-gray-600 hover:text-gray-900">
               Admin Login
-            </Link>
+            </SafeLink>
           </div>
         </form>
       </div>

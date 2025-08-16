@@ -4,6 +4,38 @@ const database = require('../config/database');
 
 const router = express.Router();
 
+// Student dashboard (students can access their own dashboard)
+router.get('/dashboard', authenticateToken, async (req, res) => {
+    try {
+        const studentId = req.user.id;
+        
+        // Get student info
+        const student = await database.get(
+            'SELECT id, name, roll_number, grade, section, created_at FROM students WHERE id = ?', 
+            [studentId]
+        );
+        
+        if (!student) {
+            return res.status(404).json({ error: 'Student not found' });
+        }
+        
+        // Get student's quiz history
+        const quizzes = await database.all(
+            'SELECT id, status, score, total_questions, started_at, completed_at FROM quizzes WHERE student_id = ? ORDER BY started_at DESC LIMIT 10',
+            [studentId]
+        );
+        
+        res.json({ 
+            success: true,
+            student,
+            quizzes: quizzes || []
+        });
+    } catch (error) {
+        console.error('Student dashboard error:', error);
+        res.status(500).json({ error: 'Failed to fetch dashboard data' });
+    }
+});
+
 // Get student by ID (admin only)
 router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
     try {

@@ -30,57 +30,83 @@ const TechBoardLogoSVG: React.FC<TechBoardLogoSVGProps> = ({
       xmlns="http://www.w3.org/2000/svg"
       style={{ maxWidth: '100%', height: 'auto' }}
     >
+      {/* Background for better visibility */}
+      <rect width="400" height="200" fill="#f8f9fa" rx="10"/>
+      
       {/* Graduation Cap */}
-      <g transform="translate(200, 80)">
+      <g transform="translate(200, 85)">
+        {/* Cap shadow for depth */}
+        <path 
+          d="M-55,-25 L-25,-45 L35,-45 L65,-25 L65,35 L35,55 L-25,55 L-55,35 Z" 
+          fill="#3a6249" opacity="0.3" transform="translate(3, 3)"
+        />
+        
         {/* Main cap hexagon */}
         <path 
-          d="M-60,-30 L-30,-50 L30,-50 L60,-30 L60,30 L30,50 L-30,50 L-60,30 Z" 
+          d="M-55,-25 L-25,-45 L35,-45 L65,-25 L65,35 L35,55 L-25,55 L-55,35 Z" 
           fill={colors.primary}
         />
         
+        {/* Cap border highlight */}
+        <path 
+          d="M-55,-25 L-25,-45 L35,-45 L65,-25 L65,35 L35,55 L-25,55 L-55,35 Z" 
+          fill="none" stroke={colors.secondary} strokeWidth="2" opacity="0.6"
+        />
+        
         {/* Tassel */}
-        <g transform="translate(63, -25)">
-          <rect x="0" y="0" width="6" height="45" rx="3" fill={colors.secondary}/>
-          <ellipse cx="3" cy="48" rx="9" ry="6" fill={colors.secondary}/>
+        <g transform="translate(68, -20)">
+          <rect x="0" y="0" width="5" height="50" rx="2.5" fill={colors.secondary}/>
+          <ellipse cx="2.5" cy="55" rx="12" ry="8" fill={colors.secondary}/>
+          {/* Tassel strands */}
+          <g fill={colors.secondary} opacity="0.8">
+            <rect x="-3" y="50" width="1.5" height="12" rx="0.75"/>
+            <rect x="0" y="52" width="1.5" height="10" rx="0.75"/>
+            <rect x="3" y="51" width="1.5" height="11" rx="0.75"/>
+            <rect x="6" y="50" width="1.5" height="12" rx="0.75"/>
+          </g>
         </g>
         
         {/* Circuit board pattern inside cap */}
-        <g fill="none" stroke={colors.secondary} strokeWidth="4" strokeLinecap="round">
-          {/* Horizontal lines */}
-          <line x1="-37" y1="-15" x2="-7" y2="-15"/>
-          <line x1="7" y1="-15" x2="37" y2="-15"/>
-          <line x1="-37" y1="0" x2="-7" y2="0"/>
-          <line x1="7" y1="0" x2="37" y2="0"/>
-          <line x1="-22" y1="15" x2="22" y2="15"/>
+        <g fill="none" stroke={colors.secondary} strokeWidth="3.5" strokeLinecap="round">
+          {/* Main horizontal lines */}
+          <line x1="-35" y1="-12" x2="-5" y2="-12"/>
+          <line x1="5" y1="-12" x2="35" y2="-12"/>
+          <line x1="-35" y1="5" x2="-5" y2="5"/>
+          <line x1="5" y1="5" x2="35" y2="5"/>
+          <line x1="-20" y1="22" x2="20" y2="22"/>
           
           {/* Vertical connections */}
-          <line x1="-22" y1="-15" x2="-22" y2="0"/>
-          <line x1="22" y1="-15" x2="22" y2="0"/>
-          <line x1="0" y1="0" x2="0" y2="15"/>
+          <line x1="-20" y1="-12" x2="-20" y2="5"/>
+          <line x1="20" y1="-12" x2="20" y2="5"/>
+          <line x1="0" y1="5" x2="0" y2="22"/>
+          
+          {/* Connecting bridges */}
+          <line x1="-5" y1="-12" x2="5" y2="-12"/>
+          <line x1="-5" y1="5" x2="5" y2="5"/>
         </g>
         
         {/* Circuit nodes */}
         <g fill={colors.secondary}>
-          <circle cx="-37" cy="-15" r="4"/>
-          <circle cx="-7" cy="-15" r="4"/>
-          <circle cx="7" cy="-15" r="4"/>
-          <circle cx="37" cy="-15" r="4"/>
-          <circle cx="-37" cy="0" r="4"/>
-          <circle cx="-7" cy="0" r="4"/>
-          <circle cx="7" cy="0" r="4"/>
-          <circle cx="37" cy="0" r="4"/>
-          <circle cx="-22" cy="15" r="4"/>
-          <circle cx="0" cy="15" r="4"/>
-          <circle cx="22" cy="15" r="4"/>
+          <circle cx="-35" cy="-12" r="4"/>
+          <circle cx="-5" cy="-12" r="4"/>
+          <circle cx="5" cy="-12" r="4"/>
+          <circle cx="35" cy="-12" r="4"/>
+          <circle cx="-35" cy="5" r="4"/>
+          <circle cx="-5" cy="5" r="4"/>
+          <circle cx="5" cy="5" r="4"/>
+          <circle cx="35" cy="5" r="4"/>
+          <circle cx="-20" cy="22" r="4"/>
+          <circle cx="0" cy="22" r="4"/>
+          <circle cx="20" cy="22" r="4"/>
         </g>
       </g>
 
       {/* Tech Board Text */}
       <text
         x="200"
-        y="160"
+        y="170"
         textAnchor="middle"
-        fontSize="32"
+        fontSize="28"
         fontWeight="bold"
         fill={colors.accent}
         fontFamily="Arial, sans-serif"

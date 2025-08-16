@@ -33,7 +33,7 @@ Replace `YOUR_USERNAME` with your actual GitHub username:
 
 ```bash
 # Add GitHub remote
-git remote add origin https://github.com/YOUR_USERNAME/tech-board-2025.git
+git remote add origin https://github.com/Heoster/tech-board-2025.git
 
 # Set main branch and push
 git branch -M main
@@ -45,7 +45,7 @@ git push -u origin main
 Run this command (replace YOUR_USERNAME):
 
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/tech-board-2025.git && git branch -M main && git push -u origin main
+git remote add origin https://github.com/Heoster/tech-board-2025.git && git branch -M main && git push -u origin main
 ```
 
 ## 🎯 What Will Be Pushed to GitHub
@@ -79,7 +79,7 @@ git remote add origin https://github.com/YOUR_USERNAME/tech-board-2025.git && gi
 ## 🔗 After Pushing to GitHub
 
 ### Your Repository URL
-`https://github.com/YOUR_USERNAME/tech-board-2025`
+`https://github.com/Heoster/tech-board-2025`
 
 ### Set Up Repository
 1. **Add topics/tags**: `quiz`, `education`, `react`, `nodejs`, `sqlite`, `railway`
@@ -97,7 +97,7 @@ git remote add origin https://github.com/YOUR_USERNAME/tech-board-2025.git && gi
 
 After pushing, you should see:
 
-✅ **Repository created** at github.com/YOUR_USERNAME/tech-board-2025  
+✅ **Repository created** at github.com/Heoster/tech-board-2025  
 ✅ **README displays** with project description and features  
 ✅ **Proper folder structure** (client/, server/, docs/)  
 ✅ **All files present** (52 files committed)  
@@ -111,7 +111,7 @@ Execute these commands now:
 
 ```bash
 # Replace YOUR_USERNAME with your GitHub username
-git remote add origin https://github.com/YOUR_USERNAME/tech-board-2025.git
+git remote add origin https://github.com/Heoster/tech-board-2025.git
 git branch -M main
 git push -u origin main
 ```

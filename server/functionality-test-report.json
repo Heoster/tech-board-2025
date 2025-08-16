@@ -1,0 +1,95 @@
+{
+  "timestamp": "2025-08-16T08:13:38.693Z",
+  "baseUrl": "http://localhost:8003",
+  "testData": {
+    "student": {
+      "name": "Test Student",
+      "roll_number": 99,
+      "password": "[REDACTED]",
+      "grade": 9,
+      "section": "A"
+    },
+    "admin": {
+      "username": "admin",
+      "password": "[REDACTED]"
+    }
+  },
+  "summary": {
+    "total": 11,
+    "passed": 0,
+    "failed": 11,
+    "successRate": "0.0"
+  },
+  "details": [
+    {
+      "test": "Health endpoint",
+      "status": "FAILED",
+      "message": "",
+      "duration": 0
+    },
+    {
+      "test": "Student registration",
+      "status": "FAILED",
+      "message": "",
+      "duration": 0
+    },
+    {
+      "test": "Student login",
+      "status": "FAILED",
+      "message": "",
+      "duration": 0
+    },
+    {
+      "test": "Admin login",
+      "status": "FAILED",
+      "message": "",
+      "duration": 0
+    },
+    {
+      "test": "Quiz generation",
+      "status": "FAILED",
+      "message": "No student token available",
+      "duration": 0
+    },
+    {
+      "test": "Quiz questions fetch",
+      "status": "FAILED",
+      "message": "No student token available",
+      "duration": 0
+    },
+    {
+      "test": "Admin dashboard access",
+      "status": "FAILED",
+      "message": "No admin token available",
+      "duration": 0
+    },
+    {
+      "test": "Question management",
+      "status": "FAILED",
+      "message": "No admin token available",
+      "duration": 0
+    },
+    {
+      "test": "Student management",
+      "status": "FAILED",
+      "message": "No admin token available",
+      "duration": 0
+    },
+    {
+      "test": "System statistics",
+      "status": "FAILED",
+      "message": "No admin token available",
+      "duration": 0
+    },
+    {
+      "test": "Database backup",
+      "status": "FAILED",
+      "message": "No admin token available",
+      "duration": 0
+    }
+  ],
+  "tokens": {
+    "studentToken": "[MISSING]",
+    "adminToken": "[MISSING]"
+  }
+}

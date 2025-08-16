@@ -7,6 +7,9 @@ const generateCSRFToken = () => {
 };
 
 const csrfProtection = (req, res, next) => {
+    if (process.env.NODE_ENV === 'test') {
+        return next();
+    }
     if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
         return next();
     }

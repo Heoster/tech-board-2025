@@ -40,10 +40,10 @@ A comprehensive quiz management platform for Tech Board selection process with s
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
-- npm 8+
+- Node.js 20+ 
+- npm 10+
 
-### Local Development
+### Production Setup (Recommended)
 
 1. **Clone the repository**
    ```bash
@@ -51,53 +51,93 @@ A comprehensive quiz management platform for Tech Board selection process with s
    cd tech-board-2025
    ```
 
-2. **Install dependencies**
+2. **Complete production setup**
    ```bash
-   npm install
-   cd server && npm install
-   cd ../client && npm install
+   npm run setup:production
+   ```
+   This single command will:
+   - Install all dependencies
+   - Build the client application
+   - Set up the database with 1,500 questions
+   - Create environment files
+   - Configure monitoring and logging
+   - Run comprehensive tests
+
+3. **Start the application**
+   ```bash
+   npm start
    ```
 
-3. **Set up database**
-   ```bash
-   node ensure-300-questions.js
-   ```
-
-4. **Start development server**
-   ```bash
-   # Terminal 1: Start backend
-   cd server && npm run dev
-   
-   # Terminal 2: Start frontend
-   cd client && npm run dev
-   ```
-
-5. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
+4. **Access the application**
+   - Application: http://localhost:8000
    - Health Check: http://localhost:8000/api/health
+   - Admin Panel: http://localhost:8000/admin/login
+
+### Development Mode
+
+1. **Start development servers**
+   ```bash
+   npm run dev
+   ```
+   This starts both frontend and backend in development mode.
+
+2. **Access development servers**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:8000
 
 ### Production Deployment
 
-#### Deploy to Railway
+#### Deploy to Railway (Recommended)
 
-1. **Install Railway CLI**
+1. **Prepare for Railway deployment**
+   ```bash
+   npm run deploy:railway
+   ```
+   This command will:
+   - Run complete production setup
+   - Update Railway configuration
+   - Create environment variables guide
+   - Test the build process
+
+2. **Install Railway CLI and deploy**
    ```bash
    npm install -g @railway/cli
-   ```
-
-2. **Login and deploy**
-   ```bash
    railway login
    railway init
    railway up
    ```
 
-3. **Set environment variables in Railway Dashboard**
-   ```env
-   NODE_ENV=production
-   JWT_SECRET=your-super-secure-jwt-secret
-   CORS_ORIGIN=https://your-app.up.railway.app
+3. **Set environment variables**
+   Follow the guide in `railway-env-guide.md` to set up environment variables in Railway dashboard.
+
+4. **Verify deployment**
+   ```bash
+   npm run verify:railway
+   ```
+
+#### Deploy with Docker
+
+1. **Build and run with Docker**
+   ```bash
+   npm run docker:build
+   npm run docker:run
+   ```
+
+2. **Or use Docker Compose**
+   ```bash
+   npm run docker:compose
+   ```
+
+#### Deploy with PM2 (VPS/Server)
+
+1. **Start with PM2**
+   ```bash
+   npm run pm2:start
+   ```
+
+2. **Monitor with PM2**
+   ```bash
+   npm run pm2:logs
    ```
 
 #### Deploy to Other Platforms
@@ -149,25 +189,35 @@ The app includes configuration for:
 
 ## 🧪 Testing
 
-### Run Tests
+### Complete Functionality Test
 ```bash
-# Server tests
-cd server && npm test
+# Test all features (recommended)
+npm test
 
-# Client tests
-cd client && npm test
-
-# Test coverage
-cd server && npm run test:coverage
+# Test specific components
+npm run test:server    # Server-side tests only
+npm run test:complete  # Full integration tests
 ```
 
-### Verify Deployment
+### Health Monitoring
 ```bash
-# Test production deployment
-node verify-tech-board-deployment.js
+# Check application health
+npm run health
 
-# Check for duplicate questions
-node check-duplicate-questions.js
+# Start monitoring
+npm run monitor
+
+# View logs
+npm run logs
+```
+
+### Performance Testing
+```bash
+# Test database performance
+node test-complete-functionality.js
+
+# Monitor in production
+npm run pm2:logs
 ```
 
 ## 📁 Project Structure

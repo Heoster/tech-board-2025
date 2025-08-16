@@ -11,13 +11,32 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:production": "node ../test-production.js",
     "start:prod": "NODE_ENV=production node start-production.js",
     "build": "node ../build-production.js",
     "build:production": "node ../build-production.js",
     "postinstall": "echo 'Database will be seeded during startup'",
     "railway:build": "npm run build:production",
     "railway:start": "npm run start",
-    "start:dev": "node index.js"
+    "start:dev": "node index.js",
+    "deploy:check": "npm run build:production && npm run test:production",
+    "railway:deploy": "node ../railway-deploy.js",
+    "railway:logs": "railway logs",
+    "railway:status": "railway status",
+    "test:functionality": "node ../test-complete-functionality.js",
+    "ensure:database": "node ../ensure-database-ready.js",
+    "test:all": "npm run ensure:database && npm run test:functionality",
+    "pre:deploy": "node ../pre-deployment-check.js",
+    "deploy:ready": "npm run pre:deploy && echo 'Ready for deployment!'",
+    "db:remove-duplicates": "node ../remove-duplicate-questions.js",
+    "db:clean": "npm run db:remove-duplicates",
+    "db:optimize": "node ../optimize-database.js",
+    "db:maintain": "node ../maintain-database.js",
+    "db:full-maintenance": "npm run db:maintain",
+    "test:routes": "node ../test-route-connectivity.js",
+    "test:connectivity": "npm run test:routes",
+    "db:clean-format": "node ../clean-question-format.js",
+    "db:verify-mcq": "npm run db:clean-format"
   },
   "dependencies": {
     "axios": "^1.11.0",
@@ -31,18 +50,21 @@
     "express-validator": "^7.0.1",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mime": "^3.0.0",
     "node-cache": "^5.1.2",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "nodemon": "^3.0.2",
+    "nodemon": "^3.1.10",
     "supertest": "^6.3.4"
   },
   "jest": {
     "testEnvironment": "node",
-    "testTimeout": 30000,
-    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "testTimeout": 15000,
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.js"
+    ],
     "testMatch": [
       "<rootDir>/tests/**/*.test.js"
     ],
@@ -51,6 +73,10 @@
       "!**/node_modules/**",
       "!**/tests/**",
       "!**/coverage/**"
-    ]
+    ],
+    "forceExit": true,
+    "detectOpenHandles": true,
+    "maxWorkers": 1,
+    "verbose": false
   }
 }

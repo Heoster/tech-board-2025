@@ -3,56 +3,80 @@ const TechBoardLogo = ({ className = "w-12 h-12" }: { className?: string }) => (
     <defs>
       <style>
         {`.cap-main { fill: #4a7c59; }
+         .cap-shadow { fill: #3a6249; }
          .cap-highlight { fill: #ffffff; }
-         .circuit-lines { fill: none; stroke: #ffffff; stroke-width: 3; stroke-linecap: round; }
-         .circuit-nodes { fill: #ffffff; }`}
+         .circuit-lines { fill: none; stroke: #ffffff; stroke-width: 2.5; stroke-linecap: round; }
+         .circuit-nodes { fill: #ffffff; }
+         .text-main { fill: #1e3a5f; font-family: 'Arial', sans-serif; font-weight: bold; }`}
       </style>
     </defs>
     
+    {/* Background circle for better visibility */}
+    <circle cx="100" cy="100" r="95" fill="#f8f9fa" stroke="#e9ecef" strokeWidth="2"/>
+    
     {/* Graduation Cap */}
-    <g transform="translate(100, 80)">
-      {/* Main cap hexagon */}
-      <path d="M-40,-20 L-20,-35 L20,-35 L40,-20 L40,20 L20,35 L-20,35 L-40,20 Z" className="cap-main"/>
+    <g transform="translate(100, 85)">
+      {/* Cap shadow for depth */}
+      <path d="M-35,-15 L-15,-28 L25,-28 L45,-15 L45,25 L25,38 L-15,38 L-35,25 Z" 
+            className="cap-shadow" opacity="0.3" transform="translate(2, 2)"/>
       
-      {/* Tassel */}
-      <g transform="translate(42, -17)">
-        <rect x="0" y="0" width="4" height="30" rx="2" className="cap-highlight"/>
-        <ellipse cx="2" cy="32" rx="6" ry="4" className="cap-highlight"/>
+      {/* Main cap hexagon */}
+      <path d="M-35,-15 L-15,-28 L25,-28 L45,-15 L45,25 L25,38 L-15,38 L-35,25 Z" className="cap-main"/>
+      
+      {/* Cap border highlight */}
+      <path d="M-35,-15 L-15,-28 L25,-28 L45,-15 L45,25 L25,38 L-15,38 L-35,25 Z" 
+            fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.6"/>
+      
+      {/* Tassel cord */}
+      <g transform="translate(47, -12)">
+        <rect x="0" y="0" width="3" height="35" rx="1.5" className="cap-highlight"/>
+        {/* Tassel */}
+        <ellipse cx="1.5" cy="38" rx="8" ry="6" className="cap-highlight"/>
+        <g fill="#ffffff" opacity="0.8">
+          <rect x="-2" y="35" width="1" height="8" rx="0.5"/>
+          <rect x="0" y="37" width="1" height="6" rx="0.5"/>
+          <rect x="2" y="36" width="1" height="7" rx="0.5"/>
+          <rect x="4" y="35" width="1" height="8" rx="0.5"/>
+        </g>
       </g>
       
       {/* Circuit board pattern inside cap */}
       <g className="circuit-lines">
-        {/* Horizontal lines */}
-        <line x1="-25" y1="-10" x2="-5" y2="-10"/>
-        <line x1="5" y1="-10" x2="25" y2="-10"/>
-        <line x1="-25" y1="0" x2="-5" y2="0"/>
-        <line x1="5" y1="0" x2="25" y2="0"/>
-        <line x1="-15" y1="10" x2="15" y2="10"/>
+        {/* Main horizontal lines */}
+        <line x1="-20" y1="-8" x2="0" y2="-8"/>
+        <line x1="8" y1="-8" x2="28" y2="-8"/>
+        <line x1="-20" y1="5" x2="0" y2="5"/>
+        <line x1="8" y1="5" x2="28" y2="5"/>
+        <line x1="-12" y1="18" x2="20" y2="18"/>
         
         {/* Vertical connections */}
-        <line x1="-15" y1="-10" x2="-15" y2="0"/>
-        <line x1="15" y1="-10" x2="15" y2="0"/>
-        <line x1="0" y1="0" x2="0" y2="10"/>
+        <line x1="-12" y1="-8" x2="-12" y2="5"/>
+        <line x1="20" y1="-8" x2="20" y2="5"/>
+        <line x1="4" y1="5" x2="4" y2="18"/>
+        
+        {/* Diagonal connections for more tech look */}
+        <line x1="0" y1="-8" x2="8" y2="-8"/>
+        <line x1="0" y1="5" x2="8" y2="5"/>
       </g>
       
       {/* Circuit nodes */}
       <g className="circuit-nodes">
-        <circle cx="-25" cy="-10" r="3"/>
-        <circle cx="-5" cy="-10" r="3"/>
-        <circle cx="5" cy="-10" r="3"/>
-        <circle cx="25" cy="-10" r="3"/>
-        <circle cx="-25" cy="0" r="3"/>
-        <circle cx="-5" cy="0" r="3"/>
-        <circle cx="5" cy="0" r="3"/>
-        <circle cx="25" cy="0" r="3"/>
-        <circle cx="-15" cy="10" r="3"/>
-        <circle cx="0" cy="10" r="3"/>
-        <circle cx="15" cy="10" r="3"/>
+        <circle cx="-20" cy="-8" r="2.5"/>
+        <circle cx="0" cy="-8" r="2.5"/>
+        <circle cx="8" cy="-8" r="2.5"/>
+        <circle cx="28" cy="-8" r="2.5"/>
+        <circle cx="-20" cy="5" r="2.5"/>
+        <circle cx="0" cy="5" r="2.5"/>
+        <circle cx="8" cy="5" r="2.5"/>
+        <circle cx="28" cy="5" r="2.5"/>
+        <circle cx="-12" cy="18" r="2.5"/>
+        <circle cx="4" cy="18" r="2.5"/>
+        <circle cx="20" cy="18" r="2.5"/>
       </g>
     </g>
     
     {/* Tech Board Text */}
-    <text x="100" y="140" textAnchor="middle" fill="#1e3a5f" style={{fontFamily: 'Arial, sans-serif', fontSize: '16px', fontWeight: 'bold'}}>
+    <text x="100" y="155" textAnchor="middle" className="text-main" style={{fontSize: '18px'}}>
       Tech Board
     </text>
   </svg>
