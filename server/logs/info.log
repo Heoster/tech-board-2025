@@ -17831,3 +17831,194 @@
 {"timestamp":"2025-08-16T08:53:12.095Z","level":"INFO","message":"Closing database connection"}
 {"timestamp":"2025-08-16T08:53:12.097Z","level":"INFO","message":"Database connection closed successfully"}
 {"timestamp":"2025-08-16T08:53:12.757Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T08:58:01.383Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T08:58:01.395Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T08:58:01.399Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T08:58:01.400Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T08:58:01.403Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T08:58:01.406Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T08:58:01.406Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T08:58:01.407Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T08:58:01.412Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T08:58:01.416Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T08:58:01.495Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T08:58:01.499Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T08:58:01.501Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T08:58:01.502Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T08:58:01.504Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T08:58:01.506Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T08:58:01.507Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T08:58:01.507Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T08:58:01.510Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T08:58:01.512Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T08:58:01.574Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T08:58:01.579Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T08:58:01.581Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T08:58:01.582Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T08:58:01.583Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T08:58:01.585Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T08:58:01.586Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T08:58:01.586Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T08:58:01.589Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T08:58:01.591Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T08:58:01.659Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T08:58:01.660Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T08:58:01.662Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T08:58:01.663Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T08:58:01.665Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T08:58:01.667Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T08:58:01.667Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T08:58:01.667Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T08:58:01.670Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T08:58:01.672Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T08:58:01.740Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T08:58:01.741Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T08:58:01.744Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T08:58:01.745Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T08:58:01.747Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T08:58:01.749Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T08:58:01.749Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T08:58:01.750Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T08:58:01.752Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T08:58:01.754Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T08:58:01.995Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T08:58:01.999Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T08:58:02.004Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T08:58:02.004Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T08:58:02.009Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T08:58:02.018Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T08:58:02.018Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T08:58:02.019Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T08:58:02.025Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T08:58:02.029Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T08:58:02.107Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T08:58:02.112Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T08:58:02.116Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T08:58:02.117Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T08:58:02.119Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T08:58:02.122Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T08:58:02.123Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T08:58:02.123Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T08:58:02.126Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T08:58:02.130Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T08:58:02.205Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T08:58:02.206Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T08:58:02.210Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T08:58:02.210Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T08:58:02.212Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T08:58:02.215Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T08:58:02.215Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T08:58:02.215Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T08:58:02.219Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T08:58:02.221Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T08:58:02.291Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T08:58:02.292Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T08:58:02.295Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T08:58:02.296Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T08:58:02.298Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T08:58:02.300Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T08:58:02.301Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T08:58:02.301Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T08:58:02.304Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T08:58:02.307Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T09:08:46.630Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\mcq_system_fixed.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T09:08:46.634Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\mcq_system_fixed.db"}
+{"timestamp":"2025-08-16T09:08:46.636Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T09:08:46.637Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T09:08:46.641Z","level":"INFO","message":"initialization applied successfully"}
+{"timestamp":"2025-08-16T09:08:46.642Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T09:08:46.642Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T09:08:46.643Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T09:08:46.644Z","level":"INFO","message":"Database health check passed","duration":1}
+{"timestamp":"2025-08-16T09:08:46.645Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T09:08:46.646Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T09:10:44.834Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T09:10:44.847Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T09:10:44.851Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T09:10:44.852Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T09:10:44.855Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T09:10:44.857Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T09:10:44.858Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T09:10:44.859Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T09:10:44.866Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T09:10:44.871Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T09:10:44.961Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T09:10:44.966Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T09:10:44.968Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T09:10:44.969Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T09:10:44.971Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T09:10:44.973Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T09:10:44.974Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T09:10:44.974Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T09:10:44.980Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T09:10:44.982Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T09:10:45.064Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T09:10:45.066Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T09:10:45.069Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T09:10:45.069Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T09:10:45.071Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T09:10:45.073Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T09:10:45.074Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T09:10:45.075Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T09:10:45.079Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T09:10:45.081Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T09:10:45.180Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T09:10:45.181Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T09:10:45.184Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T09:10:45.184Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T09:10:45.186Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T09:10:45.188Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T09:10:45.189Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T09:10:45.189Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T09:10:45.195Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T09:10:45.198Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T09:10:45.282Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T09:10:45.283Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T09:10:45.286Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T09:10:45.286Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T09:10:45.288Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T09:10:45.290Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T09:10:45.290Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T09:10:45.291Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T09:10:45.296Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T09:10:45.299Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T09:10:45.379Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T09:10:45.381Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T09:10:45.386Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T09:10:45.386Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T09:10:45.389Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T09:10:45.391Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T09:10:45.392Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T09:10:45.392Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T09:10:45.395Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T09:10:45.397Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T09:10:45.470Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T09:10:45.471Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T09:10:45.476Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T09:10:45.477Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T09:10:45.481Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T09:10:45.488Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T09:10:45.489Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T09:10:45.490Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T09:10:45.492Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T09:10:45.495Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T09:10:45.570Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T09:10:45.571Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T09:10:45.574Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T09:10:45.574Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T09:10:45.576Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T09:10:45.585Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T09:10:45.585Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T09:10:45.586Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T09:10:45.589Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T09:10:45.591Z","level":"INFO","message":"Database connection closed successfully"}
+{"timestamp":"2025-08-16T09:10:45.662Z","level":"INFO","message":"Attempting database connection","dbPath":"D:\\codeex\\server\\database\\test.db","exists":true,"retries":3}
+{"timestamp":"2025-08-16T09:10:45.667Z","level":"INFO","message":"SQLite database connected successfully","dbPath":"D:\\codeex\\server\\database\\test.db"}
+{"timestamp":"2025-08-16T09:10:45.671Z","level":"INFO","message":"Database configuration completed"}
+{"timestamp":"2025-08-16T09:10:45.672Z","level":"INFO","message":"Starting database initialization"}
+{"timestamp":"2025-08-16T09:10:45.674Z","level":"INFO","message":"initialization (test) applied successfully"}
+{"timestamp":"2025-08-16T09:10:45.679Z","level":"INFO","message":"Database integrity verification passed","tables":6}
+{"timestamp":"2025-08-16T09:10:45.679Z","level":"INFO","message":"Database initialization completed successfully"}
+{"timestamp":"2025-08-16T09:10:45.680Z","level":"INFO","message":"Database initialized successfully"}
+{"timestamp":"2025-08-16T09:10:45.684Z","level":"INFO","message":"Closing database connection"}
+{"timestamp":"2025-08-16T09:10:45.687Z","level":"INFO","message":"Database connection closed successfully"}
