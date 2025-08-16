@@ -118,8 +118,8 @@ app.get('/health', async (req, res) => {
         const uptime = process.uptime();
 
         // Check static files (more lenient for test environment)
+        const fs = require('fs');
         const staticFilesExist = process.env.NODE_ENV === 'test' ? true : 
-                                 fs.existsSync(path.join(__dirname, 'client/index.html')) || 
                                  fs.existsSync(path.join(__dirname, 'public/index.html'));
 
         const healthData = {
