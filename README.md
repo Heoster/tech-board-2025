@@ -325,4 +325,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Tech Board 2025** - Empowering educational institutions with modern quiz management technology.
 
-Made with ❤️ for educational excellence.
+Made with ❤️ for educational excellence.# tech-board-2025
