@@ -652,6 +652,11 @@ function cleanup() {
     }
 }
 
+// Auto-start server when this file is executed directly (e.g., `node server/index.js`)
+if (require.main === module) {
+    startServer();
+}
+
 module.exports = app;
 module.exports.startServer = startServer;
 module.exports.cleanup = cleanup;
