@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-08-15T10:15:41.440Z",
+  "version": "1.0.0",
+  "environment": "production",
+  "features": {
+    "techBoardLogo": true,
+    "maplesAcademyLogo": true,
+    "adminPanel": true,
+    "studentDashboard": true,
+    "quizSystem": true,
+    "database": true,
+    "mimeTypeSupport": true,
+    "securityHeaders": true
+  },
+  "files": {
+    "clientBuild": true,
+    "assets": true,
+    "logos": true,
+    "database": true
+  }
+}

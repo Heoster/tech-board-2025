@@ -1,0 +1,27 @@
+import React, { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import './index.css'
+import App from './App.tsx'
+
+const rootElement = document.getElementById('root')
+if (!rootElement) {
+  throw new Error('Root element not found')
+}
+
+createRoot(rootElement).render(
+  <StrictMode>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
+      <App />
+    </BrowserRouter>
+  </StrictMode>,
+)
+
+// Service worker disabled temporarily to fix CSP issues
+// TODO: Re-enable after fixing CSP configuration
+console.log('Service worker disabled for CSP compliance');

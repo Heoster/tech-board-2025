@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: tech-board-2025
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health

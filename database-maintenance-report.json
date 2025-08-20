@@ -1,0 +1,116 @@
+{
+  "timestamp": "2025-08-16T06:15:24.221Z",
+  "operation": "complete_database_maintenance",
+  "duration_ms": 239,
+  "steps": [
+    {
+      "step": 1,
+      "name": "Duplicate Detection & Removal",
+      "success": true,
+      "report": {
+        "timestamp": "2025-08-16T06:15:24.174Z",
+        "operation": "duplicate_removal",
+        "before": {
+          "totalQuestions": 1500,
+          "questionsByGrade": [
+            {
+              "grade": 6,
+              "count": 300
+            },
+            {
+              "grade": 7,
+              "count": 300
+            },
+            {
+              "grade": 8,
+              "count": 300
+            },
+            {
+              "grade": 9,
+              "count": 300
+            },
+            {
+              "grade": 11,
+              "count": 300
+            }
+          ]
+        },
+        "duplicatesFound": {
+          "exactDuplicateGroups": 0,
+          "similarQuestionPairs": 0,
+          "totalToRemove": 0
+        },
+        "after": {
+          "totalQuestions": 1500,
+          "questionsByGrade": [
+            {
+              "grade": 6,
+              "count": 300,
+              "basic": 300,
+              "medium": 0,
+              "advanced": 0
+            },
+            {
+              "grade": 7,
+              "count": 300,
+              "basic": 100,
+              "medium": 100,
+              "advanced": 100
+            },
+            {
+              "grade": 8,
+              "count": 300,
+              "basic": 100,
+              "medium": 100,
+              "advanced": 100
+            },
+            {
+              "grade": 9,
+              "count": 300,
+              "basic": 100,
+              "medium": 100,
+              "advanced": 100
+            },
+            {
+              "grade": 11,
+              "count": 300,
+              "basic": 100,
+              "medium": 100,
+              "advanced": 100
+            }
+          ]
+        },
+        "removed": 0,
+        "success": true
+      }
+    },
+    {
+      "step": 2,
+      "name": "Database Optimization",
+      "success": true,
+      "report": {
+        "timestamp": "2025-08-16T06:15:24.213Z",
+        "operation": "database_optimization",
+        "optimizations": [
+          "Integrity check",
+          "Orphaned record cleanup",
+          "Statistics update",
+          "Index rebuild",
+          "Space reclamation",
+          "Index optimization",
+          "Configuration tuning"
+        ],
+        "performance_tests": 4,
+        "final_size_kb": 592,
+        "success": true
+      }
+    }
+  ],
+  "summary": {
+    "duplicates_removed": 0,
+    "database_size_kb": 592,
+    "performance_tests_passed": 4,
+    "total_questions": 1500
+  },
+  "success": true
+}

@@ -1,0 +1,214 @@
+import React, { createContext, useState, useEffect, type ReactNode } from 'react';
+import apiClient from '../utils/apiClient';
+import { SecureStorage, InputValidator } from '../utils/security';
+import type { User, AuthContextType } from '../types/auth';
+
+
+
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Use the configured apiClient instead of setting axios defaults
+
+  // Response interceptor is handled by apiClient
+
+  useEffect(() => {
+    initializeAuth();
+  }, []);
+
+  const initializeAuth = async () => {
+    try {
+      const storedToken = SecureStorage.getToken();
+      const storedUser = SecureStorage.getUserData();
+
+      console.log('Initializing auth:', { hasToken: !!storedToken, hasUser: !!storedUser });
+
+      if (storedToken && storedUser) {
+        // Validate stored user data
+        if (validateUserData(storedUser)) {
+          setToken(storedToken);
+          setUser(storedUser);
+          setAuthHeader(storedToken);
+          
+          console.log('Auth initialized successfully with stored credentials');
+          
+          // Verify token is still valid (skip verification for now to avoid blocking)
+          // try {
+          //   await verifyToken(storedToken)
+          // } catch (error) {
+          //   console.warn('Token verification failed during initialization')
+          //   logout()
+          // }
+        } else {
+          console.warn('Invalid stored user data, clearing storage');
+          logout();
+        }
+      } else {
+        // Ensure no stale auth header if no token
+        setAuthHeader(null);
+        console.log('No stored credentials found');
+      }
+    } catch (error) {
+      console.error('Error initializing auth:', error);
+      logout();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validateUserData = (userData: unknown): userData is User => {
+    if (!userData || typeof userData !== 'object') return false;
+    
+    const data = userData as Record<string, unknown>;
+    
+    // Validate required fields
+    if (typeof data.id !== 'number' || typeof data.role !== 'string') return false;
+    
+    // Validate role
+    if (!['student', 'admin'].includes(data.role)) return false;
+    
+    // Validate student-specific fields
+    if (data.role === 'student') {
+      if (data.rollNumber && !InputValidator.validateRollNumber(data.rollNumber as number)) return false;
+      if (data.grade && !InputValidator.validateGrade(data.grade as number)) return false;
+      if (data.section && !InputValidator.validateSection(data.section as string)) return false;
+    }
+    
+    // Validate name if present
+    if (data.name && !InputValidator.isValidInput(data.name as string)) return false;
+    
+    return true;
+  };
+
+  const setAuthHeader = (tokenValue: string | null) => {
+    apiClient.setAuthToken(tokenValue);
+  };
+
+  const verifyToken = async (tokenToVerify: string): Promise<void> => {
+    try {
+      const response = await apiClient.get('auth/verify', {
+        headers: { Authorization: `Bearer ${tokenToVerify}` },
+        timeout: 10000 // Short timeout for verification
+      });
+      
+      // Validate the verification response
+      if (!response.data?.success) {
+        throw new Error('Token verification failed');
+      }
+    } catch (error) {
+      console.warn('Token verification failed, logging out');
+      logout();
+      throw error;
+    }
+  };
+
+  const login = (newToken: string, userData: User): void => {
+    try {
+      // Validate inputs
+      if (!newToken || typeof newToken !== 'string' || !newToken.includes('.')) {
+        throw new Error('Invalid token format');
+      }
+      
+      if (!validateUserData(userData)) {
+        throw new Error('Invalid user data');
+      }
+
+      // Sanitize user data
+      const sanitizedUserData = sanitizeUserData(userData);
+
+      // Set auth header FIRST before setting state
+      setAuthHeader(newToken);
+      
+      setToken(newToken);
+      setUser(sanitizedUserData);
+      
+      // Use secure storage
+      SecureStorage.setToken(newToken);
+      SecureStorage.setUserData(sanitizedUserData);
+      
+      console.log('User authenticated successfully with token:', newToken.substring(0, 20) + '...');
+    } catch (error) {
+      console.error('Login failed:', error);
+      logout();
+      throw error;
+    }
+  };
+
+  const sanitizeUserData = (userData: User): User => {
+    const sanitized: User = {
+      id: userData.id,
+      role: userData.role
+    };
+
+    // Sanitize optional string fields
+    if (userData.name) {
+      sanitized.name = InputValidator.sanitizeInput(userData.name);
+    }
+    
+    if (userData.username) {
+      sanitized.username = InputValidator.sanitizeInput(userData.username);
+    }
+    
+    if (userData.email) {
+      sanitized.email = InputValidator.sanitizeInput(userData.email);
+    }
+
+    // Copy numeric fields directly (already validated)
+    if (userData.rollNumber) sanitized.rollNumber = userData.rollNumber;
+    if (userData.grade) sanitized.grade = userData.grade;
+    if (userData.section) sanitized.section = userData.section;
+
+    return sanitized;
+  };
+
+  const logout = (): void => {
+    try {
+      setToken(null);
+      setUser(null);
+      
+      // Clear secure storage
+      SecureStorage.clearAll();
+      
+      // Remove auth header
+      setAuthHeader(null);
+      
+      console.info('User logged out successfully');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    token,
+    login,
+    logout,
+    loading,
+    isAuthenticated: !!(user && token)
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+// Custom hook to use auth context
+export const useAuth = (): AuthContextType => {
+  const context = React.useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export { AuthProvider };

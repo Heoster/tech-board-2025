@@ -1,0 +1,18 @@
+[phases.setup]
+nixPkgs = ["nodejs"]
+
+[phases.install]
+cmds = [
+  "npm install --omit=dev",
+  "cd server && npm install --omit=dev",
+  "cd client && npm install"
+]
+
+[phases.build]
+cmds = [
+  "cd client && npm run build",
+  "mkdir -p server/public && cp -r client/dist/* server/public/"
+]
+
+[start]
+cmd = "cd server && node railway-server.js"
