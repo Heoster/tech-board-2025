@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TECHNO BOARD API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+        button:hover { background: #0056b3; }
+        input, select { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; }
+        .form-group { margin: 10px 0; }
+        label { display: inline-block; width: 120px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 TECHNO BOARD API Test</h1>
+        
+        <div class="test-section">
+            <h2>📝 Registration Test</h2>
+            <div class="form-group">
+                <label>Name:</label>
+                <input type="text" id="regName" value="Test User Browser" />
+            </div>
+            <div class="form-group">
+                <label>Roll Number:</label>
+                <input type="number" id="regRoll" value="35" min="1" max="80" />
+            </div>
+            <div class="form-group">
+                <label>Grade:</label>
+                <select id="regGrade">
+                    <option value="6">Grade 6</option>
+                    <option value="7">Grade 7</option>
+                    <option value="8" selected>Grade 8</option>
+                    <option value="9">Grade 9</option>
+                    <option value="11">Grade 11</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Section:</label>
+                <select id="regSection">
+                    <option value="A" selected>Section A</option>
+                    <option value="B">Section B</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="regPassword" value="test123" />
+            </div>
+            <button onclick="testRegistration()">🔥 Test Registration</button>
+        </div>
+
+        <div class="test-section">
+            <h2>🔐 Login Test</h2>
+            <div class="form-group">
+                <label>Roll Number:</label>
+                <input type="number" id="loginRoll" value="3" min="1" max="80" />
+            </div>
+            <div class="form-group">
+                <label>Grade:</label>
+                <select id="loginGrade">
+                    <option value="6">Grade 6</option>
+                    <option value="7">Grade 7</option>
+                    <option value="8" selected>Grade 8</option>
+                    <option value="9">Grade 9</option>
+                    <option value="11">Grade 11</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Section:</label>
+                <select id="loginSection">
+                    <option value="A" selected>Section A</option>
+                    <option value="B">Section B</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="loginPassword" value="test123" />
+            </div>
+            <button onclick="testLogin()">🚪 Test Login</button>
+        </div>
+
+        <div class="test-section">
+            <h2>🏥 Quick Tests</h2>
+            <button onclick="testHealth()">❤️ Health Check</button>
+            <button onclick="clearResults()">🧹 Clear Results</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+
+        function addResult(message, isSuccess = true) {
+            const div = document.createElement('div');
+            div.className = `result ${isSuccess ? 'success' : 'error'}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            resultsDiv.appendChild(div);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function clearResults() {
+            resultsDiv.innerHTML = '';
+        }
+
+        async function testHealth() {
+            try {
+                addResult('🔄 Testing health endpoint...', true);
+                const response = await fetch('http://localhost:5000/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Health Check Success: ${JSON.stringify(data)}`, true);
+                } else {
+                    addResult(`❌ Health Check Failed: ${JSON.stringify(data)}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ Health Check Network Error: ${error.message}`, false);
+            }
+        }
+
+        async function testRegistration() {
+            try {
+                const regData = {
+                    name: document.getElementById('regName').value,
+                    rollNumber: parseInt(document.getElementById('regRoll').value),
+                    grade: parseInt(document.getElementById('regGrade').value),
+                    section: document.getElementById('regSection').value,
+                    password: document.getElementById('regPassword').value
+                };
+
+                addResult(`🔄 Testing registration with: ${JSON.stringify(regData)}`, true);
+
+                const response = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(regData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Registration Success: Student "${data.data.student.name}" created with ID ${data.data.student.id}`, true);
+                } else {
+                    addResult(`❌ Registration Failed: ${data.error.message}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ Registration Network Error: ${error.message}`, false);
+            }
+        }
+
+        async function testLogin() {
+            try {
+                const loginData = {
+                    rollNumber: parseInt(document.getElementById('loginRoll').value),
+                    grade: parseInt(document.getElementById('loginGrade').value),
+                    section: document.getElementById('loginSection').value,
+                    password: document.getElementById('loginPassword').value
+                };
+
+                addResult(`🔄 Testing login with: ${JSON.stringify(loginData)}`, true);
+
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Login Success: Welcome ${data.data.student.name} (Roll ${data.data.student.rollNumber})`, true);
+                } else {
+                    addResult(`❌ Login Failed: ${data.error.message}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ Login Network Error: ${error.message}`, false);
+            }
+        }
+
+        // Auto-test on page load
+        window.onload = function() {
+            addResult('🎯 API Test Page Loaded - Ready for testing!', true);
+        };
+    </script>
+</body>
+</html>
