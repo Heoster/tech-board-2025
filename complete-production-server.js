@@ -4,12 +4,36 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const net = require('net');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 8000;
 
 console.log('🚀 Starting Tech Board 2025 Production Server...');
+
+// Function to check if port is available
+function checkPort(port) {
+    return new Promise((resolve) => {
+        const server = net.createServer();
+        server.listen(port, () => {
+            server.close();
+            resolve(true);
+        });
+        server.on('error', () => {
+            resolve(false);
+        });
+    });
+}
+
+// Function to find available port
+async function findAvailablePort(startPort = 8000) {
+    for (let port = startPort; port <= startPort + 10; port++) {
+        if (await checkPort(port)) {
+            return port;
+        }
+    }
+    throw new Error('No available ports found');
+}
 
 // Middleware
 app.use(cors({
@@ -65,14 +89,26 @@ app.get('*', (req, res) => {
     if (indexPath && fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
-        res.json({ message: 'Tech Board 2025 Server Running', port: PORT });
+        res.json({ message: 'Tech Board 2025 Server Running', status: 'frontend-building' });
     }
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🎉 Server running on port ${PORT}`);
-    console.log(`🌐 Access: http://localhost:${PORT}`);
-});
+// Start server with port availability check
+async function startServer() {
+    try {
+        const PORT = await findAvailablePort(process.env.PORT || 8000);
+        
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`🎉 Server running on port ${PORT}`);
+            console.log(`🌐 Access: http://localhost:${PORT}`);
+            console.log(`🏥 Health: http://localhost:${PORT}/health`);
+        });
+    } catch (error) {
+        console.error('❌ Failed to start server:', error.message);
+        process.exit(1);
+    }
+}
+
+startServer();
 
 module.exports = app;
