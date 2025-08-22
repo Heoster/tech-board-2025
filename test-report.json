@@ -1,87 +1,74 @@
 {
-  "timestamp": "2025-08-15T13:22:05.849Z",
-  "baseUrl": "http://localhost:8000",
-  "summary": {
-    "total": 15,
-    "passed": 0,
-    "failed": 15,
-    "successRate": 0
+  "timestamp": "2025-08-22T11:18:02.736Z",
+  "duration": 3.306,
+  "results": {
+    "passed": 3,
+    "failed": 9,
+    "tests": [
+      {
+        "name": "Database Connection",
+        "passed": false,
+        "message": ""
+      },
+      {
+        "name": "Questions Available",
+        "passed": false,
+        "message": "0 questions"
+      },
+      {
+        "name": "Database Status",
+        "passed": false,
+        "message": ""
+      },
+      {
+        "name": "Student Registration",
+        "passed": false,
+        "message": ""
+      },
+      {
+        "name": "Duplicate Registration Prevention",
+        "passed": true,
+        "message": ""
+      },
+      {
+        "name": "Student Login",
+        "message": ""
+      },
+      {
+        "name": "Admin Login",
+        "message": ""
+      },
+      {
+        "name": "Quiz Start",
+        "passed": false,
+        "message": "No student token available"
+      },
+      {
+        "name": "Admin Dashboard",
+        "passed": false,
+        "message": "No admin token available"
+      },
+      {
+        "name": "Question Management",
+        "passed": false,
+        "message": "No admin token available"
+      },
+      {
+        "name": "Admin Endpoint Security",
+        "passed": true,
+        "message": ""
+      },
+      {
+        "name": "Results Security",
+        "passed": true,
+        "message": ""
+      }
+    ]
   },
-  "details": [
-    {
-      "name": "Health Check",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "API Info",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Student Registration",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Student Login",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Admin Login",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Quiz Start",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Quiz Submit",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Admin Dashboard",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Admin Results",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Question Management",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Static File Serving",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Rate Limiting",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Error Handling",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Database Performance",
-      "status": "FAIL",
-      "error": ""
-    },
-    {
-      "name": "Memory Usage",
-      "status": "FAIL",
-      "error": ""
-    }
-  ]
+  "summary": {
+    "total": 12,
+    "passed": 3,
+    "failed": 9,
+    "successRate": 25
+  }
 }

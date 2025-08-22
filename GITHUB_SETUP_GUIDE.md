@@ -18,7 +18,7 @@ After creating the repository, copy your repository URL and run:
 
 ```bash
 # Replace YOUR-USERNAME with your actual GitHub username
-git remote set-url origin https://github.com/YOUR-USERNAME/tech-board-2025.git
+git remote set-url origin https://github.com/Heoster/tech-board-2025.git
 ```
 
 ## Step 3: Push to GitHub

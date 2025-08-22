@@ -47,7 +47,7 @@ A comprehensive quiz management platform for Tech Board selection process with s
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/tech-board-2025.git
+   git clone https://github.com/Heoster/tech-board-2025.git
    cd tech-board-2025
    ```
 

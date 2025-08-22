@@ -38,6 +38,12 @@ interface NewStudent {
   password: string;
 }
 
+interface ApiStudentResponse {
+  data: {
+    students: Student[];
+  };
+}
+
 const StudentManagement: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,8 +74,9 @@ const StudentManagement: React.FC = () => {
 
   const fetchStudents = async () => {
     try {
-      const response = await apiClient.get('/api/admin/students');
-      const studentsData = response.data?.students || response.data?.data || [];
+      const response = await apiClient.get('/admin/students');
+      const responseData = response.data as any;
+      const studentsData = responseData?.students || responseData?.data || [];
       setStudents(Array.isArray(studentsData) ? studentsData : []);
     } catch (error) {
       console.error('Failed to fetch students:', error);
@@ -82,7 +89,7 @@ const StudentManagement: React.FC = () => {
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await apiClient.post('/api/admin/students', {
+      await apiClient.post('/admin/students', {
         name: newStudent.name,
         rollNumber: newStudent.rollNumber,
         grade: newStudent.grade,
@@ -110,7 +117,7 @@ const StudentManagement: React.FC = () => {
     if (!confirm('Are you sure you want to delete this student?')) return;
     
     try {
-      await apiClient.delete(`/api/admin/students/${studentId}`);
+      await apiClient.delete(`/admin/students/${studentId}`);
       fetchStudents();
     } catch (error) {
       console.error('Failed to delete student:', error);
@@ -123,7 +130,7 @@ const StudentManagement: React.FC = () => {
     if (!selectedStudent) return;
     
     try {
-      await apiClient.put(`/api/admin/students/${selectedStudent.id}`, {
+      await apiClient.put(`/admin/students/${selectedStudent.id}`, {
         name: editStudent.name,
         rollNumber: editStudent.rollNumber,
         grade: editStudent.grade,
@@ -145,7 +152,7 @@ const StudentManagement: React.FC = () => {
     if (!newPassword) return;
     
     try {
-      await apiClient.put(`/api/admin/students/${studentId}/password`, {
+      await apiClient.put(`/admin/students/${studentId}/password`, {
         password: newPassword
       });
       alert('Password reset successfully');

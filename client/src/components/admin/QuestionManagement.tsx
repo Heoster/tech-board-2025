@@ -97,7 +97,7 @@ const QuestionManagement: React.FC = () => {
         }
 
         try {
-            await apiClient.post('/admin/questions', newQuestion);
+            await apiClient.post('/admin/questions/', newQuestion);
             setShowAddModal(false);
             resetNewQuestion();
             fetchQuestions();
@@ -123,7 +123,7 @@ const QuestionManagement: React.FC = () => {
                 }))
             };
 
-            await apiClient.put(`/admin/questions/${selectedQuestion.id}`, updateData);
+            await apiClient.put(`/admin/questions/${selectedQuestion.id}/`, updateData);
             setShowEditModal(false);
             setSelectedQuestion(null);
             fetchQuestions();
@@ -138,7 +138,7 @@ const QuestionManagement: React.FC = () => {
         if (!confirm('Are you sure you want to delete this question?')) return;
 
         try {
-            await apiClient.delete(`/admin/questions/${questionId}`);
+            await apiClient.delete(`/admin/questions/${questionId}/`);
             fetchQuestions();
         } catch (error) {
             console.error('Failed to delete question:', error);

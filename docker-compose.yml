@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  tech-board-2025:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - JWT_SECRET=tech-board-2025-super-secure-jwt-secret-key-production-2025
+      - DB_PATH=./server/database/mcq_system_fixed.db
+      - CORS_ORIGIN=http://localhost:8000
+      - RATE_LIMIT_WINDOW_MS=600000
+      - RATE_LIMIT_MAX=500
+    volumes:
+      - ./server/database:/app/server/database
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - tech-board-network
+
+networks:
+  tech-board-network:
+    driver: bridge
+
+volumes:
+  database_data:
+    driver: local
+  logs_data:
+    driver: local
