@@ -13,7 +13,12 @@ app.use(express.json());
 // Serve static files
 app.use(express.static(path.join(__dirname, 'server/public')));
 
-// Health check
+// Health check (root)
+app.get('/health', (req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Health check (API)
 app.get('/api/health', (req, res) => {
     res.json({ 
         status: 'OK', 
