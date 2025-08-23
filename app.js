@@ -252,7 +252,7 @@ app.get('*', (req, res) => {
 </html>`);
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Tech Board 2025 running on port ${PORT}`);
     console.log(`Health: http://localhost:${PORT}/api/health`);
 });

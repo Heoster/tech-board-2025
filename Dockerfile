@@ -27,17 +27,15 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Install sqlite3 and other runtime dependencies
-RUN apk add --no-cache sqlite wget
+# Install runtime dependencies
+RUN apk add --no-cache sqlite
 
 # Copy built application
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/app.js ./app.js
 
-# Create directories and initialize database
-RUN mkdir -p logs server/database && \
-    ls -la server/database/ && \
-    sqlite3 server/database/mcq_system.db < server/database/init.sql || echo "Database init failed, continuing..."
+# Create directories
+RUN mkdir -p logs server/database
 
 # Set environment
 ENV NODE_ENV=production
