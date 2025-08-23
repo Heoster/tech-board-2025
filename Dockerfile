@@ -34,8 +34,10 @@ RUN apk add --no-cache sqlite
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/app.js ./app.js
 
-# Create directories (database will be created at runtime)
-RUN mkdir -p logs database
+# Create directories and initialize database
+RUN mkdir -p logs server/database && \
+    touch server/database/mcq_system.db && \
+    sqlite3 server/database/mcq_system.db < server/database/init.sql
 
 # Set environment
 ENV NODE_ENV=production
