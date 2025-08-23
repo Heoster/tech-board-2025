@@ -2,13 +2,13 @@
   "name": "tech-board-2025-system",
   "version": "1.0.0",
   "description": "Tech Board 2025 MCQ Testing System - Complete quiz management platform",
-  "main": "railway-fix.js",
+  "main": "index.js",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
   },
   "scripts": {
-    "start": "node railway-fix.js",
+    "start": "node index.js",
     "start:dev": "node dev-start.js",
     "start:cluster": "node start-production.js",
     "dev": "node dev-start.js",
