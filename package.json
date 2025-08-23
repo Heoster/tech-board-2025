@@ -2,13 +2,13 @@
   "name": "tech-board-2025-system",
   "version": "1.0.0",
   "description": "Tech Board 2025 MCQ Testing System - Complete quiz management platform",
-  "main": "index.js",
+  "main": "server.js",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "node server.js",
     "start:dev": "node dev-start.js",
     "start:cluster": "node start-production.js",
     "dev": "node dev-start.js",
