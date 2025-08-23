@@ -81,10 +81,21 @@ async function setupFrontendServer(frontendPath) {
         });
     });
     
-    // Serve frontend static files
-    if (frontendPath && fs.existsSync(frontendPath)) {
-        app.use(express.static(frontendPath));
-        console.log(`📁 Serving frontend from: ${frontendPath}`);
+    // Serve frontend static files from multiple possible locations
+    const staticPaths = [
+        frontendPath,
+        path.join(__dirname, 'server', 'public'),
+        path.join(__dirname, 'client', 'dist'),
+        path.join(__dirname, 'build')
+    ].filter(p => p && fs.existsSync(p));
+    
+    if (staticPaths.length > 0) {
+        staticPaths.forEach(staticPath => {
+            app.use(express.static(staticPath));
+            console.log(`📁 Serving static files from: ${staticPath}`);
+        });
+    } else {
+        console.log('⚠️ No static files found, serving fallback');
     }
     
     // Basic API endpoints (minimal backend)
@@ -107,16 +118,41 @@ async function setupFrontendServer(frontendPath) {
     
     // Handle React Router (SPA)
     app.get('*', (req, res) => {
-        const indexPath = frontendPath ? path.join(frontendPath, 'index.html') : null;
-        if (indexPath && fs.existsSync(indexPath)) {
-            res.sendFile(indexPath);
-        } else {
-            res.json({
-                message: 'Tech Board 2025',
-                status: 'Frontend building...',
-                timestamp: new Date().toISOString()
-            });
+        if (req.path.startsWith('/api/')) {
+            return res.status(404).json({ error: 'API endpoint not found' });
         }
+        
+        // Try multiple possible frontend paths
+        const possiblePaths = [
+            frontendPath ? path.join(frontendPath, 'index.html') : null,
+            path.join(__dirname, 'server', 'public', 'index.html'),
+            path.join(__dirname, 'client', 'dist', 'index.html'),
+            path.join(__dirname, 'build', 'index.html')
+        ].filter(Boolean);
+        
+        for (const indexPath of possiblePaths) {
+            if (fs.existsSync(indexPath)) {
+                return res.sendFile(path.resolve(indexPath));
+            }
+        }
+        
+        // Fallback HTML for when frontend is not built
+        res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Tech Board 2025</title>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+            </head>
+            <body>
+                <div id="root">
+                    <h1>Tech Board 2025</h1>
+                    <p>Frontend is building... Please refresh in a moment.</p>
+                </div>
+            </body>
+            </html>
+        `);
     });
     
     return app;
