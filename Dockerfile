@@ -31,6 +31,8 @@ WORKDIR /app
 RUN apk add --no-cache sqlite
 
 # Copy built application
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/app.js ./app.js
 
@@ -46,5 +48,5 @@ EXPOSE 8000
 
 
 
-# Start application
-CMD ["node", "app.js"]
+# Start application (Railway entrypoint)
+CMD ["node", "server/railway-server.js"]
