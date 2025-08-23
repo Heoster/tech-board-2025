@@ -32,11 +32,10 @@ RUN apk add --no-cache sqlite
 
 # Copy built application
 COPY --from=builder /app/server ./server
-COPY --from=builder /app/database ./database
 COPY --from=builder /app/app.js ./app.js
 
-# Create logs directory
-RUN mkdir -p logs
+# Create directories (database will be created at runtime)
+RUN mkdir -p logs database
 
 # Set environment
 ENV NODE_ENV=production
