@@ -1,35 +1,53 @@
-# Ultra-simple Railway Dockerfile
-FROM node:18-alpine
+# Multi-stage build for production
+FROM node:20-alpine AS builder
 
-# Install curl for health checks
-RUN apk add --no-cache curl
-
-# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 COPY server/package*.json ./server/
+COPY client/package*.json ./client/
 
 # Install dependencies
-RUN npm install --production --silent
-RUN cd server && npm install --production --silent
+RUN npm ci --only=production
+RUN cd server && npm ci --only=production
+RUN cd client && npm ci
 
-# Copy application code
+# Copy source code
 COPY . .
 
-# Create database directory
-RUN mkdir -p server/database
+# Build client
+RUN cd client && npm run build
 
-# Check if database exists
-RUN if [ -f server/database/mcq_system_fixed.db ]; then echo "Database exists"; else echo "Database not found, will be created at runtime"; fi
+# Copy client build to server
+RUN mkdir -p server/public && cp -r client/dist/* server/public/
+
+# Production stage
+FROM node:20-alpine AS production
+
+WORKDIR /app
+
+# Install sqlite3 and other runtime dependencies
+RUN apk add --no-cache sqlite
+
+# Copy built application
+COPY --from=builder /app/server ./server
+COPY --from=builder /app/database ./database
+COPY --from=builder /app/app.js ./app.js
+
+# Create logs directory
+RUN mkdir -p logs
+
+# Set environment
+ENV NODE_ENV=production
+ENV PORT=8000
 
 # Expose port
 EXPOSE 8000
 
-# Simple health check
-HEALTHCHECK --interval=5s --timeout=3s --start-period=10s --retries=5 \
-  CMD curl -f http://localhost:8000/health || exit 1
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
-# Start with emergency server (pure Node.js HTTP)
-CMD ["node", "server/emergency-server.js"]
+# Start application
+CMD ["node", "app.js"]

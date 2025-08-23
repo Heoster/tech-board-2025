@@ -6,7 +6,8 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "start": "node emergency-server.js",
+    "start": "node railway-server.js",
+    "start:emergency": "node emergency-server.js",
     "dev": "nodemon index.js",
     "test": "jest",
     "test:watch": "jest --watch",

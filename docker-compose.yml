@@ -1,39 +1,31 @@
 version: '3.8'
 
 services:
-  tech-board-2025:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  tech-board:
+    build: .
     ports:
       - "8000:8000"
     environment:
       - NODE_ENV=production
-      - PORT=8000
-      - JWT_SECRET=tech-board-2025-super-secure-jwt-secret-key-production-2025
-      - DB_PATH=./server/database/mcq_system_fixed.db
-      - CORS_ORIGIN=http://localhost:8000
-      - RATE_LIMIT_WINDOW_MS=600000
-      - RATE_LIMIT_MAX=500
+      - JWT_SECRET=tech-board-2025-secure-jwt-secret
     volumes:
-      - ./server/database:/app/server/database
+      - ./database:/app/database
       - ./logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    networks:
-      - tech-board-network
 
-networks:
-  tech-board-network:
-    driver: bridge
-
-volumes:
-  database_data:
-    driver: local
-  logs_data:
-    driver: local
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - tech-board
+    restart: unless-stopped
