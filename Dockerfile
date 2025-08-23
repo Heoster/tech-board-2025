@@ -34,19 +34,15 @@ RUN apk add --no-cache sqlite
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/server ./server
-COPY --from=builder /app/app.js ./app.js
 
 # Create directories
-RUN mkdir -p logs server/database
+RUN mkdir -p logs database
 
-# Set environment
+# Set environment (PORT provided by Railway at runtime)
 ENV NODE_ENV=production
-ENV PORT=8000
 
-# Expose port
-EXPOSE 8000
-
-
+# Expose common Railway port
+EXPOSE 8080
 
 # Start application (Railway entrypoint)
 CMD ["node", "server/railway-server.js"]
