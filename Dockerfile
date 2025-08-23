@@ -28,7 +28,7 @@ FROM node:20-alpine AS production
 WORKDIR /app
 
 # Install sqlite3 and other runtime dependencies
-RUN apk add --no-cache sqlite
+RUN apk add --no-cache sqlite wget
 
 # Copy built application
 COPY --from=builder /app/server ./server
@@ -48,7 +48,7 @@ EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8000/api/health || exit 1
 
 # Start application
 CMD ["node", "app.js"]
