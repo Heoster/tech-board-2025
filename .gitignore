@@ -13,6 +13,7 @@ node_modules/
 *.db
 !server/database/init.sql
 !server/database/test-init.sql
+!server/database/mcq_system_fixed.db
 
 # Logs
 logs/
