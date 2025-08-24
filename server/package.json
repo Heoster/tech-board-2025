@@ -6,7 +6,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "start": "node complete-production-server.js",
+    "start": "node railway-production-server.js",
     "start:emergency": "node emergency-server.js",
     "dev": "nodemon index.js",
     "test": "jest",
@@ -16,7 +16,7 @@
     "start:prod": "NODE_ENV=production node start-production.js",
     "build": "node ../build-production.js",
     "build:production": "node ../build-production.js",
-    "setup:db": "node ensure-production-db.js",
+    "setup:db": "node create-build-db.js",
     "railway:build": "npm run build:production",
     "railway:start": "npm run start",
     "start:dev": "node index.js",
