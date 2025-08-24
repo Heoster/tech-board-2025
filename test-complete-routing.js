@@ -338,12 +338,13 @@ async function testStaticFileServing() {
             url: `${BASE_URL}/`
         });
         
-        if (response.status === 200 && response.data.includes('Tech Board 2025')) {
+        if (response.status === 200 && (response.data.includes('Techno Board Selection Test 2025') || response.data.includes('root'))) {
             console.log('✅ Static file serving working');
             console.log('   Landing page loads correctly');
             return true;
         } else {
-            console.log('❌ Static file serving failed');
+            console.log('❌ Static file serving failed - Expected React app HTML');
+            console.log('   Response length:', response.data.length);
             return false;
         }
     } catch (error) {

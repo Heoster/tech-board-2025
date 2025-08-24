@@ -29,12 +29,12 @@ let db = null;
 function initDatabase() {
     const dbPath = path.join(__dirname, 'database', 'mcq_system_fixed.db');
     const dbDir = path.dirname(dbPath);
-    
+
     if (!fs.existsSync(dbDir)) {
         fs.mkdirSync(dbDir, { recursive: true });
         console.log('📁 Created database directory');
     }
-    
+
     db = new sqlite3.Database(dbPath, (err) => {
         if (err) {
             console.error('❌ Database connection failed:', err.message);
@@ -58,14 +58,14 @@ function setupDatabase() {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(roll_number, grade, section)
         )`);
-        
+
         db.run(`CREATE TABLE IF NOT EXISTS admins (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
-        
+
         db.run(`CREATE TABLE IF NOT EXISTS questions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             grade INTEGER NOT NULL,
@@ -75,7 +75,7 @@ function setupDatabase() {
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(grade, question_text, difficulty)
         )`);
-        
+
         db.run(`CREATE TABLE IF NOT EXISTS options (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             question_id INTEGER NOT NULL,
@@ -84,7 +84,7 @@ function setupDatabase() {
             option_order INTEGER DEFAULT 1,
             FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
         )`);
-        
+
         db.run(`CREATE TABLE IF NOT EXISTS quizzes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             student_id INTEGER NOT NULL,
@@ -96,7 +96,7 @@ function setupDatabase() {
             completed_at DATETIME,
             FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
         )`);
-        
+
         db.run(`CREATE TABLE IF NOT EXISTS quiz_answers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             quiz_id INTEGER NOT NULL,
@@ -107,7 +107,7 @@ function setupDatabase() {
             FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
             FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
         )`);
-        
+
         // Insert default admin with hashed password
         bcrypt.hash('admin123', 10, (err, hashedPassword) => {
             if (!err) {
@@ -119,7 +119,7 @@ function setupDatabase() {
                         VALUES ('admin', 'admin123')`);
             }
         });
-        
+
         // Check if questions exist, if not seed them
         db.get('SELECT COUNT(*) as count FROM questions', (err, row) => {
             if (!err && row.count === 0) {
@@ -136,35 +136,35 @@ function seedQuestions() {
     const grades = [6, 7, 8, 9, 11];
     const difficulties = ['basic', 'medium', 'advanced'];
     let totalSeeded = 0;
-    
+
     grades.forEach(grade => {
         for (let i = 1; i <= 300; i++) {
             const difficulty = difficulties[i % 3];
             const questionText = `Grade ${grade} ${difficulty} question ${i}: What is the correct answer for this computer science question?`;
-            
-            db.run('INSERT INTO questions (grade, difficulty, question_text) VALUES (?, ?, ?)', 
-                [grade, difficulty, questionText], function(err) {
-                if (!err) {
-                    const questionId = this.lastID;
-                    // Add 4 options for each question
-                    const options = [
-                        { text: 'Option A - Correct answer', correct: 1 },
-                        { text: 'Option B - Incorrect', correct: 0 },
-                        { text: 'Option C - Incorrect', correct: 0 },
-                        { text: 'Option D - Incorrect', correct: 0 }
-                    ];
-                    
-                    options.forEach((option, index) => {
-                        db.run('INSERT INTO options (question_id, option_text, is_correct, option_order) VALUES (?, ?, ?, ?)',
-                            [questionId, option.text, option.correct, index + 1]);
-                    });
-                    
-                    totalSeeded++;
-                    if (totalSeeded === 1500) {
-                        console.log('✅ Database seeded with 1500 questions');
+
+            db.run('INSERT INTO questions (grade, difficulty, question_text) VALUES (?, ?, ?)',
+                [grade, difficulty, questionText], function (err) {
+                    if (!err) {
+                        const questionId = this.lastID;
+                        // Add 4 options for each question
+                        const options = [
+                            { text: 'Option A - Correct answer', correct: 1 },
+                            { text: 'Option B - Incorrect', correct: 0 },
+                            { text: 'Option C - Incorrect', correct: 0 },
+                            { text: 'Option D - Incorrect', correct: 0 }
+                        ];
+
+                        options.forEach((option, index) => {
+                            db.run('INSERT INTO options (question_id, option_text, is_correct, option_order) VALUES (?, ?, ?, ?)',
+                                [questionId, option.text, option.correct, index + 1]);
+                        });
+
+                        totalSeeded++;
+                        if (totalSeeded === 1500) {
+                            console.log('✅ Database seeded with 1500 questions');
+                        }
                     }
-                }
-            });
+                });
         }
     });
 }
@@ -197,8 +197,8 @@ function requireAdmin(req, res, next) {
 
 // Health check endpoints
 app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
+    res.json({
+        status: 'OK',
         timestamp: new Date().toISOString(),
         port: PORT,
         service: 'tech-board-2025-complete-production',
@@ -213,10 +213,10 @@ app.get('/api/health', (req, res) => {
             message: 'Database not connected'
         });
     }
-    
+
     db.get('SELECT COUNT(*) as count FROM questions', (err, row) => {
-        res.json({ 
-            status: 'OK', 
+        res.json({
+            status: 'OK',
             timestamp: new Date().toISOString(),
             database: { connected: !err },
             questions: { total: row ? row.count : 0 },
@@ -228,8 +228,8 @@ app.get('/api/health', (req, res) => {
 
 // Basic API info
 app.get('/api', (req, res) => {
-    res.json({ 
-        message: 'Tech Board 2025 Complete API', 
+    res.json({
+        message: 'Tech Board 2025 Complete API',
         status: 'running',
         version: '1.0.0',
         endpoints: [
@@ -250,16 +250,16 @@ app.get('/api', (req, res) => {
 // Admin login
 app.post('/api/auth/admin/login', async (req, res) => {
     const { username, password } = req.body;
-    
+
     if (!username || !password) {
         return res.status(400).json({ success: false, error: 'Missing credentials' });
     }
-    
+
     db.get('SELECT * FROM admins WHERE username = ?', [username], async (err, admin) => {
         if (err || !admin) {
             return res.status(401).json({ success: false, error: 'Invalid credentials' });
         }
-        
+
         // Check password - handle both hashed and plain text
         let passwordValid = false;
         try {
@@ -268,16 +268,16 @@ app.post('/api/auth/admin/login', async (req, res) => {
             // If bcrypt fails, try plain text comparison (for development)
             passwordValid = password === admin.password;
         }
-        
+
         if (passwordValid) {
-            const token = jwt.sign({ 
-                id: admin.id, 
-                type: 'admin', 
-                username: admin.username 
+            const token = jwt.sign({
+                id: admin.id,
+                type: 'admin',
+                username: admin.username
             }, JWT_SECRET, { expiresIn: '24h' });
-            
-            res.json({ 
-                success: true, 
+
+            res.json({
+                success: true,
                 token,
                 user: { username: admin.username, type: 'admin' }
             });
@@ -291,104 +291,104 @@ app.post('/api/auth/admin/login', async (req, res) => {
 app.post('/api/auth/register', async (req, res) => {
     const { name, rollNumber, roll_number, grade, section, password } = req.body;
     const studentRollNumber = rollNumber || roll_number;
-    
+
     if (!name || !studentRollNumber || !grade || !section || !password) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'All fields required: name, rollNumber, grade, section, password' 
+        return res.status(400).json({
+            success: false,
+            error: 'All fields required: name, rollNumber, grade, section, password'
         });
     }
-    
+
     if (![6, 7, 8, 9, 11].includes(parseInt(grade))) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'Grade must be 6, 7, 8, 9, or 11' 
+        return res.status(400).json({
+            success: false,
+            error: 'Grade must be 6, 7, 8, 9, or 11'
         });
     }
-    
+
     // Check if student exists
-    db.get('SELECT id FROM students WHERE roll_number = ? AND grade = ? AND section = ?', 
+    db.get('SELECT id FROM students WHERE roll_number = ? AND grade = ? AND section = ?',
         [studentRollNumber, grade, section], async (err, existing) => {
-        if (existing) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Student already registered with this roll number' 
-            });
-        }
-        
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-        
-        // Insert student
-        db.run('INSERT INTO students (name, roll_number, password, grade, section) VALUES (?, ?, ?, ?, ?)',
-            [name, studentRollNumber, hashedPassword, parseInt(grade), section.toUpperCase()], function(err) {
-            if (err) {
-                return res.status(500).json({ success: false, error: 'Registration failed' });
+            if (existing) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Student already registered with this roll number'
+                });
             }
-            
-            const token = jwt.sign({ 
-                id: this.lastID, 
-                type: 'student', 
-                grade: parseInt(grade),
-                rollNumber: studentRollNumber,
-                section: section.toUpperCase(),
-                name
-            }, JWT_SECRET, { expiresIn: '24h' });
-            
-            res.status(201).json({ 
-                success: true, 
-                token,
-                user: { id: this.lastID, name, rollNumber: studentRollNumber, grade: parseInt(grade), section }
-            });
+
+            // Hash password
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Insert student
+            db.run('INSERT INTO students (name, roll_number, password, grade, section) VALUES (?, ?, ?, ?, ?)',
+                [name, studentRollNumber, hashedPassword, parseInt(grade), section.toUpperCase()], function (err) {
+                    if (err) {
+                        return res.status(500).json({ success: false, error: 'Registration failed' });
+                    }
+
+                    const token = jwt.sign({
+                        id: this.lastID,
+                        type: 'student',
+                        grade: parseInt(grade),
+                        rollNumber: studentRollNumber,
+                        section: section.toUpperCase(),
+                        name
+                    }, JWT_SECRET, { expiresIn: '24h' });
+
+                    res.status(201).json({
+                        success: true,
+                        token,
+                        user: { id: this.lastID, name, rollNumber: studentRollNumber, grade: parseInt(grade), section }
+                    });
+                });
         });
-    });
 });
 
 // Student login
 app.post('/api/auth/login', async (req, res) => {
     const { rollNumber, roll_number, grade, section, password } = req.body;
     const studentRollNumber = rollNumber || roll_number;
-    
+
     if (!studentRollNumber || !grade || !section || !password) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'All fields required: rollNumber, grade, section, password' 
+        return res.status(400).json({
+            success: false,
+            error: 'All fields required: rollNumber, grade, section, password'
         });
     }
-    
-    db.get('SELECT * FROM students WHERE roll_number = ? AND grade = ? AND section = ?', 
+
+    db.get('SELECT * FROM students WHERE roll_number = ? AND grade = ? AND section = ?',
         [studentRollNumber, grade, section], async (err, user) => {
-        if (err || !user) {
-            return res.status(401).json({ success: false, error: 'Student not found' });
-        }
-        
-        const passwordMatch = await bcrypt.compare(password, user.password);
-        
-        if (passwordMatch) {
-            const token = jwt.sign({ 
-                id: user.id, 
-                type: 'student', 
-                grade: user.grade,
-                rollNumber: user.roll_number,
-                section: user.section,
-                name: user.name
-            }, JWT_SECRET, { expiresIn: '24h' });
-            
-            res.json({ 
-                success: true, 
-                token,
-                user: { 
-                    id: user.id, 
-                    name: user.name, 
-                    rollNumber: user.roll_number, 
+            if (err || !user) {
+                return res.status(401).json({ success: false, error: 'Student not found' });
+            }
+
+            const passwordMatch = await bcrypt.compare(password, user.password);
+
+            if (passwordMatch) {
+                const token = jwt.sign({
+                    id: user.id,
+                    type: 'student',
                     grade: user.grade,
-                    section: user.section
-                }
-            });
-        } else {
-            res.status(401).json({ success: false, error: 'Invalid password' });
-        }
-    });
+                    rollNumber: user.roll_number,
+                    section: user.section,
+                    name: user.name
+                }, JWT_SECRET, { expiresIn: '24h' });
+
+                res.json({
+                    success: true,
+                    token,
+                    user: {
+                        id: user.id,
+                        name: user.name,
+                        rollNumber: user.roll_number,
+                        grade: user.grade,
+                        section: user.section
+                    }
+                });
+            } else {
+                res.status(401).json({ success: false, error: 'Invalid password' });
+            }
+        });
 });
 
 // Quiz Routes
@@ -397,14 +397,14 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/quiz/start', authenticateToken, (req, res) => {
     const grade = req.user.grade || req.body.grade;
     const studentId = req.user.id;
-    
+
     if (!studentId) {
         return res.status(400).json({
             success: false,
             error: 'Student ID not found. Please log in again.'
         });
     }
-    
+
     const validGrades = [6, 7, 8, 9, 11];
     const gradeInt = parseInt(grade);
     if (!grade || !validGrades.includes(gradeInt)) {
@@ -413,7 +413,7 @@ app.post('/api/quiz/start', authenticateToken, (req, res) => {
             error: `Invalid grade: ${grade}. Valid grades are 6, 7, 8, 9, 11.`
         });
     }
-    
+
     // Check if student already has a quiz
     db.get('SELECT id, status FROM quizzes WHERE student_id = ?', [studentId], (err, existingQuiz) => {
         if (existingQuiz) {
@@ -429,7 +429,7 @@ app.post('/api/quiz/start', authenticateToken, (req, res) => {
                 });
             }
         }
-        
+
         // Get questions for the grade
         db.all(`
             SELECT q.id, q.question_text, q.difficulty,
@@ -453,14 +453,14 @@ app.post('/api/quiz/start', authenticateToken, (req, res) => {
                     error: 'Failed to fetch questions'
                 });
             }
-            
+
             if (questionRows.length < 50) {
                 return res.status(400).json({
                     success: false,
                     error: `Insufficient questions available for grade ${gradeInt}. Found ${questionRows.length} questions, need 50.`
                 });
             }
-            
+
             // Format questions
             const questions = questionRows.map(q => {
                 const opts = q.options ? JSON.parse(`[${q.options}]`) : [];
@@ -471,29 +471,29 @@ app.post('/api/quiz/start', authenticateToken, (req, res) => {
                     options: Array.isArray(opts) ? opts.sort((a, b) => (a.order || 0) - (b.order || 0)) : []
                 };
             });
-            
+
             // Create quiz session
             db.run('INSERT INTO quizzes (student_id, grade, total_questions, status) VALUES (?, ?, ?, ?)',
-                [studentId, gradeInt, 50, 'in_progress'], function(err) {
-                if (err) {
-                    return res.status(500).json({
-                        success: false,
-                        error: 'Failed to create quiz session'
-                    });
-                }
-                
-                const quizId = this.lastID;
-                
-                res.json({
-                    success: true,
-                    data: {
-                        quizId,
-                        questions,
-                        timeLimit: 50 * 60 * 1000, // 50 minutes in milliseconds
-                        startTime: new Date().toISOString()
+                [studentId, gradeInt, 50, 'in_progress'], function (err) {
+                    if (err) {
+                        return res.status(500).json({
+                            success: false,
+                            error: 'Failed to create quiz session'
+                        });
                     }
+
+                    const quizId = this.lastID;
+
+                    res.json({
+                        success: true,
+                        data: {
+                            quizId,
+                            questions,
+                            timeLimit: 50 * 60 * 1000, // 50 minutes in milliseconds
+                            startTime: new Date().toISOString()
+                        }
+                    });
                 });
-            });
         });
     });
 });
@@ -502,111 +502,111 @@ app.post('/api/quiz/start', authenticateToken, (req, res) => {
 app.post('/api/quiz/submit', authenticateToken, (req, res) => {
     const { quizId, answers, startTime } = req.body;
     const studentId = req.user.id;
-    
+
     if (!quizId || !answers || !Array.isArray(answers)) {
-        return res.status(400).json({ 
+        return res.status(400).json({
             success: false,
             error: 'Quiz ID and answers are required'
         });
     }
-    
+
     // Verify quiz belongs to student
     db.get('SELECT * FROM quizzes WHERE id = ? AND student_id = ?', [quizId, studentId], (err, quiz) => {
         if (err || !quiz) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
                 error: 'Quiz not found'
             });
         }
-        
+
         if (quiz.status === 'completed') {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
                 error: 'Quiz already completed'
             });
         }
-        
+
         // Check time limit (50 minutes)
         const quizStartTime = new Date(startTime || quiz.started_at);
         const currentTime = new Date();
         const timeDiff = (currentTime - quizStartTime) / 1000 / 60; // in minutes
-        
+
         if (timeDiff > 50) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
                 error: 'Time limit exceeded'
             });
         }
-        
+
         // Process answers and calculate score
         let totalScore = 0;
         let processedAnswers = 0;
-        
+
         if (answers.length === 0) {
             // No answers submitted
             db.run('UPDATE quizzes SET score = 0, status = "completed", completed_at = CURRENT_TIMESTAMP WHERE id = ?',
                 [quizId], (err) => {
-                if (err) {
-                    return res.status(500).json({ success: false, error: 'Failed to submit quiz' });
-                }
-                
-                res.json({
-                    success: true,
-                    message: 'Test submitted successfully.',
-                    status: 'not_qualified',
-                    quizId: quizId
+                    if (err) {
+                        return res.status(500).json({ success: false, error: 'Failed to submit quiz' });
+                    }
+
+                    res.json({
+                        success: true,
+                        message: 'Test submitted successfully.',
+                        status: 'not_qualified',
+                        quizId: quizId
+                    });
                 });
-            });
             return;
         }
-        
+
         answers.forEach((answer, index) => {
             const { questionId, selectedOptionId } = answer;
-            
+
             if (selectedOptionId === null || selectedOptionId === undefined) {
                 // Unanswered question
                 db.run('INSERT INTO quiz_answers (quiz_id, question_id, selected_option_id, is_correct) VALUES (?, ?, ?, ?)',
                     [quizId, questionId, null, 0], (err) => {
-                    processedAnswers++;
-                    if (processedAnswers === answers.length) {
-                        finishQuizSubmission();
-                    }
-                });
-            } else {
-                // Check if answer is correct
-                db.get('SELECT is_correct FROM options WHERE id = ?', [selectedOptionId], (err, option) => {
-                    const isCorrect = option?.is_correct || 0;
-                    if (isCorrect) totalScore++;
-                    
-                    db.run('INSERT INTO quiz_answers (quiz_id, question_id, selected_option_id, is_correct) VALUES (?, ?, ?, ?)',
-                        [quizId, questionId, selectedOptionId, isCorrect], (err) => {
                         processedAnswers++;
                         if (processedAnswers === answers.length) {
                             finishQuizSubmission();
                         }
                     });
+            } else {
+                // Check if answer is correct
+                db.get('SELECT is_correct FROM options WHERE id = ?', [selectedOptionId], (err, option) => {
+                    const isCorrect = option?.is_correct || 0;
+                    if (isCorrect) totalScore++;
+
+                    db.run('INSERT INTO quiz_answers (quiz_id, question_id, selected_option_id, is_correct) VALUES (?, ?, ?, ?)',
+                        [quizId, questionId, selectedOptionId, isCorrect], (err) => {
+                            processedAnswers++;
+                            if (processedAnswers === answers.length) {
+                                finishQuizSubmission();
+                            }
+                        });
                 });
             }
         });
-        
+
         function finishQuizSubmission() {
             // Update quiz with final score
             db.run('UPDATE quizzes SET score = ?, status = "completed", completed_at = CURRENT_TIMESTAMP WHERE id = ?',
                 [totalScore, quizId], (err) => {
-                if (err) {
-                    return res.status(500).json({ success: false, error: 'Failed to submit quiz' });
-                }
-                
-                // Calculate pass/fail (72% = 36/50)
-                const passed = totalScore >= 36;
-                
-                res.json({
-                    success: true,
-                    message: 'Test submitted successfully. Results will be reviewed by administration.',
-                    status: passed ? 'qualified' : 'not_qualified',
-                    quizId: quizId
+                    if (err) {
+                        return res.status(500).json({ success: false, error: 'Failed to submit quiz' });
+                    }
+
+                    // Calculate pass/fail (72% = 36/50)
+                    const passed = totalScore >= 36;
+
+                    res.json({
+                        success: true,
+                        message: 'Test submitted successfully. Results will be reviewed by administration.',
+                        status: passed ? 'qualified' : 'not_qualified',
+                        quizId: quizId
+                    });
                 });
-            });
         }
     });
 });
@@ -618,7 +618,7 @@ app.get('/api/admin/dashboard', authenticateToken, requireAdmin, (req, res) => {
     if (!db) {
         return res.status(500).json({ success: false, error: 'Database not connected' });
     }
-    
+
     Promise.all([
         new Promise((resolve) => {
             db.get('SELECT COUNT(*) as count FROM students', (err, row) => {
@@ -650,7 +650,7 @@ app.get('/api/admin/results', authenticateToken, requireAdmin, (req, res) => {
     if (!db) {
         return res.status(500).json({ success: false, error: 'Database not connected' });
     }
-    
+
     db.all(`
         SELECT 
             q.id,
@@ -671,7 +671,7 @@ app.get('/api/admin/results', authenticateToken, requireAdmin, (req, res) => {
         if (err) {
             return res.status(500).json({ success: false, error: 'Failed to fetch results' });
         }
-        
+
         res.json({
             success: true,
             results: results || []
@@ -689,7 +689,7 @@ app.get('*', (req, res) => {
     if (req.path.startsWith('/api/')) {
         return res.status(404).json({ error: 'API endpoint not found' });
     }
-    
+
     const indexPath = path.join(publicPath, 'index.html');
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);

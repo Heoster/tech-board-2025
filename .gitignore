@@ -54,7 +54,19 @@ Thumbs.db
 # Test files
 test-report.json
 functionality-test-report.json
+route-connectivity-report.json
+PERFORMANCE_REPORT.json
+database-maintenance-report.json
+deployment-info.json
+deployment-summary.json
 
 # Temporary files
 *.tmp
 *.temp
+
+# Backup files
+server/backups/
+backups/
+
+# Production files with sensitive data
+production.env

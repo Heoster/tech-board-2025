@@ -334,11 +334,30 @@ class Database {
             await this.query('SELECT 1 as health_check');
             const duration = Date.now() - startTime;
             
-            logger.info('Database health check passed', { duration });
-            return { healthy: true, responseTime: duration };
+            // Get question counts for health check
+            let questionCounts = { total: 0, status: 'Unknown' };
+            try {
+                const countResult = await this.query('SELECT COUNT(*) as total FROM questions');
+                questionCounts.total = countResult[0]?.total || 0;
+                questionCounts.status = questionCounts.total > 0 ? 'Ready' : 'Empty';
+            } catch (countError) {
+                logger.warn('Could not get question count for health check', { error: countError.message });
+            }
+            
+            logger.info('Database health check passed', { duration, questions: questionCounts.total });
+            return { 
+                connected: true,
+                healthy: true, 
+                responseTime: duration,
+                questions: questionCounts
+            };
         } catch (error) {
             logger.error('Database health check failed', { error: error.message });
-            return { healthy: false, error: error.message };
+            return { 
+                connected: false,
+                healthy: false, 
+                error: error.message 
+            };
         }
     }
 

@@ -223,15 +223,21 @@ app.get('/api/health', async (req, res) => {
         res.json({
             status: 'OK',
             timestamp: new Date().toISOString(),
-            database: dbHealth,
-            questions: dbHealth.questions || { total: 0 },
+            database: {
+                connected: dbHealth.connected || false,
+                healthy: dbHealth.healthy || false,
+                responseTime: dbHealth.responseTime
+            },
+            questions: dbHealth.questions || { total: 0, status: 'Unknown' },
             uptime: process.uptime()
         });
     } catch (error) {
         res.status(503).json({
             status: 'ERROR',
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            database: { connected: false },
+            questions: { total: 0, status: 'Error' }
         });
     }
 });
