@@ -1,21 +1,26 @@
 {
-  "timestamp": "2025-08-15T10:15:41.440Z",
+  "timestamp": "2025-08-24T12:00:50.897Z",
   "version": "1.0.0",
-  "environment": "production",
-  "features": {
-    "techBoardLogo": true,
-    "maplesAcademyLogo": true,
-    "adminPanel": true,
-    "studentDashboard": true,
-    "quizSystem": true,
-    "database": true,
-    "mimeTypeSupport": true,
-    "securityHeaders": true
+  "server": "production-server.js",
+  "database": "SQLite with auto-seeding",
+  "features": [
+    "Student registration and login",
+    "Admin dashboard",
+    "1500 questions across 5 grades",
+    "50-minute timed tests",
+    "Automatic scoring",
+    "Results management"
+  ],
+  "urls": {
+    "production": "https://tech-board.up.railway.app",
+    "health": "https://tech-board.up.railway.app/api/health",
+    "admin": "https://tech-board.up.railway.app/admin/login",
+    "student": "https://tech-board.up.railway.app/register"
   },
-  "files": {
-    "clientBuild": true,
-    "assets": true,
-    "logos": true,
-    "database": true
+  "credentials": {
+    "admin": {
+      "username": "admin",
+      "password": "admin123"
+    }
   }
 }

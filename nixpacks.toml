@@ -15,4 +15,4 @@ cmds = [
 ]
 
 [start]
-cmd = "cd server && node railway-server.js"
+cmd = "cd server && node complete-production-server.js"

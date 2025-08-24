@@ -34,6 +34,7 @@ RUN apk add --no-cache sqlite
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/server ./server
+COPY --from=builder /app/minimal-railway.js ./minimal-railway.js
 
 # Create directories
 RUN mkdir -p logs database
@@ -45,4 +46,4 @@ ENV NODE_ENV=production
 EXPOSE 8080
 
 # Start application (Railway entrypoint)
-CMD ["node", "server/railway-server.js"]
+CMD ["node", "server/complete-production-server.js"]
