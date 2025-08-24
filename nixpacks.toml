@@ -11,7 +11,8 @@ cmds = [
 [phases.build]
 cmds = [
   "cd client && npm run build",
-  "mkdir -p server/public && cp -r client/dist/* server/public/"
+  "mkdir -p server/public && cp -r client/dist/* server/public/",
+  "node build-production.js"
 ]
 
 [start]
