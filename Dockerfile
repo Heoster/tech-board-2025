@@ -46,4 +46,4 @@ ENV NODE_ENV=production
 EXPOSE 8080
 
 # Start application (Railway entrypoint)
-CMD ["node", "server/complete-production-server.js"]
+CMD ["node", "minimal-railway.js"]
