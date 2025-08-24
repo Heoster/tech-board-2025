@@ -90,5 +90,4 @@ jobs:
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
-        railway login --token $RAILWAY_TOKEN
         railway up --service tech-board-2025
