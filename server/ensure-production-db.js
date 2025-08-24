@@ -7,7 +7,9 @@ const path = require('path');
 
 console.log('🚀 Ensuring production database exists...');
 
-const dbPath = path.join(__dirname, 'database', 'mcq_system_fixed.db');
+// Handle different execution contexts
+const serverDir = __dirname.includes('server') ? __dirname : path.join(__dirname, 'server');
+const dbPath = path.join(serverDir, 'database', 'mcq_system_fixed.db');
 const dbDir = path.dirname(dbPath);
 
 // Ensure database directory exists
@@ -56,7 +58,7 @@ function createDatabase() {
     });
 
     // Read and execute init.sql
-    const initSqlPath = path.join(__dirname, 'database', 'init.sql');
+    const initSqlPath = path.join(serverDir, 'database', 'init.sql');
     if (!fs.existsSync(initSqlPath)) {
         console.error('❌ init.sql not found');
         process.exit(1);

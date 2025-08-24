@@ -17,7 +17,6 @@
     "build": "node ../build-production.js",
     "build:production": "node ../build-production.js",
     "setup:db": "node ensure-production-db.js",
-    "postinstall": "npm run setup:db",
     "railway:build": "npm run build:production",
     "railway:start": "npm run start",
     "start:dev": "node index.js",
