@@ -37,7 +37,7 @@ if "%github_username%"=="" (
 )
 
 REM Add remote origin
-git remote add origin https://github.com/%github_username%/tech-board-2025.git
+git remote add origin https://github.com/%Heoster%/tech-board-2025.git
 
 REM Set main branch
 git branch -M main

@@ -350,7 +350,7 @@ class TechBoardTester {
                     result.status === 'FAILED' ? '❌' : 
                     result.status === 'ERROR' ? '🚫' : 
                     result.status === 'WARNING' ? '⚠️' : '⏭️';
-      await this.log(`  ${status} ${result.test}: ${result.details}`, 'info');
+     await this.log(`  ${status} ${result.test}: ${result.details}`, 'info');
     });
     
     if (successRate >= 80) {
@@ -369,7 +369,7 @@ class TechBoardTester {
       await this.log('\n❌ SYSTEM NOT READY - ISSUES DETECTED', 'error');
       await this.log('\n🔧 Failed Tests:', 'error');
       this.results.filter(r => r.status === 'FAILED' || r.status === 'ERROR').forEach(result => {
-        await this.log(`  - ${result.test}: ${result.details}`, 'error');
+      await this.log(`  - ${result.test}: ${result.details}`, 'error');
       });
     }
     
