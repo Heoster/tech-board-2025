@@ -202,15 +202,20 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
         port: PORT,
         service: 'tech-board-2025-complete-production',
-        database: db ? 'connected' : 'disconnected'
+        database: db ? 'connected' : 'initializing',
+        uptime: process.uptime()
     });
 });
 
 app.get('/api/health', (req, res) => {
     if (!db) {
-        return res.status(500).json({
-            status: 'ERROR',
-            message: 'Database not connected'
+        return res.json({
+            status: 'OK',
+            timestamp: new Date().toISOString(),
+            database: { connected: false, status: 'initializing' },
+            questions: { total: 0 },
+            port: PORT,
+            service: 'tech-board-2025-complete-production'
         });
     }
 

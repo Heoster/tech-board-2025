@@ -27,23 +27,26 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Install runtime dependencies
+# Install sqlite3 and other runtime dependencies
 RUN apk add --no-cache sqlite
 
 # Copy built application
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/server ./server
-COPY --from=builder /app/minimal-railway.js ./minimal-railway.js
+COPY --from=builder /app/database ./database
 
-# Create directories
-RUN mkdir -p logs database
+# Create logs directory
+RUN mkdir -p logs
 
-# Set environment (PORT provided by Railway at runtime)
+# Set environment
 ENV NODE_ENV=production
+ENV PORT=8000
 
-# Expose common Railway port
-EXPOSE 8080
+# Expose port
+EXPOSE 8000
 
-# Start application (Railway entrypoint)
-CMD ["node", "minimal-railway.js"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Start application
+CMD ["node", "server/index.js"]

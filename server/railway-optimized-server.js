@@ -4,15 +4,11 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-// Railway provides PORT, fallback to 8080 for local testing
 const PORT = process.env.PORT || 8080;
 
 console.log('🚀 Starting Railway Optimized Server');
 console.log('Port:', PORT);
 console.log('Node version:', process.version);
-console.log('Environment:', process.env.NODE_ENV || 'development');
-console.log('Working directory:', process.cwd());
-console.log('Server file:', __filename);
 
 // Basic middleware
 app.use(cors({
@@ -25,19 +21,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Immediate health check (no database dependency)
 app.get('/health', (req, res) => {
-    console.log('🔍 Health check requested');
-    const healthData = {
+    res.json({
         status: 'OK',
         timestamp: new Date().toISOString(),
         port: PORT,
         service: 'tech-board-2025-railway-optimized',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        version: '1.0.0',
-        database: db ? 'connected' : 'basic-mode'
-    };
-    console.log('✅ Health check response:', healthData);
-    res.json(healthData);
+        version: '1.0.0'
+    });
 });
 
 // API health check (also immediate)
@@ -49,17 +41,6 @@ app.get('/api/health', (req, res) => {
         service: 'tech-board-2025-railway-optimized',
         database: { status: 'ready' },
         uptime: process.uptime()
-    });
-});
-
-// Root endpoint for quick health check
-app.get('/', (req, res) => {
-    console.log('🏠 Root endpoint accessed');
-    res.json({
-        message: 'Tech Board 2025 - Railway Deployment',
-        status: 'running',
-        timestamp: new Date().toISOString(),
-        version: '1.0.0'
     });
 });
 
@@ -85,6 +66,7 @@ app.get('/api', (req, res) => {
 
 // Initialize database after server starts (non-blocking)
 let db = null;
+let dbReady = false;
 
 function initDatabase() {
     console.log('🔄 Initializing database...');
@@ -93,141 +75,40 @@ function initDatabase() {
         const sqlite3 = require('sqlite3').verbose();
         const dbPath = path.join(__dirname, 'database', 'mcq_system_fixed.db');
         
-        console.log('📍 Looking for database at:', dbPath);
-        
         if (!fs.existsSync(dbPath)) {
-            console.log('❌ Database file not found, using basic functionality');
-            loadBasicFunctionality();
+            console.log('❌ Database file not found:', dbPath);
             return;
         }
         
-        db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY, (err) => {
+        db = new sqlite3.Database(dbPath, (err) => {
             if (err) {
                 console.error('❌ Database connection failed:', err.message);
-                console.log('🔄 Falling back to basic functionality');
-                loadBasicFunctionality();
                 return;
             }
-            console.log('✅ Database connected successfully');
-            loadDatabaseFunctionality();
+            console.log('✅ Database connected');
+            dbReady = true;
+            
+            // Load the complete server functionality
+            loadCompleteServer();
         });
-        
-        // Set a timeout for database connection
-        setTimeout(() => {
-            if (!db || db.open === false) {
-                console.log('⏰ Database connection timeout, using basic functionality');
-                loadBasicFunctionality();
-            }
-        }, 5000);
-        
     } catch (error) {
         console.error('❌ Database initialization error:', error.message);
-        console.log('🔄 Using basic functionality instead');
-        loadBasicFunctionality();
     }
 }
 
-function loadDatabaseFunctionality() {
-    console.log('🔄 Loading database functionality...');
+function loadCompleteServer() {
+    console.log('🔄 Loading complete server functionality...');
     
-    const bcrypt = require('bcrypt');
-    const jwt = require('jsonwebtoken');
-    const JWT_SECRET = process.env.JWT_SECRET || 'tech-board-2025-secret-key';
-    
-    // Authentication middleware
-    function authenticateToken(req, res, next) {
-        const authHeader = req.headers['authorization'];
-        const token = authHeader && authHeader.split(' ')[1];
-
-        if (!token) {
-            return res.status(401).json({ success: false, error: 'Access token required' });
-        }
-
-        jwt.verify(token, JWT_SECRET, (err, user) => {
-            if (err) {
-                return res.status(403).json({ success: false, error: 'Invalid token' });
-            }
-            req.user = user;
-            next();
-        });
-    }
-
-    // Admin middleware
-    function requireAdmin(req, res, next) {
-        if (req.user.type !== 'admin') {
-            return res.status(403).json({ success: false, error: 'Admin access required' });
-        }
-        next();
-    }
-    
-    // Admin login with database
-    app.post('/api/auth/admin/login', async (req, res) => {
-        const { username, password } = req.body;
+    try {
+        // Load the complete production server routes
+        const completeServer = require('./complete-production-server');
+        console.log('✅ Complete server functionality loaded');
+    } catch (error) {
+        console.error('❌ Failed to load complete server:', error.message);
         
-        if (!username || !password) {
-            return res.status(400).json({ success: false, error: 'Missing credentials' });
-        }
-        
-        db.get('SELECT * FROM admins WHERE username = ?', [username], async (err, admin) => {
-            if (err || !admin) {
-                return res.status(401).json({ success: false, error: 'Invalid credentials' });
-            }
-            
-            // Check password - handle both hashed and plain text
-            let passwordValid = false;
-            try {
-                passwordValid = await bcrypt.compare(password, admin.password);
-            } catch (bcryptError) {
-                passwordValid = password === admin.password;
-            }
-            
-            if (passwordValid) {
-                const token = jwt.sign({ 
-                    id: admin.id, 
-                    type: 'admin', 
-                    username: admin.username 
-                }, JWT_SECRET, { expiresIn: '24h' });
-                
-                res.json({ 
-                    success: true, 
-                    token,
-                    user: { username: admin.username, type: 'admin' }
-                });
-            } else {
-                res.status(401).json({ success: false, error: 'Invalid credentials' });
-            }
-        });
-    });
-    
-    // Admin dashboard with database
-    app.get('/api/admin/dashboard', authenticateToken, requireAdmin, (req, res) => {
-        Promise.all([
-            new Promise((resolve) => {
-                db.get('SELECT COUNT(*) as count FROM students', (err, row) => {
-                    resolve(row ? row.count : 0);
-                });
-            }),
-            new Promise((resolve) => {
-                db.get('SELECT COUNT(*) as count FROM questions', (err, row) => {
-                    resolve(row ? row.count : 0);
-                });
-            }),
-            new Promise((resolve) => {
-                db.get('SELECT COUNT(*) as count FROM quizzes WHERE status = "completed"', (err, row) => {
-                    resolve(row ? row.count : 0);
-                });
-            })
-        ]).then(([totalStudents, totalQuestions, totalQuizzes]) => {
-            res.json({
-                success: true,
-                totalStudents,
-                totalQuestions,
-                totalQuizzes
-            });
-        });
-    });
-    
-    console.log('✅ Database functionality loaded');
+        // Fallback: Load basic functionality
+        loadBasicFunctionality();
+    }
 }
 
 function loadBasicFunctionality() {
@@ -374,29 +255,8 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`🌐 Health check: http://0.0.0.0:${PORT}/health`);
     console.log(`🎓 Application ready for Railway health checks`);
     
-    // Initialize database after server is running (non-blocking)
-    setTimeout(() => {
-        try {
-            initDatabase();
-        } catch (error) {
-            console.error('❌ Database initialization error:', error.message);
-            // Continue running with basic functionality
-        }
-    }, 500);
-});
-
-// Handle server startup errors
-server.on('error', (error) => {
-    console.error('❌ Server startup error:', error.message);
-    if (error.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use`);
-        process.exit(1);
-    }
-});
-
-// Ensure server starts successfully
-server.on('listening', () => {
-    console.log(`🚀 Server successfully listening on port ${PORT}`);
+    // Initialize database after server is running
+    setTimeout(initDatabase, 1000);
 });
 
 // Graceful shutdown

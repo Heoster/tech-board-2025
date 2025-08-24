@@ -13,8 +13,9 @@ cmds = [
   "cd client && npm run build",
   "mkdir -p server/public && cp -r client/dist/* server/public/",
   "mkdir -p server/database",
-  "cd server && npm run setup:db",
-  "node build-production.js"
+  "cd server && node create-build-db.js",
+  "node test-server-startup.js",
+  "node verify-deployment-ready.js"
 ]
 
 [start]
