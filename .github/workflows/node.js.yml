@@ -90,4 +90,5 @@ jobs:
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
+        railway link 634dc857-5a4c-405f-b1d8-d7c67af38732
         railway up --service tech-board-2025
