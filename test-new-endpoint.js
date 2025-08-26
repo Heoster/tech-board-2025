@@ -2,12 +2,12 @@
 
 const https = require('https');
 
-console.log('🧪 Testing main page...');
+console.log('🧪 Testing new endpoint...');
 
 const options = {
     hostname: 'tech-board.up.railway.app',
     port: 443,
-    path: '/',
+    path: '/test-new-server',
     method: 'GET',
     rejectUnauthorized: false,
     headers: {
@@ -18,35 +18,20 @@ const options = {
 const req = https.request(options, (res) => {
     console.log(`Status: ${res.statusCode}`);
     console.log(`Content-Type: ${res.headers['content-type']}`);
-
+    
     let data = '';
     res.on('data', (chunk) => {
         data += chunk;
     });
-
+    
     res.on('end', () => {
-        console.log(`Response size: ${data.length} bytes`);
-
-        if (data.includes('<!doctype html>')) {
-            console.log('✅ HTML document detected');
+        console.log(`Response: ${data}`);
+        
+        if (data.includes('NEW SERVER IS RUNNING')) {
+            console.log('✅ NEW server is working!');
+        } else {
+            console.log('❌ Still old server or error');
         }
-
-        if (data.includes('id="root"')) {
-            console.log('✅ React root element found');
-        }
-
-        if (data.includes('/assets/index-')) {
-            console.log('✅ Vite build assets referenced');
-        }
-
-        if (data.includes('Techno Board') || data.includes('Tech Board')) {
-            console.log('✅ App title found');
-        }
-
-        // Show first 500 characters
-        console.log('\n📄 Response preview:');
-        console.log(data.substring(0, 500));
-        console.log(data.length > 500 ? '...' : '');
     });
 });
 
