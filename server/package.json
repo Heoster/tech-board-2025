@@ -1,12 +1,12 @@
 {
   "name": "tech-board-2025-server",
   "version": "1.0.0",
-  "main": "railway-minimal.js",
+  "main": "app.js",
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
-    "start": "node railway-minimal.js",
+    "start": "node app.js",
     "start:emergency": "node emergency-server.js",
     "dev": "nodemon index.js",
     "test": "jest",
