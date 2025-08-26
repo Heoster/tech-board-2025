@@ -52,16 +52,7 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Root endpoint for quick health check
-app.get('/', (req, res) => {
-    console.log('🏠 Root endpoint accessed');
-    res.json({
-        message: 'Tech Board 2025 - Railway Deployment',
-        status: 'running',
-        timestamp: new Date().toISOString(),
-        version: '1.0.0'
-    });
-});
+// Root endpoint removed - let React app handle root path
 
 // Basic API info
 app.get('/api', (req, res) => {
