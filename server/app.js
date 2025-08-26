@@ -14,9 +14,20 @@ console.log('Server file: app.js');
 app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
-        server: 'NEW-railway-app-server', 
+        server: 'BRAND-NEW-SERVER-2025', 
         timestamp: new Date().toISOString(),
-        message: 'This is the NEW server running!'
+        message: 'BRAND NEW SERVER IS WORKING!',
+        version: '2.0.0-NEW',
+        deployment: 'LATEST-COMMIT'
+    });
+});
+
+// New test endpoint
+app.get('/test-new-server', (req, res) => {
+    res.json({
+        message: 'NEW SERVER IS RUNNING!',
+        timestamp: new Date().toISOString(),
+        server: 'app.js'
     });
 });
 
