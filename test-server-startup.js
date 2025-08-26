@@ -1,55 +1,46 @@
 #!/usr/bin/env node
 
-console.log('🧪 Testing server startup...');
+const fs = require('fs');
+const path = require('path');
 
-// Test if the server file can be loaded
-try {
-    console.log('📁 Checking server file...');
-    const serverPath = './server/railway-production-server.js';
-    const fs = require('fs');
-    
-    if (!fs.existsSync(serverPath)) {
-        console.error('❌ Server file not found:', serverPath);
-        process.exit(1);
-    }
-    
-    console.log('✅ Server file exists');
-    
-    // Test if dependencies are available
-    console.log('📦 Checking dependencies...');
-    const requiredModules = ['express', 'cors', 'sqlite3', 'bcrypt', 'jsonwebtoken'];
-    
-    for (const module of requiredModules) {
-        try {
-            require(module);
-            console.log(`✅ ${module}`);
-        } catch (error) {
-            console.error(`❌ ${module}: ${error.message}`);
-            process.exit(1);
-        }
-    }
-    
-    console.log('✅ All dependencies available');
-    
-    // Test database directory
-    console.log('🗄️ Checking database setup...');
-    const dbDir = './server/database';
-    const dbPath = './server/database/mcq_system_fixed.db';
-    
-    if (!fs.existsSync(dbDir)) {
-        console.log('📁 Creating database directory...');
-        fs.mkdirSync(dbDir, { recursive: true });
-    }
-    
-    if (fs.existsSync(dbPath)) {
-        console.log('✅ Database file exists');
-    } else {
-        console.log('⚠️ Database file not found - will use basic functionality');
-    }
-    
-    console.log('✅ Server startup test passed!');
-    
-} catch (error) {
-    console.error('❌ Server startup test failed:', error.message);
+console.log('🧪 Testing server startup configuration...');
+
+// Check if the correct server file exists
+const serverFile = path.join(__dirname, 'server', 'railway-production-server.js');
+if (!fs.existsSync(serverFile)) {
+    console.error('❌ railway-production-server.js not found');
     process.exit(1);
 }
+console.log('✅ railway-production-server.js exists');
+
+// Check if React build files exist
+const indexFile = path.join(__dirname, 'server', 'public', 'index.html');
+if (!fs.existsSync(indexFile)) {
+    console.error('❌ React build files not found in server/public');
+    process.exit(1);
+}
+console.log('✅ React build files found in server/public');
+
+// Check package.json configuration
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'server', 'package.json'), 'utf8'));
+if (packageJson.main !== 'railway-production-server.js') {
+    console.error('❌ package.json main field should point to railway-production-server.js');
+    process.exit(1);
+}
+console.log('✅ package.json main field correctly configured');
+
+if (packageJson.scripts.start !== 'node railway-production-server.js') {
+    console.error('❌ package.json start script should run railway-production-server.js');
+    process.exit(1);
+}
+console.log('✅ package.json start script correctly configured');
+
+// Check nixpacks configuration
+const nixpacksConfig = fs.readFileSync(path.join(__dirname, 'nixpacks.toml'), 'utf8');
+if (!nixpacksConfig.includes('npm start')) {
+    console.error('❌ nixpacks.toml should use npm start');
+    process.exit(1);
+}
+console.log('✅ nixpacks.toml correctly configured');
+
+console.log('🎉 All server startup checks passed!');
