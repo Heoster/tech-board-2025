@@ -30,11 +30,13 @@ app.get('/health', (req, res) => {
         status: 'OK',
         timestamp: new Date().toISOString(),
         port: PORT,
-        service: 'tech-board-2025-railway-optimized',
+        service: 'RAILWAY-PRODUCTION-SERVER-FRONTEND-READY',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        version: '1.0.0',
-        database: db ? 'connected' : 'basic-mode'
+        version: '2.0.0-FRONTEND',
+        database: db ? 'connected' : 'basic-mode',
+        server: 'railway-production-server.js',
+        frontend: 'React app ready'
     };
     console.log('✅ Health check response:', healthData);
     res.json(healthData);
