@@ -15,8 +15,9 @@ cmds = [
   "mkdir -p server/database",
   "cd server && node create-build-db.js",
   "node test-server-startup.js",
-  "node verify-deployment-ready.js"
+  "node verify-deployment-ready.js",
+  "echo 'Build complete - will start railway-production-server.js'"
 ]
 
 [start]
-cmd = "cd server && npm start"
+cmd = "cd server && node railway-production-server.js"
